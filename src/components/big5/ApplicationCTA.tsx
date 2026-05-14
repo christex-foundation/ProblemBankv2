@@ -79,7 +79,7 @@ const ApplicationCTA = memo(function ApplicationCTA() {
                 <Big5SubmissionForm />
 
                  <Link
-                   href="/ideas"
+                   href="/hackathon/ideas"
                    className="group relative overflow-hidden inline-block px-8 py-4 rounded-full border-2 border-[#f7efe3] text-[#f7efe3] font-medium text-lg transition-all duration-300 hover:scale-105 w-full sm:w-auto"
                  >
                   <div

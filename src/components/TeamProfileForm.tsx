@@ -111,7 +111,7 @@ export default function TeamProfileForm() {
     }
 
     try {
-      const response = await fetch('/api/teamboard', {
+      const response = await fetch('/hackathon/api/teamboard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

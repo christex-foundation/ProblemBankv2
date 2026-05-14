@@ -48,7 +48,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       setLoading(true);
       try {
         // Fetch all ideas without query parameter to get everything
-        const response = await fetch('/api/ideas?pageSize=1000');
+        const response = await fetch('/hackathon/api/ideas?pageSize=1000');
         const data = await response.json();
         setAllIdeas(data.items || []);
       } catch (error) {
@@ -102,7 +102,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       id: item.id,
       title: item.title,
       description: item.blurb || '',
-      url: `/ideas/${slugifyTitle(item.title)}`,
+      url: `/hackathon/ideas/${slugifyTitle(item.title)}`,
     }));
 
     // Search Resources locally
@@ -111,7 +111,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
       id: slugifyTitle(kit.title),
       title: kit.title,
       description: kit.description,
-      url: `/resources#${slugifyTitle(kit.title)}`,
+      url: `/hackathon/resources#${slugifyTitle(kit.title)}`,
     }));
 
     setResults([...ideaResults, ...resourceResults]);

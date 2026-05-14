@@ -1,0 +1,114 @@
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
+import BuilderProfileEditor from '@/components/builders/BuilderProfileEditor';
+import BuilderRepoActivity from '@/components/library/BuilderRepoActivity';
+
+export const dynamic = 'force-dynamic';
+
+export default async function BuilderProfile({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const session = await auth();
+
+  const user = await prisma.user
+    .findUnique({
+      where: { id },
+      include: {
+        buildEntries: {
+          include: { libraryEntry: { select: { title: true, slug: true } } },
+          orderBy: { registeredAt: 'desc' },
+        },
+      },
+    })
+    .catch(() => null);
+
+  if (!user) notFound();
+  const isOwner = session?.user?.id === id;
+
+  const hasContact = !!(user.contactEmail || user.githubUrl || user.websiteUrl);
+
+  return (
+    <main className="max-w-3xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold">{user.name ?? 'Anonymous builder'}</h1>
+      {user.bio && <p className="text-gray-700 mt-2">{user.bio}</p>}
+
+      {hasContact && (
+        <section className="mt-4">
+          <h2 className="font-semibold">Contact</h2>
+          <ul className="text-sm space-y-1 mt-1">
+            {user.contactEmail && (
+              <li>
+                <a href={`mailto:${user.contactEmail}`} className="underline">
+                  {user.contactEmail}
+                </a>
+              </li>
+            )}
+            {user.githubUrl && (
+              <li>
+                <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                  {user.githubUrl}
+                </a>
+              </li>
+            )}
+            {user.websiteUrl && (
+              <li>
+                <a href={user.websiteUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                  {user.websiteUrl}
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
+
+      <section className="mt-8">
+        <h2 className="font-semibold mb-2">Currently Building</h2>
+        {user.buildEntries.length === 0 ? (
+          <p className="text-sm text-gray-500">Not registered on any Library entry yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {user.buildEntries.map((b) => (
+              <li key={b.id} className="border rounded p-3">
+                <Link href={`/library/${b.libraryEntry.slug}`} className="font-medium underline">
+                  {b.libraryEntry.title}
+                </Link>
+                {b.repoUrl && (
+                  <>
+                    <p className="text-xs text-gray-600 mt-1 break-all">
+                      <a
+                        href={b.repoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        {b.repoUrl}
+                      </a>
+                    </p>
+                    <BuilderRepoActivity repoUrl={b.repoUrl} />
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {isOwner && (
+        <BuilderProfileEditor
+          user={{
+            name: user.name,
+            bio: user.bio,
+            contactEmail: user.contactEmail,
+            githubUrl: user.githubUrl,
+            websiteUrl: user.websiteUrl,
+          }}
+        />
+      )}
+    </main>
+  );
+}

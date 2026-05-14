@@ -19,7 +19,7 @@ export default function TeamProfilesClient({ initialProfiles = [] }: TeamProfile
     setError(null);
     
     try {
-      const response = await fetch('/api/teamboard');
+      const response = await fetch('/hackathon/api/teamboard');
       if (!response.ok) {
         throw new Error('Failed to fetch profiles');
       }

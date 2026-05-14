@@ -5,7 +5,7 @@ import Image from 'next/image';
 export default function CivicHackathonBanner() {
   return (
     <div className="w-full bg-[#f9f2e9] py-4">
-      <Link href="/civic-hackathon" className="block max-w-7xl mx-auto px-4 md:px-8">
+      <Link href="/hackathon/civic-hackathon" className="block max-w-7xl mx-auto px-4 md:px-8">
         <div className="relative w-full bg-gradient-to-r from-[#513f2a] to-[#6b5538] rounded-[20px] py-4 px-6 md:px-8 overflow-hidden hover:from-[#5d4830] hover:to-[#76603f] transition-all duration-300">
           {/* Noise Texture Overlay */}
           <div

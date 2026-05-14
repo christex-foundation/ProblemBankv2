@@ -69,7 +69,7 @@ export default function Big5SubmissionForm() {
   const fetchIdeas = async () => {
     setLoadingIdeas(true);
     try {
-      const response = await fetch('/api/ideas?pageSize=100');
+      const response = await fetch('/hackathon/api/ideas?pageSize=100');
       if (response.ok) {
         const data = await response.json();
         // Extract title from each idea - API returns 'items' not 'ideas'
@@ -102,7 +102,7 @@ export default function Big5SubmissionForm() {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/big5', {
+      const response = await fetch('/hackathon/api/big5', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

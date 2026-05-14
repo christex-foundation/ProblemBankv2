@@ -44,7 +44,7 @@ export default function TechStackSection({ repo }: TechStackSectionProps) {
       setIsLoading(true);
       setError(null);
       
-      fetch(`/api/readme?url=${encodeURIComponent(repo)}`)
+      fetch(`/hackathon/api/readme?url=${encodeURIComponent(repo)}`)
         .then(res => res.json())
         .then(data => {
           if (data.error) {

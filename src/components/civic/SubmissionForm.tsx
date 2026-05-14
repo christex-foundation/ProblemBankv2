@@ -117,7 +117,7 @@ export default function SubmissionForm() {
     setErrorMessage('');
 
     try {
-      const response = await fetch('/api/civic/submissions', {
+      const response = await fetch('/hackathon/api/civic/submissions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

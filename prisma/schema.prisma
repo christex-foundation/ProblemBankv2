@@ -1,0 +1,203 @@
+// Problem Bank — Prisma schema
+// Authoritative data model per Technical Design §5.
+// Note: gaining_traction is NEVER stored — computed at query time.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- ENUMS ----------
+
+enum UserRole {
+  user
+  admin
+}
+
+enum SubmissionStatus {
+  submitted
+  under_review
+  research_in_progress
+  not_viable
+  live
+}
+
+enum Urgency {
+  critical
+  high
+  medium
+  low
+}
+
+enum DocType {
+  concept_note
+  prd
+  technical_design
+  user_flows
+  roadmap
+  pitch_deck
+}
+
+enum NotificationType {
+  status_change
+  new_comment
+}
+
+// ---------- MODELS ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String?
+  name         String?
+  bio          String? // 160 char limit enforced at application level
+  githubUrl    String?
+  contactEmail String?
+  websiteUrl   String?
+  role         UserRole @default(user)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submissions    Submission[]
+  votes          Vote[]
+  comments       Comment[]
+  buildEntries   BuildRegistry[]
+  notifications  Notification[]
+  createdEntries LibraryEntry[]  @relation("EntryCreator")
+}
+
+model Submission {
+  id                String           @id @default(cuid())
+  userId            String
+  title             String // 80 char limit enforced at application level
+  description       String // HTML from Tiptap
+  potentialSolution String? // HTML from Tiptap
+  urgency           Urgency
+  category          String // free-form; list maintained in lib/enums.ts
+  status            SubmissionStatus @default(submitted)
+  voteCount         Int              @default(0)
+  commentCount      Int              @default(0)
+  libraryEntryId    String?
+  createdAt         DateTime         @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  libraryEntry LibraryEntry? @relation(fields: [libraryEntryId], references: [id])
+  votes        Vote[]
+  comments     Comment[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([category])
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  userId       String
+  submissionId String
+  votedAt      DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, submissionId])
+  @@index([votedAt])
+  @@index([userId, votedAt])
+}
+
+model Comment {
+  id           String   @id @default(cuid())
+  userId       String
+  submissionId String
+  content      String
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+}
+
+model LibraryEntry {
+  id               String    @id @default(cuid())
+  slug             String    @unique
+  title            String
+  problemStatement String // HTML from Tiptap
+  sector           String
+  urgency          Urgency
+  kitUrl           String?
+  demoUrl          String?
+  infographicUrl   String?
+  publishedAt      DateTime?
+  createdBy        String
+  badgeFetchCount  Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  creator       User            @relation("EntryCreator", fields: [createdBy], references: [id])
+  documents     Document[]
+  buildRegistry BuildRegistry[]
+  badgePings    BadgePing[]
+  submissions   Submission[]
+
+  @@index([publishedAt])
+  @@index([sector])
+}
+
+model Document {
+  id             String   @id @default(cuid())
+  libraryEntryId String
+  docType        DocType
+  cloudinaryUrl  String
+  fileName       String
+  uploadedAt     DateTime @default(now())
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+
+  @@unique([libraryEntryId, docType])
+}
+
+model BuildRegistry {
+  id             String   @id @default(cuid())
+  userId         String
+  libraryEntryId String
+  repoUrl        String?
+  registeredAt   DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, libraryEntryId])
+  @@index([libraryEntryId])
+}
+
+model BadgePing {
+  id             String   @id @default(cuid())
+  libraryEntryId String
+  pingedAt       DateTime @default(now())
+
+  libraryEntry LibraryEntry @relation(fields: [libraryEntryId], references: [id], onDelete: Cascade)
+
+  @@index([libraryEntryId, pingedAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}

@@ -127,7 +127,7 @@ const FocusAreasSection = memo(function FocusAreasSection() {
         {/* CTA to Ideas Page */}
         <div className="flex justify-center">
           <Link
-            href="/ideas"
+            href="/hackathon/ideas"
             className="group relative overflow-hidden inline-block px-10 py-5 rounded-full bg-[#E6B800] border-2 border-[#1e1e1e] text-[#1e1e1e] font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
             style={{ fontFamily: 'Raleway, sans-serif' }}
           >

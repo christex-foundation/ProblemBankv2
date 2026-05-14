@@ -14,12 +14,12 @@ export default function IdeaBottomNav({ previousIdea, nextIdea, isCivicIdea, isB
   // Determine the correct back link based on the idea category
   const getBackLink = () => {
     if (isCivicIdea) {
-      return '/ideas/civic';
+      return '/hackathon/ideas/civic';
     }
     if (isBig5Idea) {
-      return '/ideas/big5';
+      return '/hackathon/ideas/big5';
     }
-    return '/ideas';
+    return '/hackathon/ideas';
   };
 
   const backLink = getBackLink();
@@ -32,7 +32,7 @@ export default function IdeaBottomNav({ previousIdea, nextIdea, isCivicIdea, isB
             {/* Previous Button - Left Arrow */}
             {previousIdea ? (
               <Link
-                href={`/ideas/${previousIdea.slug}`}
+                href={`/hackathon/ideas/${previousIdea.slug}`}
                 className="inline-flex items-center justify-center w-12 h-12 rounded-full border transition-colors hover:bg-[#f2e8dc] hover:border-[#d8cdbc]"
                 style={{
                   backgroundColor: 'transparent',
@@ -116,7 +116,7 @@ export default function IdeaBottomNav({ previousIdea, nextIdea, isCivicIdea, isB
             {/* Next Button - Right Arrow */}
             {nextIdea ? (
               <Link
-                href={`/ideas/${nextIdea.slug}`}
+                href={`/hackathon/ideas/${nextIdea.slug}`}
                 className="inline-flex items-center justify-center w-12 h-12 rounded-full border transition-colors hover:bg-[#f2e8dc] hover:border-[#d8cdbc]"
                 style={{
                   backgroundColor: 'transparent',

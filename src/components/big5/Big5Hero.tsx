@@ -254,7 +254,7 @@ export default function Big5Hero() {
         {/* Terms & Conditions Link */}
         <div className="mt-6">
           <Link
-            href="/terms"
+            href="/hackathon/terms"
             className="inline-block text-sm md:text-base text-[#1e1e1e] hover:text-[#403f3e] transition-colors duration-200 underline"
             style={{ fontFamily: 'Raleway, sans-serif', fontWeight: 600 }}
           >

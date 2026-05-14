@@ -18,15 +18,15 @@ const ResourcesSubnav: React.FC = () => {
         }}
       >
         <Link
-          href="/resources/kits"
+          href="/hackathon/resources/kits"
           className={`flex-1 sm:flex-none px-3 py-2 sm:px-4 sm:py-2 rounded-full transition-all duration-200 text-xs sm:text-base text-center ${
-            pathname === '/resources/kits'
+            pathname === '/hackathon/resources/kits'
               ? 'font-semibold'
               : 'hover:bg-[#f2e8dc]'
           }`}
           style={{
-            color: pathname === '/resources/kits' ? '#403f3e' : '#666',
-            backgroundColor: pathname === '/resources/kits' ? '#f2e8dc' : 'transparent',
+            color: pathname === '/hackathon/resources/kits' ? '#403f3e' : '#666',
+            backgroundColor: pathname === '/hackathon/resources/kits' ? '#f2e8dc' : 'transparent',
           }}
         >
           Builder&apos;s Kits
@@ -38,15 +38,15 @@ const ResourcesSubnav: React.FC = () => {
           |
         </span>
         <Link
-          href="/resources/tech"
+          href="/hackathon/resources/tech"
           className={`flex-1 sm:flex-none px-3 py-2 sm:px-4 sm:py-2 rounded-full transition-all duration-200 text-xs sm:text-base text-center ${
-            pathname === '/resources/tech'
+            pathname === '/hackathon/resources/tech'
               ? 'font-semibold'
               : 'hover:bg-[#f2e8dc]'
           }`}
           style={{
-            color: pathname === '/resources/tech' ? '#403f3e' : '#666',
-            backgroundColor: pathname === '/resources/tech' ? '#f2e8dc' : 'transparent',
+            color: pathname === '/hackathon/resources/tech' ? '#403f3e' : '#666',
+            backgroundColor: pathname === '/hackathon/resources/tech' ? '#f2e8dc' : 'transparent',
           }}
         >
           Tech Stack

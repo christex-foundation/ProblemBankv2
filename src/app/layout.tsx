@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Footer } from "../components";
+import SessionProviderWrapper from "../components/SessionProviderWrapper";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,33 +20,41 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://build.christex.foundation'),
-  title: "ProblemBank",
-  description: "Find inspiration for your next build with vetted ideas and step-by-step guidance",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_BASE_URL ?? 'https://build.christex.foundation',
+  ),
+  title: {
+    default: 'Problem Bank',
+    template: '%s · Problem Bank',
+  },
+  description:
+    "A research-backed intelligence platform for Sierra Leone's most important unsolved problems. Read, download, build.",
   icons: {
-    icon: "/images/black%20logo%20mark%20size=48@2x.png",
+    icon: '/images/black%20logo%20mark%20size=48@2x.png',
   },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'build.christex.foundation',
-    siteName: 'ProblemBank',
-    title: 'ProblemBank - Find Your Next Build Idea',
-    description: 'Find inspiration for your next build with vetted ideas and step-by-step guidance',
+    url: '/',
+    siteName: 'Problem Bank',
+    title: 'Problem Bank',
+    description:
+      "A research-backed intelligence platform for Sierra Leone's most important unsolved problems.",
     images: [
       {
         url: '/images/hero.png',
         width: 1200,
         height: 630,
-        alt: 'ProblemBank - Build Ideas & Resources',
+        alt: 'Problem Bank',
         type: 'image/png',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ProblemBank - Find Your Next Build Idea',
-    description: 'Find inspiration for your next build with vetted ideas and step-by-step guidance',
+    title: 'Problem Bank',
+    description:
+      "A research-backed intelligence platform for Sierra Leone's most important unsolved problems.",
     images: ['/images/hero.png'],
   },
 };
@@ -59,8 +69,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Footer />
+        <SessionProviderWrapper>
+          {children}
+          <Footer />
+        </SessionProviderWrapper>
+        <Toaster richColors position="bottom-right" />
       </body>
     </html>
   );

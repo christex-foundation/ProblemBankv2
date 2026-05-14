@@ -25,7 +25,7 @@ export default function CacheMonitor({ className = '' }: CacheMonitorProps) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/cache');
+      const response = await fetch('/hackathon/api/cache');
       const data = await response.json();
       setCacheInfo(data);
     } catch (err) {
@@ -39,7 +39,7 @@ export default function CacheMonitor({ className = '' }: CacheMonitorProps) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/cache', {
+      const response = await fetch('/hackathon/api/cache', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),

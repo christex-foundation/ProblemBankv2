@@ -193,7 +193,7 @@ const EligibilitySection = memo(function EligibilitySection() {
             {/* Find a Team CTA */}
             <div className="mt-12 flex justify-center">
               <a
-                href="/find-a-team"
+                href="/hackathon/find-a-team"
                 className="group relative overflow-hidden inline-block px-8 py-4 rounded-full border-2 border-[#f7efe3] text-[#f7efe3] font-medium text-lg transition-all duration-300 hover:scale-105"
               >
                 <div

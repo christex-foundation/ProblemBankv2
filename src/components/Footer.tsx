@@ -91,7 +91,7 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-2 text-sm">
           <p>© 2025 Problem Bank. All rights reserved.</p>
           <Link
-            href="/terms"
+            href="/hackathon/terms"
             className="text-[#E6B800] hover:text-[#f0b420] transition-colors duration-200 hover:underline"
           >
             Terms & Conditions

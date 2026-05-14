@@ -18,12 +18,12 @@ const Navigation: React.FC<NavigationProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const items = [
-    { label: 'Ideas', href: '/ideas' },
-    { label: 'Resources', href: '/resources' },
-    { label: 'Big 5 Hackathon', href: '/big5' },
-    { label: 'Civic Hackathon', href: '/civic-hackathon' },
-    // { label: 'Find Team', href: '/find-a-team' },
-    { label: 'About', href: '/about' },
+    { label: 'Ideas', href: '/hackathon/ideas' },
+    { label: 'Resources', href: '/hackathon/resources' },
+    { label: 'Big 5 Hackathon', href: '/hackathon/big5' },
+    { label: 'Civic Hackathon', href: '/hackathon/civic-hackathon' },
+    // { label: 'Find Team', href: '/hackathon/find-a-team' },
+    { label: 'About', href: '/hackathon/about' },
   ] as const;
 
   const isActive = (href: string) => href !== '#' && pathname.startsWith(href);

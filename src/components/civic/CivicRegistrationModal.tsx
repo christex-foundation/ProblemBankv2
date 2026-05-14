@@ -54,7 +54,7 @@ export default function CivicRegistrationModal({ isOpen, onClose }: CivicRegistr
 
     try {
       // Submit to Airtable API
-      const response = await fetch('/api/civic-registration', {
+      const response = await fetch('/hackathon/api/civic-registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

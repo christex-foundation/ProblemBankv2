@@ -21,7 +21,7 @@ const TechStackFilters: React.FC<TechStackFiltersProps> = ({
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/tech-stacks/categories');
+        const response = await fetch('/hackathon/api/tech-stacks/categories');
         if (response.ok) {
           const data = await response.json();
           setCategories(data);
