@@ -3,8 +3,9 @@ import Google from 'next-auth/providers/google';
 import GitHub from 'next-auth/providers/github';
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { checkOtp, isTwilioConfigured } from '@/lib/twilio';
+import type { UserRow } from '@/types/database';
 
 // In-memory OTP attempt tracker (best-effort; resets on server restart).
 // 3 wrong attempts → 15-minute lockout per phone number.
@@ -47,6 +48,37 @@ declare module 'next-auth' {
 }
 
 type UserRole = 'user' | 'admin';
+
+async function findUserByPhone(phone: string): Promise<UserRow | null> {
+  const supabase = getSupabase();
+  const { data } = await supabase.from('User').select('*').eq('phone', phone).maybeSingle();
+  return (data as UserRow | null) ?? null;
+}
+
+async function findUserByEmail(email: string): Promise<UserRow | null> {
+  const supabase = getSupabase();
+  const { data } = await supabase.from('User').select('*').eq('email', email).maybeSingle();
+  return (data as UserRow | null) ?? null;
+}
+
+async function findUserById(id: string): Promise<UserRow | null> {
+  const supabase = getSupabase();
+  const { data } = await supabase.from('User').select('*').eq('id', id).maybeSingle();
+  return (data as UserRow | null) ?? null;
+}
+
+async function createUser(
+  data: Partial<UserRow> & ({ email: string } | { phone: string }),
+): Promise<UserRow> {
+  const { data: rows, error } = (await getSupabase()
+    .from('User')
+    .insert(data as never)
+    .select('*')) as { data: UserRow[] | null; error: unknown };
+  if (error || !rows?.[0]) {
+    throw new Error('Failed to create user');
+  }
+  return rows[0];
+}
 
 export const authConfig: NextAuthConfig = {
   session: { strategy: 'jwt' },
@@ -91,10 +123,8 @@ export const authConfig: NextAuthConfig = {
 
         clearOtpFailures(phone);
 
-        let user = await prisma.user.findUnique({ where: { phone } });
-        if (!user) {
-          user = await prisma.user.create({ data: { phone } });
-        }
+        let user = await findUserByPhone(phone);
+        if (!user) user = await createUser({ phone });
         return { id: user.id, email: user.email, name: user.name };
       },
     }),
@@ -110,7 +140,7 @@ export const authConfig: NextAuthConfig = {
         const password = typeof credentials?.password === 'string' ? credentials.password : '';
         if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({ where: { email } });
+        const user = await findUserByEmail(email);
         if (!user?.passwordHash) return null;
         if (!(await bcrypt.compare(password, user.passwordHash))) return null;
 
@@ -128,18 +158,16 @@ export const authConfig: NextAuthConfig = {
       // OAuth path.
       if (!user.email) return false;
 
-      let dbUser = await prisma.user.findUnique({ where: { email: user.email } });
+      let dbUser = await findUserByEmail(user.email);
 
       if (!dbUser) {
-        dbUser = await prisma.user.create({
-          data: {
-            email: user.email,
-            name: user.name,
-            githubUrl:
-              account?.provider === 'github' && profile && 'html_url' in profile
-                ? (profile.html_url as string)
-                : null,
-          },
+        dbUser = await createUser({
+          email: user.email,
+          name: user.name ?? null,
+          githubUrl:
+            account?.provider === 'github' && profile && 'html_url' in profile
+              ? (profile.html_url as string)
+              : null,
         });
       } else if (
         account?.provider === 'github' &&
@@ -147,24 +175,20 @@ export const authConfig: NextAuthConfig = {
         profile &&
         'html_url' in profile
       ) {
-        await prisma.user.update({
-          where: { id: dbUser.id },
-          data: { githubUrl: profile.html_url as string },
-        });
+        await getSupabase()
+          .from('User')
+          .update({ githubUrl: profile.html_url as string } as never)
+          .eq('id', dbUser.id);
       }
 
-      // Stash the internal id on the NextAuth user so the jwt callback can pick it up.
       user.id = dbUser.id;
       return true;
     },
     async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true },
-        });
-        (token as { role?: UserRole }).role = dbUser?.role ?? 'user';
+        const dbUser = await findUserById(user.id);
+        (token as { role?: UserRole }).role = (dbUser?.role as UserRole) ?? 'user';
       }
       return token;
     },

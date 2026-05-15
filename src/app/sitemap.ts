@@ -1,15 +1,19 @@
 import type { MetadataRoute } from 'next';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
+import type { LibraryEntryRow } from '@/types/database';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://build.christex.foundation';
 
-  let entries: { slug: string; updatedAt: Date }[] = [];
+  let entries: Pick<LibraryEntryRow, 'slug' | 'updatedAt'>[] = [];
   try {
-    entries = await prisma.libraryEntry.findMany({
-      where: { publishedAt: { not: null } },
-      select: { slug: true, updatedAt: true },
-    });
+    const { data } = (await getSupabase()
+      .from('LibraryEntry')
+      .select('slug, updatedAt')
+      .not('publishedAt', 'is', null)) as {
+      data: Pick<LibraryEntryRow, 'slug' | 'updatedAt'>[] | null;
+    };
+    entries = data ?? [];
   } catch {
     // DB not reachable — return static-only sitemap.
   }
@@ -21,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entryRoutes: MetadataRoute.Sitemap = entries.map((e) => ({
     url: `${baseUrl}/library/${e.slug}`,
-    lastModified: e.updatedAt,
+    lastModified: new Date(e.updatedAt),
     changeFrequency: 'weekly',
     priority: 0.9,
   }));

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { parseGitHubRepo } from '@/lib/github';
+import type { BuildRegistryRow } from '@/types/database';
 
 const RegisterSchema = z.object({
   repoUrl: z.string().url().max(300).optional().or(z.literal('')),
@@ -26,25 +27,36 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const rawRepo = parsed.success ? parsed.data.repoUrl : '';
   const repoUrl = rawRepo && parseGitHubRepo(rawRepo) ? rawRepo : null;
 
-  const entry = await prisma.libraryEntry.findUnique({
-    where: { id },
-    select: { id: true },
-  });
+  const supabase = getSupabase();
+  const { data: entry } = await supabase
+    .from('LibraryEntry')
+    .select('id')
+    .eq('id', id)
+    .maybeSingle();
   if (!entry) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const existing = await prisma.buildRegistry.findUnique({
-    where: { userId_libraryEntryId: { userId, libraryEntryId: id } },
-  });
+  const { data: existing } = await supabase
+    .from('BuildRegistry')
+    .select('id')
+    .eq('userId', userId)
+    .eq('libraryEntryId', id)
+    .maybeSingle();
   if (existing) {
     return NextResponse.json({ error: 'Already registered' }, { status: 400 });
   }
 
-  const record = await prisma.buildRegistry.create({
-    data: { userId, libraryEntryId: id, repoUrl },
-    include: { user: { select: { id: true, name: true, githubUrl: true } } },
-  });
+  const { data, error } = (await supabase
+    .from('BuildRegistry')
+    .insert({ userId, libraryEntryId: id, repoUrl } as never)
+    .select('*, user:User(id, name, githubUrl)')) as {
+    data: BuildRegistryRow[] | null;
+    error: unknown;
+  };
+  if (error || !data?.[0]) {
+    return NextResponse.json({ error: 'Failed to register' }, { status: 500 });
+  }
 
-  return NextResponse.json({ record }, { status: 201 });
+  return NextResponse.json({ record: data[0] }, { status: 201 });
 }
 
 const UpdateSchema = z.object({
@@ -80,15 +92,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         : null
       : null;
 
-  try {
-    const updated = await prisma.buildRegistry.update({
-      where: { userId_libraryEntryId: { userId, libraryEntryId: id } },
-      data: { repoUrl },
-    });
-    return NextResponse.json({ record: updated });
-  } catch {
-    return NextResponse.json({ error: 'Not registered' }, { status: 404 });
-  }
+  const { data, error } = (await getSupabase()
+    .from('BuildRegistry')
+    .update({ repoUrl } as never)
+    .eq('userId', userId)
+    .eq('libraryEntryId', id)
+    .select('*')) as { data: BuildRegistryRow[] | null; error: unknown };
+  if (error) return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+  if (!data?.[0]) return NextResponse.json({ error: 'Not registered' }, { status: 404 });
+  return NextResponse.json({ record: data[0] });
 }
 
 export async function DELETE(
@@ -102,12 +114,11 @@ export async function DELETE(
   const userId = session.user.id;
   const { id } = await params;
 
-  try {
-    await prisma.buildRegistry.delete({
-      where: { userId_libraryEntryId: { userId, libraryEntryId: id } },
-    });
-  } catch {
-    return NextResponse.json({ error: 'Not registered' }, { status: 404 });
-  }
+  const { error } = await getSupabase()
+    .from('BuildRegistry')
+    .delete()
+    .eq('userId', userId)
+    .eq('libraryEntryId', id);
+  if (error) return NextResponse.json({ error: 'Not registered' }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

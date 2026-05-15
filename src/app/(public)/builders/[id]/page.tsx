@@ -1,11 +1,20 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
 import BuilderProfileEditor from '@/components/builders/BuilderProfileEditor';
 import BuilderRepoActivity from '@/components/library/BuilderRepoActivity';
+import type { BuildRegistryRow, UserRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
+
+type BuilderEntry = BuildRegistryRow & {
+  libraryEntry: { title: string; slug: string } | null;
+};
+
+type ProfileShape = UserRow & {
+  buildEntries: BuilderEntry[];
+};
 
 export default async function BuilderProfile({
   params,
@@ -15,17 +24,13 @@ export default async function BuilderProfile({
   const { id } = await params;
   const session = await auth();
 
-  const user = await prisma.user
-    .findUnique({
-      where: { id },
-      include: {
-        buildEntries: {
-          include: { libraryEntry: { select: { title: true, slug: true } } },
-          orderBy: { registeredAt: 'desc' },
-        },
-      },
-    })
-    .catch(() => null);
+  const { data: user } = (await getSupabase()
+    .from('User')
+    .select(
+      '*, buildEntries:BuildRegistry(*, libraryEntry:LibraryEntry(title, slug))',
+    )
+    .eq('id', id)
+    .maybeSingle()) as { data: ProfileShape | null };
 
   if (!user) notFound();
   const isOwner = session?.user?.id === id;
@@ -50,14 +55,24 @@ export default async function BuilderProfile({
             )}
             {user.githubUrl && (
               <li>
-                <a href={user.githubUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                <a
+                  href={user.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
                   {user.githubUrl}
                 </a>
               </li>
             )}
             {user.websiteUrl && (
               <li>
-                <a href={user.websiteUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                <a
+                  href={user.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
                   {user.websiteUrl}
                 </a>
               </li>
@@ -68,15 +83,17 @@ export default async function BuilderProfile({
 
       <section className="mt-8">
         <h2 className="font-semibold mb-2">Currently Building</h2>
-        {user.buildEntries.length === 0 ? (
+        {(user.buildEntries ?? []).length === 0 ? (
           <p className="text-sm text-gray-500">Not registered on any Library entry yet.</p>
         ) : (
           <ul className="space-y-2">
             {user.buildEntries.map((b) => (
               <li key={b.id} className="border rounded p-3">
-                <Link href={`/library/${b.libraryEntry.slug}`} className="font-medium underline">
-                  {b.libraryEntry.title}
-                </Link>
+                {b.libraryEntry && (
+                  <Link href={`/library/${b.libraryEntry.slug}`} className="font-medium underline">
+                    {b.libraryEntry.title}
+                  </Link>
+                )}
                 {b.repoUrl && (
                   <>
                     <p className="text-xs text-gray-600 mt-1 break-all">

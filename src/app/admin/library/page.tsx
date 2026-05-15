@@ -1,20 +1,26 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
+import type { LibraryEntryRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
+type EntryListing = Pick<
+  LibraryEntryRow,
+  'id' | 'slug' | 'title' | 'sector' | 'publishedAt'
+> & {
+  buildRegistry: { count: number }[];
+  documents: { count: number }[];
+};
+
 export default async function AdminLibraryList() {
-  const entries = await prisma.libraryEntry.findMany({
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      sector: true,
-      publishedAt: true,
-      _count: { select: { buildRegistry: true, documents: true } },
-    },
-  });
+  const { data } = (await getSupabase()
+    .from('LibraryEntry')
+    .select(
+      'id, slug, title, sector, publishedAt, buildRegistry:BuildRegistry(count), documents:Document(count)',
+    )
+    .order('createdAt', { ascending: false })) as { data: EntryListing[] | null };
+
+  const entries = data ?? [];
 
   return (
     <div>
@@ -32,34 +38,41 @@ export default async function AdminLibraryList() {
         <p className="text-gray-500 text-sm">No entries yet.</p>
       ) : (
         <ul className="space-y-2">
-          {entries.map((e) => (
-            <li key={e.id} className="border rounded p-3 flex flex-wrap items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{e.title}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {e.sector} ·{' '}
-                  {e.publishedAt ? (
-                    <span className="text-green-700">
-                      Published {e.publishedAt.toLocaleDateString()}
-                    </span>
-                  ) : (
-                    <span className="text-yellow-700">Draft</span>
-                  )}{' '}
-                  · {e._count.documents}/6 docs · {e._count.buildRegistry} builders
-                </p>
-              </div>
-              <div className="flex gap-3 text-sm">
-                {e.publishedAt && (
-                  <Link href={`/library/${e.slug}`} className="underline" target="_blank">
-                    View
+          {entries.map((e) => {
+            const docCount = e.documents?.[0]?.count ?? 0;
+            const builderCount = e.buildRegistry?.[0]?.count ?? 0;
+            return (
+              <li
+                key={e.id}
+                className="border rounded p-3 flex flex-wrap items-center gap-3"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{e.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {e.sector} ·{' '}
+                    {e.publishedAt ? (
+                      <span className="text-green-700">
+                        Published {new Date(e.publishedAt).toLocaleDateString()}
+                      </span>
+                    ) : (
+                      <span className="text-yellow-700">Draft</span>
+                    )}{' '}
+                    · {docCount}/6 docs · {builderCount} builders
+                  </p>
+                </div>
+                <div className="flex gap-3 text-sm">
+                  {e.publishedAt && (
+                    <Link href={`/library/${e.slug}`} className="underline" target="_blank">
+                      View
+                    </Link>
+                  )}
+                  <Link href={`/admin/library/${e.id}/edit`} className="underline">
+                    Edit
                   </Link>
-                )}
-                <Link href={`/admin/library/${e.id}/edit`} className="underline">
-                  Edit
-                </Link>
-              </div>
-            </li>
-          ))}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { MAX_VOTES_PER_WEEK, UNVOTE_WINDOW_MS } from '@/lib/enums';
+import type { SubmissionRow, VoteRow } from '@/types/database';
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -11,52 +12,64 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   }
   const userId = session.user.id;
   const { id: submissionId } = await params;
+  const supabase = getSupabase();
 
-  const submission = await prisma.submission.findUnique({
-    where: { id: submissionId },
-    select: { status: true },
-  });
+  const { data: submission } = (await supabase
+    .from('Submission')
+    .select('status, voteCount')
+    .eq('id', submissionId)
+    .maybeSingle()) as { data: Pick<SubmissionRow, 'status' | 'voteCount'> | null };
   if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (submission.status === 'live' || submission.status === 'not_viable') {
     return NextResponse.json({ error: 'Voting is closed for this problem' }, { status: 400 });
   }
 
-  const existing = await prisma.vote.findUnique({
-    where: { userId_submissionId: { userId, submissionId } },
-  });
+  const { data: existing } = await supabase
+    .from('Vote')
+    .select('id')
+    .eq('userId', userId)
+    .eq('submissionId', submissionId)
+    .maybeSingle();
   if (existing) {
     return NextResponse.json({ error: 'Already voted' }, { status: 400 });
   }
 
-  // ISO week, Monday start, per spec
-  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-  const usedThisWeek = await prisma.vote.count({
-    where: { userId, votedAt: { gte: weekStart, lte: weekEnd } },
-  });
-  if (usedThisWeek >= MAX_VOTES_PER_WEEK) {
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+  const { count: usedThisWeek } = await supabase
+    .from('Vote')
+    .select('id', { count: 'exact', head: true })
+    .eq('userId', userId)
+    .gte('votedAt', weekStart)
+    .lte('votedAt', weekEnd);
+
+  if ((usedThisWeek ?? 0) >= MAX_VOTES_PER_WEEK) {
     return NextResponse.json(
       {
         error: 'Weekly vote limit reached',
         remaining: 0,
-        resetsAt: endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString(),
+        resetsAt: weekEnd,
       },
       { status: 400 },
     );
   }
 
-  const [, updated] = await prisma.$transaction([
-    prisma.vote.create({ data: { userId, submissionId } }),
-    prisma.submission.update({
-      where: { id: submissionId },
-      data: { voteCount: { increment: 1 } },
-      select: { voteCount: true },
-    }),
-  ]);
+  const { error: insertErr } = await supabase
+    .from('Vote')
+    .insert({ userId, submissionId } as never);
+  if (insertErr) {
+    return NextResponse.json({ error: 'Failed to vote' }, { status: 500 });
+  }
+
+  const nextCount = (submission.voteCount ?? 0) + 1;
+  await supabase
+    .from('Submission')
+    .update({ voteCount: nextCount } as never)
+    .eq('id', submissionId);
 
   return NextResponse.json({
-    voteCount: updated.voteCount,
-    remaining: MAX_VOTES_PER_WEEK - usedThisWeek - 1,
+    voteCount: nextCount,
+    remaining: MAX_VOTES_PER_WEEK - (usedThisWeek ?? 0) - 1,
   });
 }
 
@@ -70,13 +83,17 @@ export async function DELETE(
   }
   const userId = session.user.id;
   const { id: submissionId } = await params;
+  const supabase = getSupabase();
 
-  const vote = await prisma.vote.findUnique({
-    where: { userId_submissionId: { userId, submissionId } },
-  });
+  const { data: vote } = (await supabase
+    .from('Vote')
+    .select('id, votedAt')
+    .eq('userId', userId)
+    .eq('submissionId', submissionId)
+    .maybeSingle()) as { data: Pick<VoteRow, 'id' | 'votedAt'> | null };
   if (!vote) return NextResponse.json({ error: 'Not voted' }, { status: 400 });
 
-  const elapsed = Date.now() - vote.votedAt.getTime();
+  const elapsed = Date.now() - new Date(vote.votedAt).getTime();
   if (elapsed > UNVOTE_WINDOW_MS) {
     return NextResponse.json(
       { error: 'Unvote window expired. Votes are permanent after 5 minutes.' },
@@ -84,14 +101,25 @@ export async function DELETE(
     );
   }
 
-  const [, updated] = await prisma.$transaction([
-    prisma.vote.delete({ where: { userId_submissionId: { userId, submissionId } } }),
-    prisma.submission.update({
-      where: { id: submissionId },
-      data: { voteCount: { decrement: 1 } },
-      select: { voteCount: true },
-    }),
-  ]);
+  const { error: delErr } = await supabase
+    .from('Vote')
+    .delete()
+    .eq('userId', userId)
+    .eq('submissionId', submissionId);
+  if (delErr) {
+    return NextResponse.json({ error: 'Failed to unvote' }, { status: 500 });
+  }
 
-  return NextResponse.json({ voteCount: updated.voteCount });
+  const { data: subRow } = (await supabase
+    .from('Submission')
+    .select('voteCount')
+    .eq('id', submissionId)
+    .maybeSingle()) as { data: Pick<SubmissionRow, 'voteCount'> | null };
+  const newCount = Math.max(0, (subRow?.voteCount ?? 1) - 1);
+  await supabase
+    .from('Submission')
+    .update({ voteCount: newCount } as never)
+    .eq('id', submissionId);
+
+  return NextResponse.json({ voteCount: newCount });
 }

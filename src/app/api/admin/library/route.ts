@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
+import type { LibraryEntryRow } from '@/types/database';
 
 const DocSchema = z.object({
   docType: z.enum([
@@ -65,9 +66,11 @@ export async function POST(req: Request) {
 
   const data = parsed.data;
   const userId = session.user.id;
+  const supabase = getSupabase();
 
-  const entry = await prisma.libraryEntry.create({
-    data: {
+  const { data: entryRows, error: entryErr } = (await supabase
+    .from('LibraryEntry')
+    .insert({
       slug: data.slug,
       title: data.title,
       problemStatement: data.problemStatement,
@@ -76,22 +79,34 @@ export async function POST(req: Request) {
       kitUrl: emptyToNull(data.kitUrl),
       demoUrl: emptyToNull(data.demoUrl),
       infographicUrl: emptyToNull(data.infographicUrl),
-      publishedAt: data.publish ? new Date() : null,
+      publishedAt: data.publish ? new Date().toISOString() : null,
       createdBy: userId,
-      documents: { create: data.documents.map((d) => ({
-        docType: d.docType,
-        cloudinaryUrl: d.url,
-        fileName: d.fileName,
-      })) },
-    },
-  });
+    } as never)
+    .select('*')) as { data: LibraryEntryRow[] | null; error: unknown };
+  if (entryErr || !entryRows?.[0]) {
+    return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 });
+  }
+  const entry = entryRows[0];
+
+  if (data.documents.length > 0) {
+    await supabase
+      .from('Document')
+      .insert(
+        data.documents.map((d) => ({
+          libraryEntryId: entry.id,
+          docType: d.docType,
+          cloudinaryUrl: d.url,
+          fileName: d.fileName,
+        })) as never,
+      );
+  }
 
   const linked = emptyToNull(data.linkedSubmissionId ?? null);
   if (linked) {
-    await prisma.submission.update({
-      where: { id: linked },
-      data: { libraryEntryId: entry.id },
-    });
+    await supabase
+      .from('Submission')
+      .update({ libraryEntryId: entry.id } as never)
+      .eq('id', linked);
   }
 
   return NextResponse.json({ entry }, { status: 201 });
@@ -118,55 +133,57 @@ export async function PATCH(req: Request) {
   }
 
   const data = parsed.data;
+  const supabase = getSupabase();
 
-  const updated = await prisma.$transaction(async (tx) => {
-    const existing = await tx.libraryEntry.findUnique({
-      where: { id: data.id },
-      select: { publishedAt: true },
-    });
-    if (!existing) throw new Error('Not found');
+  const { data: existing } = (await supabase
+    .from('LibraryEntry')
+    .select('publishedAt')
+    .eq('id', data.id)
+    .maybeSingle()) as { data: Pick<LibraryEntryRow, 'publishedAt'> | null };
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const e = await tx.libraryEntry.update({
-      where: { id: data.id },
-      data: {
-        slug: data.slug,
-        title: data.title,
-        problemStatement: data.problemStatement,
-        sector: data.sector,
-        urgency: data.urgency,
-        kitUrl: emptyToNull(data.kitUrl),
-        demoUrl: emptyToNull(data.demoUrl),
-        infographicUrl: emptyToNull(data.infographicUrl),
-        publishedAt: data.publish
-          ? existing.publishedAt ?? new Date()
-          : null,
-      },
-    });
+  const publishedAt = data.publish
+    ? existing.publishedAt ?? new Date().toISOString()
+    : null;
 
-    for (const d of data.documents) {
-      await tx.document.upsert({
-        where: {
-          libraryEntryId_docType: { libraryEntryId: e.id, docType: d.docType },
-        },
-        update: { cloudinaryUrl: d.url, fileName: d.fileName },
-        create: {
-          libraryEntryId: e.id,
-          docType: d.docType,
-          cloudinaryUrl: d.url,
-          fileName: d.fileName,
-        },
-      });
-    }
+  const { data: updatedRows, error: updErr } = (await supabase
+    .from('LibraryEntry')
+    .update({
+      slug: data.slug,
+      title: data.title,
+      problemStatement: data.problemStatement,
+      sector: data.sector,
+      urgency: data.urgency,
+      kitUrl: emptyToNull(data.kitUrl),
+      demoUrl: emptyToNull(data.demoUrl),
+      infographicUrl: emptyToNull(data.infographicUrl),
+      publishedAt,
+    } as never)
+    .eq('id', data.id)
+    .select('*')) as { data: LibraryEntryRow[] | null; error: unknown };
+  if (updErr || !updatedRows?.[0]) {
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+  }
+  const updated = updatedRows[0];
 
-    return e;
-  });
+  if (data.documents.length > 0) {
+    await supabase.from('Document').upsert(
+      data.documents.map((d) => ({
+        libraryEntryId: updated.id,
+        docType: d.docType,
+        cloudinaryUrl: d.url,
+        fileName: d.fileName,
+      })) as never,
+      { onConflict: 'libraryEntryId,docType' },
+    );
+  }
 
   const linked = emptyToNull(data.linkedSubmissionId ?? null);
   if (linked) {
-    await prisma.submission.update({
-      where: { id: linked },
-      data: { libraryEntryId: updated.id },
-    });
+    await supabase
+      .from('Submission')
+      .update({ libraryEntryId: updated.id } as never)
+      .eq('id', linked);
   }
 
   return NextResponse.json({ entry: updated });

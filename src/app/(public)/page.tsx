@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { SECTORS, URGENCY_LABELS, type UrgencyKey } from '@/lib/enums';
+import type { LibraryEntryRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,30 +10,42 @@ interface SearchParams {
   urgency?: UrgencyKey;
 }
 
+type EntryListing = Pick<
+  LibraryEntryRow,
+  'id' | 'slug' | 'title' | 'sector' | 'urgency'
+> & {
+  buildRegistry: { count: number }[];
+};
+
 export default async function HomePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const where: Prisma.LibraryEntryWhereInput = { publishedAt: { not: null } };
-  if (sp.sector) where.sector = sp.sector;
-  if (sp.urgency) where.urgency = sp.urgency;
-
-  let entries: Awaited<ReturnType<typeof prisma.libraryEntry.findMany>> = [];
+  let entries: EntryListing[] = [];
   let dbError: string | null = null;
 
   try {
-    entries = await prisma.libraryEntry.findMany({
-      where,
-      orderBy: { publishedAt: 'desc' },
-      include: { _count: { select: { buildRegistry: true } } },
-    });
+    const supabase = getSupabase();
+    let query = supabase
+      .from('LibraryEntry')
+      .select('id, slug, title, sector, urgency, buildRegistry:BuildRegistry(count)')
+      .not('publishedAt', 'is', null)
+      .order('publishedAt', { ascending: false });
+    if (sp.sector) query = query.eq('sector', sp.sector);
+    if (sp.urgency) query = query.eq('urgency', sp.urgency);
+    const { data, error } = (await query) as { data: EntryListing[] | null; error: unknown };
+    if (error) {
+      dbError = error instanceof Error ? error.message : 'Database not reachable';
+    } else {
+      entries = data ?? [];
+    }
   } catch (err) {
     dbError =
       err instanceof Error
         ? err.message
-        : 'Database not reachable. Check DATABASE_URL.';
+        : 'Database not reachable. Check Supabase env vars.';
   }
 
   return (
@@ -47,9 +59,6 @@ export default async function HomePage({
         <div className="flex flex-wrap gap-3 mt-4 text-sm">
           <Link href="/feed" className="underline">
             Community feed →
-          </Link>
-          <Link href="/hackathon" className="underline text-gray-500">
-            Hackathon (legacy)
           </Link>
         </div>
       </header>
@@ -77,7 +86,9 @@ export default async function HomePage({
           <p className="font-medium">Database not configured.</p>
           <p className="mt-1">{dbError}</p>
           <p className="mt-2">
-            Fill in <code>DATABASE_URL</code> in <code>.env.local</code> after completing Phase 0.
+            Fill in <code>NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>, then run the
+            migration in <code>supabase/migrations/0001_init.sql</code>.
           </p>
         </div>
       ) : entries.length === 0 ? (
@@ -85,7 +96,7 @@ export default async function HomePage({
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {entries.map((e) => {
-            const counts = (e as typeof e & { _count: { buildRegistry: number } })._count;
+            const builders = e.buildRegistry?.[0]?.count ?? 0;
             return (
               <Link
                 key={e.id}
@@ -94,8 +105,8 @@ export default async function HomePage({
               >
                 <h2 className="font-semibold leading-tight">{e.title}</h2>
                 <p className="text-xs text-gray-600 mt-2">
-                  {e.sector} · Urgency: {URGENCY_LABELS[e.urgency as UrgencyKey]} ·{' '}
-                  {counts.buildRegistry} builder{counts.buildRegistry === 1 ? '' : 's'}
+                  {e.sector} · Urgency: {URGENCY_LABELS[e.urgency as UrgencyKey]} · {builders}{' '}
+                  builder{builders === 1 ? '' : 's'}
                 </p>
               </Link>
             );

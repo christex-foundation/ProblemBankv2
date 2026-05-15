@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { SignJWT } from 'jose';
 import { Resend } from 'resend';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
+import type { UserRow } from '@/types/database';
 
 const Schema = z.object({
   email: z.string().email(),
@@ -30,9 +31,12 @@ export async function POST(req: Request) {
   // Always return success so attackers can't enumerate emails.
   const successResponse = NextResponse.json({ ok: true });
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
-  });
+  const { data: user } = (await getSupabase()
+    .from('User')
+    .select('id, passwordHash')
+    .eq('email', parsed.data.email)
+    .maybeSingle()) as { data: Pick<UserRow, 'id' | 'passwordHash'> | null };
+
   if (!user?.passwordHash) return successResponse;
   if (!process.env.NEXTAUTH_SECRET) return successResponse;
   if (!process.env.RESEND_API_KEY) {

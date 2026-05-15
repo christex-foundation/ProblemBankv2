@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { Prisma, type SubmissionStatus } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { SECTORS } from '@/lib/enums';
 import StatusUpdater from '@/components/admin/StatusUpdater';
+import type { SubmissionRow, SubmissionStatus } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,22 +20,30 @@ const STATUSES: SubmissionStatus[] = [
   'live',
 ];
 
+type SubmissionRowWithUser = SubmissionRow & {
+  user: { name: string | null; email: string | null } | null;
+};
+
 export default async function AdminSubmissionsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
 }) {
   const sp = await searchParams;
-  const where: Prisma.SubmissionWhereInput = {};
-  if (sp.status) where.status = sp.status;
-  if (sp.category) where.category = sp.category;
-  if (sp.urgency) where.urgency = sp.urgency;
 
-  const submissions = await prisma.submission.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true, email: true } } },
-  });
+  const supabase = getSupabase();
+  let query = supabase
+    .from('Submission')
+    .select('*, user:User(name, email)')
+    .order('createdAt', { ascending: false });
+  if (sp.status) query = query.eq('status', sp.status);
+  if (sp.category) query = query.eq('category', sp.category);
+  if (sp.urgency) query = query.eq('urgency', sp.urgency);
+
+  const { data, error } = (await query) as {
+    data: SubmissionRowWithUser[] | null;
+    error: unknown;
+  };
 
   function paramsWith(key: keyof SearchParams, value: string | null) {
     const params = new URLSearchParams();
@@ -48,9 +56,17 @@ export default async function AdminSubmissionsPage({
     return qs ? `?${qs}` : '';
   }
 
+  const submissions = data ?? [];
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Submissions</h1>
+
+      {error ? (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded p-3 text-sm mb-4">
+          Database error — check Supabase credentials.
+        </div>
+      ) : null}
 
       <div className="mb-3 flex flex-wrap gap-2 text-xs">
         <Link
@@ -114,7 +130,7 @@ export default async function AdminSubmissionsPage({
                     </Link>
                   </td>
                   <td className="py-2 pr-3 text-gray-600">
-                    {s.user.name ?? s.user.email ?? 'Anonymous'}
+                    {s.user?.name ?? s.user?.email ?? 'Anonymous'}
                   </td>
                   <td className="py-2 pr-3 text-gray-600">{s.category}</td>
                   <td className="py-2 pr-3 text-gray-600">{s.urgency}</td>
@@ -124,7 +140,7 @@ export default async function AdminSubmissionsPage({
                   <td className="py-2 pr-3">{s.voteCount}</td>
                   <td className="py-2 pr-3">{s.commentCount}</td>
                   <td className="py-2 pr-3 text-xs text-gray-400">
-                    {s.createdAt.toLocaleDateString()}
+                    {new Date(s.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
               ))}

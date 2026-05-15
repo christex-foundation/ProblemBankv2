@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
+import { getSupabase } from '@/lib/supabase';
 import { getGainingTractionIds } from '@/lib/feed';
 import {
   STATUS_LABELS,
@@ -11,12 +10,17 @@ import {
 } from '@/lib/enums';
 import VoteButton from '@/components/feed/VoteButton';
 import CommentThread from '@/components/feed/CommentThread';
+import type { CommentRow, SubmissionRow, VoteRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
-type SubmissionWithUser = Prisma.SubmissionGetPayload<{
-  include: { user: { select: { id: true; name: true } } };
-}>;
+type SubmissionWithUser = SubmissionRow & {
+  user: { id: string; name: string | null } | null;
+};
+
+type CommentWithUser = CommentRow & {
+  user: { id: string; name: string | null } | null;
+};
 
 export default async function SubmissionDetail({
   params,
@@ -25,53 +29,40 @@ export default async function SubmissionDetail({
 }) {
   const { id } = await params;
   const session = await auth();
+  const supabase = getSupabase();
 
-  let submission: SubmissionWithUser | null = null;
-  let isGainingTraction = false;
-  let myVotedAt: Date | null = null;
-  let comments: Array<{
-    id: string;
-    content: string;
-    createdAt: Date;
-    user: { id: string; name: string | null };
-  }> = [];
-
-  try {
-    submission = await prisma.submission.findUnique({
-      where: { id },
-      include: { user: { select: { id: true, name: true } } },
-    });
-    if (!submission) notFound();
-
-    [isGainingTraction, myVotedAt, comments] = await Promise.all([
-      submission.status === 'submitted'
-        ? getGainingTractionIds().then((s) => s.has(submission!.id))
-        : Promise.resolve(false),
-      session?.user
-        ? prisma.vote
-            .findUnique({
-              where: {
-                userId_submissionId: {
-                  userId: session.user.id,
-                  submissionId: submission.id,
-                },
-              },
-              select: { votedAt: true },
-            })
-            .then((v) => v?.votedAt ?? null)
-        : Promise.resolve(null),
-      prisma.comment.findMany({
-        where: { submissionId: submission.id },
-        include: { user: { select: { id: true, name: true } } },
-        orderBy: { createdAt: 'asc' },
-      }),
-    ]);
-  } catch (err) {
-    if (!submission) notFound();
-    throw err;
-  }
-
+  const { data: submission } = (await supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .eq('id', id)
+    .maybeSingle()) as { data: SubmissionWithUser | null };
   if (!submission) notFound();
+
+  const [isGainingTraction, myVote, comments] = await Promise.all([
+    submission.status === 'submitted'
+      ? getGainingTractionIds().then((s) => s.has(submission.id))
+      : Promise.resolve(false),
+    session?.user
+      ? (supabase
+          .from('Vote')
+          .select('votedAt')
+          .eq('userId', session.user.id)
+          .eq('submissionId', submission.id)
+          .maybeSingle() as unknown as Promise<{
+          data: Pick<VoteRow, 'votedAt'> | null;
+        }>)
+      : Promise.resolve({ data: null } as { data: Pick<VoteRow, 'votedAt'> | null }),
+    supabase
+      .from('Comment')
+      .select('*, user:User(id, name)')
+      .eq('submissionId', submission.id)
+      .order('createdAt', { ascending: true }) as unknown as Promise<{
+      data: CommentWithUser[] | null;
+    }>,
+  ]);
+
+  const myVotedAt = myVote.data?.votedAt ?? null;
+  const commentRows = comments.data ?? [];
 
   const displayStatus: DisplayStatus =
     submission.status === 'submitted' && isGainingTraction
@@ -97,7 +88,7 @@ export default async function SubmissionDetail({
           <VoteButton
             submissionId={submission.id}
             initialCount={submission.voteCount}
-            initialVotedAt={myVotedAt?.toISOString() ?? null}
+            initialVotedAt={myVotedAt}
             disabled={votingDisabled}
             disabledReason={
               submission.status === 'live'
@@ -109,7 +100,7 @@ export default async function SubmissionDetail({
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold leading-tight">{submission.title}</h1>
           <p className="text-sm text-gray-600 mt-1">
-            by {submission.user.name ?? 'Anonymous'} ·{' '}
+            by {submission.user?.name ?? 'Anonymous'} ·{' '}
             {new Date(submission.createdAt).toLocaleDateString()}
           </p>
           <div className="flex flex-wrap gap-3 text-xs text-gray-600 mt-3">
@@ -127,18 +118,20 @@ export default async function SubmissionDetail({
         {submission.potentialSolution && (
           <>
             <h2 className="text-lg font-semibold mt-6">Potential solution</h2>
-            <article dangerouslySetInnerHTML={{ __html: submission.potentialSolution }} />
+            <article
+              dangerouslySetInnerHTML={{ __html: submission.potentialSolution }}
+            />
           </>
         )}
       </section>
 
       <CommentThread
         submissionId={submission.id}
-        initialComments={comments.map((c) => ({
+        initialComments={commentRows.map((c) => ({
           id: c.id,
           content: c.content,
-          createdAt: c.createdAt.toISOString(),
-          user: c.user,
+          createdAt: c.createdAt,
+          user: c.user ?? { id: c.userId, name: null },
         }))}
         open={commentsOpen}
         closedReason={closedReason}

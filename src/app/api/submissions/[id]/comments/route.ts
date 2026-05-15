@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
 import { notifyNewComment } from '@/lib/notifications';
 import { MAX_COMMENT_LEN } from '@/lib/enums';
+import type { CommentRow, SubmissionRow } from '@/types/database';
 
 const CommentSchema = z.object({
   content: z.string().min(1).max(MAX_COMMENT_LEN),
@@ -13,12 +14,14 @@ const CommentSchema = z.object({
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: submissionId } = await params;
-  const comments = await prisma.comment.findMany({
-    where: { submissionId },
-    include: { user: { select: { id: true, name: true } } },
-    orderBy: { createdAt: 'asc' },
-  });
-  return NextResponse.json({ comments });
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('Comment')
+    .select('*, user:User(id, name)')
+    .eq('submissionId', submissionId)
+    .order('createdAt', { ascending: true });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ comments: data ?? [] });
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -46,29 +49,32 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'Bot check failed' }, { status: 400 });
   }
 
-  const submission = await prisma.submission.findUnique({
-    where: { id: submissionId },
-    select: { status: true },
-  });
+  const supabase = getSupabase();
+  const { data: submission } = (await supabase
+    .from('Submission')
+    .select('status, commentCount')
+    .eq('id', submissionId)
+    .maybeSingle()) as { data: Pick<SubmissionRow, 'status' | 'commentCount'> | null };
   if (!submission) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   // Comments are only open on `submitted` (gaining_traction is computed from submitted).
   if (submission.status !== 'submitted') {
     return NextResponse.json({ error: 'Comments are closed for this problem' }, { status: 400 });
   }
 
-  const [comment] = await prisma.$transaction([
-    prisma.comment.create({
-      data: { userId, submissionId, content: parsed.data.content },
-      include: { user: { select: { id: true, name: true } } },
-    }),
-    prisma.submission.update({
-      where: { id: submissionId },
-      data: { commentCount: { increment: 1 } },
-    }),
-  ]);
+  const { data: rows, error } = (await supabase
+    .from('Comment')
+    .insert({ userId, submissionId, content: parsed.data.content } as never)
+    .select('*, user:User(id, name)')) as { data: CommentRow[] | null; error: unknown };
+  if (error || !rows?.[0]) {
+    return NextResponse.json({ error: 'Failed to comment' }, { status: 500 });
+  }
 
-  // Best-effort notification fan-out — don't block the response.
+  await supabase
+    .from('Submission')
+    .update({ commentCount: (submission.commentCount ?? 0) + 1 } as never)
+    .eq('id', submissionId);
+
   notifyNewComment(submissionId, userId).catch(() => {});
 
-  return NextResponse.json({ comment }, { status: 201 });
+  return NextResponse.json({ comment: rows[0] }, { status: 201 });
 }

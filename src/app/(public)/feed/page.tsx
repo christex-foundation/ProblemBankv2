@@ -1,11 +1,16 @@
 import Link from 'next/link';
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
-import { getGainingTractionIds } from '@/lib/feed';
-import { SECTORS, type DisplayStatus, type UrgencyKey, MAX_VOTES_PER_WEEK } from '@/lib/enums';
-import FeedCard from '@/components/feed/FeedCard';
 import { startOfWeek, endOfWeek } from 'date-fns';
+import { auth } from '@/lib/auth';
+import { getSupabase } from '@/lib/supabase';
+import { getGainingTractionIds } from '@/lib/feed';
+import {
+  SECTORS,
+  type DisplayStatus,
+  type UrgencyKey,
+  MAX_VOTES_PER_WEEK,
+} from '@/lib/enums';
+import FeedCard from '@/components/feed/FeedCard';
+import type { SubmissionRow, VoteRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +22,10 @@ interface SearchParams {
   urgency?: UrgencyKey;
   status?: 'submitted' | 'under_review' | 'research_in_progress' | 'not_viable' | 'live';
 }
+
+type SubmissionWithUser = SubmissionRow & {
+  user: { id: string; name: string | null } | null;
+};
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'votes', label: 'Top' },
@@ -32,56 +41,56 @@ export default async function FeedPage({
   const sp = await searchParams;
   const sort: SortKey = sp.sort ?? 'votes';
 
-  const where: Prisma.SubmissionWhereInput = {};
-  if (sp.category) where.category = sp.category;
-  if (sp.urgency) where.urgency = sp.urgency;
-  if (sp.status) where.status = sp.status;
-
-  const orderBy: Prisma.SubmissionOrderByWithRelationInput =
-    sort === 'recent'
-      ? { createdAt: 'desc' }
-      : sort === 'urgency'
-        ? { urgency: 'asc' }
-        : { voteCount: 'desc' };
-
-  type SubmissionWithUser = Prisma.SubmissionGetPayload<{
-    include: { user: { select: { id: true; name: true } } };
-  }>;
-
   const session = await auth();
 
   let submissions: SubmissionWithUser[] = [];
   let gainingIds = new Set<string>();
-  let myVotes = new Map<string, Date>();
+  const myVotes = new Map<string, Date>();
   let votesRemaining = MAX_VOTES_PER_WEEK;
   let dbError: string | null = null;
 
   try {
-    [submissions, gainingIds] = await Promise.all([
-      prisma.submission.findMany({
-        where,
-        orderBy,
-        take: 50,
-        include: { user: { select: { id: true, name: true } } },
-      }),
+    const supabase = getSupabase();
+    let query = supabase
+      .from('Submission')
+      .select('*, user:User(id, name)')
+      .limit(50);
+    if (sp.category) query = query.eq('category', sp.category);
+    if (sp.urgency) query = query.eq('urgency', sp.urgency);
+    if (sp.status) query = query.eq('status', sp.status);
+    query =
+      sort === 'recent'
+        ? query.order('createdAt', { ascending: false })
+        : sort === 'urgency'
+          ? query.order('urgency', { ascending: true })
+          : query.order('voteCount', { ascending: false });
+
+    const [{ data: subs }, gaining] = await Promise.all([
+      query as unknown as Promise<{ data: SubmissionWithUser[] | null }>,
       getGainingTractionIds(),
     ]);
+    submissions = subs ?? [];
+    gainingIds = gaining;
 
     if (session?.user) {
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
-      const allUserVotes = await prisma.vote.findMany({
-        where: { userId: session.user.id, votedAt: { gte: weekStart, lte: weekEnd } },
-        select: { submissionId: true, votedAt: true },
-      });
-      myVotes = new Map(allUserVotes.map((v) => [v.submissionId, v.votedAt]));
-      votesRemaining = Math.max(0, MAX_VOTES_PER_WEEK - allUserVotes.length);
+      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+      const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+      const { data: allUserVotes } = (await supabase
+        .from('Vote')
+        .select('submissionId, votedAt')
+        .eq('userId', session.user.id)
+        .gte('votedAt', weekStart)
+        .lte('votedAt', weekEnd)) as {
+        data: Pick<VoteRow, 'submissionId' | 'votedAt'>[] | null;
+      };
+      (allUserVotes ?? []).forEach((v) => myVotes.set(v.submissionId, new Date(v.votedAt)));
+      votesRemaining = Math.max(0, MAX_VOTES_PER_WEEK - (allUserVotes?.length ?? 0));
     }
   } catch (err) {
     dbError =
       err instanceof Error
         ? err.message
-        : 'Database not reachable. Check DATABASE_URL.';
+        : 'Database not reachable. Check Supabase env vars.';
   }
 
   function paramsWith(key: string, value: string | null) {
@@ -152,9 +161,6 @@ export default async function FeedPage({
         <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded p-4 text-sm">
           <p className="font-medium">Database not configured.</p>
           <p className="mt-1">{dbError}</p>
-          <p className="mt-2">
-            Fill in <code>DATABASE_URL</code> in <code>.env.local</code> after completing Phase 0.
-          </p>
         </div>
       ) : submissions.length === 0 ? (
         <p className="text-gray-500">No submissions yet.</p>
@@ -176,7 +182,7 @@ export default async function FeedPage({
                 status={displayStatus}
                 voteCount={s.voteCount}
                 commentCount={s.commentCount}
-                authorName={s.user.name}
+                authorName={s.user?.name ?? null}
                 myVotedAt={myVotes.get(s.id)?.toISOString() ?? null}
               />
             );

@@ -1,4 +1,0 @@
-# Vercel Deployment Trigger
-# This file forces Vercel to use the latest commit
-# Latest commit: 9fed7ae - Fix TypeScript error: add clientIp to TeamProfile type
-# Deployment timestamp: 2025-10-06 09:37:00

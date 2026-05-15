@@ -1,21 +1,23 @@
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import EntryForm from '@/components/admin/EntryForm';
+import type { SubmissionRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewLibraryEntryPage() {
-  // Offer recent submissions for linking — most-voted under_review or research_in_progress first.
-  const submissions = await prisma.submission.findMany({
-    where: { libraryEntryId: null },
-    orderBy: [{ status: 'asc' }, { voteCount: 'desc' }],
-    take: 50,
-    select: { id: true, title: true },
-  });
+  // Offer unlinked submissions for linking, sorted by status then most-voted.
+  const { data } = (await getSupabase()
+    .from('Submission')
+    .select('id, title')
+    .is('libraryEntryId', null)
+    .order('status', { ascending: true })
+    .order('voteCount', { ascending: false })
+    .limit(50)) as { data: Pick<SubmissionRow, 'id' | 'title'>[] | null };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">New Library entry</h1>
-      <EntryForm submissions={submissions} />
+      <EntryForm submissions={data ?? []} />
     </div>
   );
 }

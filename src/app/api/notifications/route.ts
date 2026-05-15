@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
+import type { NotificationRow } from '@/types/database';
 
 export async function GET() {
   const session = await auth();
@@ -8,23 +9,27 @@ export async function GET() {
     return NextResponse.json({ notifications: [], unread: 0 });
   }
   const userId = session.user.id;
+  const supabase = getSupabase();
 
-  const [notifications, unread] = await Promise.all([
-    prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    }),
-    prisma.notification.count({ where: { userId, read: false } }),
+  const [{ data: rows }, { count }] = await Promise.all([
+    supabase
+      .from('Notification')
+      .select('*')
+      .eq('userId', userId)
+      .order('createdAt', { ascending: false })
+      .limit(50),
+    supabase
+      .from('Notification')
+      .select('id', { count: 'exact', head: true })
+      .eq('userId', userId)
+      .eq('read', false),
   ]);
 
-  return NextResponse.json({
-    notifications: notifications.map((n) => ({
-      ...n,
-      createdAt: n.createdAt.toISOString(),
-    })),
-    unread,
-  });
+  const notifications = ((rows ?? []) as NotificationRow[]).map((n) => ({
+    ...n,
+    createdAt: n.createdAt,
+  }));
+  return NextResponse.json({ notifications, unread: count ?? 0 });
 }
 
 export async function PATCH(req: Request) {
@@ -36,17 +41,20 @@ export async function PATCH(req: Request) {
 
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
+  const supabase = getSupabase();
 
   if (id) {
-    await prisma.notification.updateMany({
-      where: { id, userId },
-      data: { read: true },
-    });
+    await supabase
+      .from('Notification')
+      .update({ read: true } as never)
+      .eq('id', id)
+      .eq('userId', userId);
   } else {
-    await prisma.notification.updateMany({
-      where: { userId, read: false },
-      data: { read: true },
-    });
+    await supabase
+      .from('Notification')
+      .update({ read: true } as never)
+      .eq('userId', userId)
+      .eq('read', false);
   }
 
   return NextResponse.json({ ok: true });

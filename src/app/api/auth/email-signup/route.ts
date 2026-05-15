@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
 import { MIN_PASSWORD_LEN, MAX_PASSWORD_LEN } from '@/lib/enums';
 
@@ -32,9 +32,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Bot check failed' }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
-  });
+  const supabase = getSupabase();
+  const { data: existing } = await supabase
+    .from('User')
+    .select('id')
+    .eq('email', parsed.data.email)
+    .maybeSingle();
   if (existing) {
     return NextResponse.json(
       { error: 'Email already registered. Sign in instead.' },
@@ -43,13 +46,14 @@ export async function POST(req: Request) {
   }
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  await prisma.user.create({
-    data: {
-      email: parsed.data.email,
-      name: parsed.data.name,
-      passwordHash,
-    },
-  });
+  const { error } = await supabase.from('User').insert({
+    email: parsed.data.email,
+    name: parsed.data.name ?? null,
+    passwordHash,
+  } as never);
+  if (error) {
+    return NextResponse.json({ error: 'Failed to create account' }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

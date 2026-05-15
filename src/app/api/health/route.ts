@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const checks: Record<string, { ok: boolean; error?: string }> = {};
 
-  // DB connectivity
+  // DB connectivity — a tiny select against any table.
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    const { error } = await getSupabase()
+      .from('User')
+      .select('id', { count: 'exact', head: true });
+    if (error) throw error;
     checks.db = { ok: true };
   } catch (err) {
     checks.db = { ok: false, error: err instanceof Error ? err.message : 'unknown' };
@@ -17,7 +20,8 @@ export async function GET() {
   // Env presence (don't log values)
   const envChecks: Array<[string, string]> = [
     ['NEXTAUTH_SECRET', 'NEXTAUTH_SECRET'],
-    ['DATABASE_URL', 'DATABASE_URL'],
+    ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'],
+    ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY'],
     ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY'],
     ['CLOUDINARY_API_KEY', 'CLOUDINARY_API_KEY'],
   ];

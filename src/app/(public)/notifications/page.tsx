@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
+import type { NotificationRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,10 +11,13 @@ export default async function NotificationsPage() {
   if (!session?.user) redirect('/signin?callbackUrl=/notifications');
   const userId = session.user.id;
 
-  const notifications = await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-  });
+  const { data } = (await getSupabase()
+    .from('Notification')
+    .select('*')
+    .eq('userId', userId)
+    .order('createdAt', { ascending: false })) as { data: NotificationRow[] | null };
+
+  const notifications = data ?? [];
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
@@ -38,7 +42,9 @@ export default async function NotificationsPage() {
                   {n.body && <p className="text-sm text-gray-700 mt-1">{n.body}</p>}
                 </>
               )}
-              <p className="text-xs text-gray-400 mt-1">{n.createdAt.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(n.createdAt).toLocaleString()}
+              </p>
             </li>
           ))}
         </ul>

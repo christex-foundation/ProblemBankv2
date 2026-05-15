@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
-import {
-  MAX_TITLE_LEN,
-  CATEGORIES,
-} from '@/lib/enums';
+import { MAX_TITLE_LEN } from '@/lib/enums';
+import type { SubmissionRow } from '@/types/database';
 
 const CreateSchema = z.object({
   title: z.string().min(1).max(MAX_TITLE_LEN),
@@ -40,23 +37,26 @@ export async function POST(req: Request) {
   }
 
   const ip = req.headers.get('x-forwarded-for') ?? undefined;
-  const ok = await verifyTurnstile(parsed.data.turnstileToken, ip);
-  if (!ok) {
+  if (!(await verifyTurnstile(parsed.data.turnstileToken, ip))) {
     return NextResponse.json({ error: 'Bot check failed' }, { status: 400 });
   }
 
-  const submission = await prisma.submission.create({
-    data: {
+  const { data, error } = (await getSupabase()
+    .from('Submission')
+    .insert({
       userId: session.user.id,
       title: parsed.data.title.trim(),
       description: parsed.data.description,
-      potentialSolution: parsed.data.potentialSolution,
+      potentialSolution: parsed.data.potentialSolution ?? null,
       urgency: parsed.data.urgency,
       category: parsed.data.category,
-    },
-  });
+    } as never)
+    .select('*')) as { data: SubmissionRow[] | null; error: unknown };
 
-  return NextResponse.json({ submission }, { status: 201 });
+  if (error) {
+    return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+  }
+  return NextResponse.json({ submission: data?.[0] }, { status: 201 });
 }
 
 const ListQuerySchema = z.object({
@@ -77,24 +77,25 @@ export async function GET(req: Request) {
   }
   const { sort, category, urgency, status, limit } = parsed.data;
 
-  const where: Prisma.SubmissionWhereInput = {};
-  if (category) where.category = category;
-  if (urgency) where.urgency = urgency;
-  if (status) where.status = status;
+  const supabase = getSupabase();
+  let query = supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .limit(limit);
 
-  const orderBy: Prisma.SubmissionOrderByWithRelationInput =
+  if (category) query = query.eq('category', category);
+  if (urgency) query = query.eq('urgency', urgency);
+  if (status) query = query.eq('status', status);
+
+  query =
     sort === 'recent'
-      ? { createdAt: 'desc' }
+      ? query.order('createdAt', { ascending: false })
       : sort === 'urgency'
-        ? { urgency: 'asc' }
-        : { voteCount: 'desc' };
+        ? query.order('urgency', { ascending: true })
+        : query.order('voteCount', { ascending: false });
 
-  const submissions = await prisma.submission.findMany({
-    where,
-    orderBy,
-    take: limit,
-    include: { user: { select: { id: true, name: true } } },
-  });
+  const { data, error } = await query;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ submissions });
+  return NextResponse.json({ submissions: data ?? [] });
 }

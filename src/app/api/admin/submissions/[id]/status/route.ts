@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { notifyStatusChange } from '@/lib/notifications';
+import type { SubmissionRow } from '@/types/database';
 
 const Schema = z.object({
   status: z.enum([
@@ -37,23 +38,26 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     );
   }
 
-  const existing = await prisma.submission.findUnique({
-    where: { id },
-    select: { status: true, libraryEntryId: true },
-  });
+  const supabase = getSupabase();
+  const { data: existing } = (await supabase
+    .from('Submission')
+    .select('status, libraryEntryId')
+    .eq('id', id)
+    .maybeSingle()) as {
+    data: Pick<SubmissionRow, 'status' | 'libraryEntryId'> | null;
+  };
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  await prisma.submission.update({
-    where: { id },
-    data: {
-      status: parsed.data.status,
-      ...(parsed.data.libraryEntryId !== undefined
-        ? { libraryEntryId: parsed.data.libraryEntryId || null }
-        : {}),
-    },
-  });
+  const patch: Record<string, string | null> = { status: parsed.data.status };
+  if (parsed.data.libraryEntryId !== undefined) {
+    patch.libraryEntryId = parsed.data.libraryEntryId || null;
+  }
+  const { error } = await supabase
+    .from('Submission')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) return NextResponse.json({ error: 'Update failed' }, { status: 500 });
 
-  // Only notify if status actually changed.
   if (existing.status !== parsed.data.status) {
     notifyStatusChange(id, parsed.data.status).catch(() => {});
   }

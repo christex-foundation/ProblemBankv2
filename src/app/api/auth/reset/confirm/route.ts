@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { jwtVerify } from 'jose';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { MIN_PASSWORD_LEN, MAX_PASSWORD_LEN } from '@/lib/enums';
 
 const Schema = z.object({
@@ -41,11 +41,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
   }
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const supabase = getSupabase();
+  const { data: user } = await supabase
+    .from('User')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
   if (!user) return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
 
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  await supabase.from('User').update({ passwordHash } as never).eq('id', userId);
 
   return NextResponse.json({ ok: true });
 }

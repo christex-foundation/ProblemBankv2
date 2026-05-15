@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { MAX_BIO_LEN } from '@/lib/enums';
+import type { UserRow } from '@/types/database';
 
 const ProfileSchema = z.object({
   name: z.string().min(1).max(80).optional().nullable(),
@@ -33,24 +34,21 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const data: Record<string, string | null> = {};
+  const patch: Record<string, string | null> = {};
   for (const [key, value] of Object.entries(parsed.data)) {
-    if (value === '' || value === undefined) data[key] = null;
-    else if (value !== null) data[key] = value;
+    if (value === '' || value === undefined) patch[key] = null;
+    else if (value !== null) patch[key] = value;
   }
 
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data,
-    select: {
-      id: true,
-      name: true,
-      bio: true,
-      contactEmail: true,
-      githubUrl: true,
-      websiteUrl: true,
-    },
-  });
+  const { data, error } = (await getSupabase()
+    .from('User')
+    .update(patch as never)
+    .eq('id', userId)
+    .select('id, name, bio, contactEmail, githubUrl, websiteUrl')) as {
+    data: Pick<UserRow, 'id' | 'name' | 'bio' | 'contactEmail' | 'githubUrl' | 'websiteUrl'>[] | null;
+    error: unknown;
+  };
+  if (error) return NextResponse.json({ error: 'Update failed' }, { status: 500 });
 
-  return NextResponse.json({ user });
+  return NextResponse.json({ user: data?.[0] });
 }

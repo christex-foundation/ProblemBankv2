@@ -1,11 +1,23 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { prisma } from '@/lib/prisma';
+import { getSupabase } from '@/lib/supabase';
 import { URGENCY_LABELS, type UrgencyKey } from '@/lib/enums';
 import DocumentTabs from '@/components/library/DocumentTabs';
 import BuildRegistry from '@/components/library/BuildRegistry';
+import type {
+  BuildRegistryRow,
+  DocumentRow,
+  LibraryEntryRow,
+} from '@/types/database';
 
 export const dynamic = 'force-dynamic';
+
+type EntryFull = LibraryEntryRow & {
+  documents: DocumentRow[];
+  buildRegistry: (BuildRegistryRow & {
+    user: { id: string; name: string | null; githubUrl: string | null } | null;
+  })[];
+};
 
 export async function generateMetadata({
   params,
@@ -13,12 +25,19 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const entry = await prisma.libraryEntry
-    .findUnique({
-      where: { slug },
-      select: { title: true, problemStatement: true, publishedAt: true },
-    })
-    .catch(() => null);
+  let entry: Pick<LibraryEntryRow, 'title' | 'problemStatement' | 'publishedAt'> | null = null;
+  try {
+    const { data } = (await getSupabase()
+      .from('LibraryEntry')
+      .select('title, problemStatement, publishedAt')
+      .eq('slug', slug)
+      .maybeSingle()) as {
+      data: Pick<LibraryEntryRow, 'title' | 'problemStatement' | 'publishedAt'> | null;
+    };
+    entry = data;
+  } catch {
+    // DB error — return minimal metadata.
+  }
   if (!entry || !entry.publishedAt) {
     return { title: 'Not found · Problem Bank' };
   }
@@ -52,18 +71,13 @@ export default async function LibraryEntryPage({
 }) {
   const { slug } = await params;
 
-  const entry = await prisma.libraryEntry
-    .findUnique({
-      where: { slug },
-      include: {
-        documents: true,
-        buildRegistry: {
-          include: { user: { select: { id: true, name: true, githubUrl: true } } },
-          orderBy: { registeredAt: 'asc' },
-        },
-      },
-    })
-    .catch(() => null);
+  const { data: entry } = (await getSupabase()
+    .from('LibraryEntry')
+    .select(
+      '*, documents:Document(*), buildRegistry:BuildRegistry(*, user:User(id, name, githubUrl))',
+    )
+    .eq('slug', slug)
+    .maybeSingle()) as { data: EntryFull | null };
 
   if (!entry || !entry.publishedAt) notFound();
 
@@ -73,7 +87,7 @@ export default async function LibraryEntryPage({
         <h1 className="text-3xl font-bold leading-tight">{entry.title}</h1>
         <p className="text-sm text-gray-600 mt-2">
           {entry.sector} · Urgency: {URGENCY_LABELS[entry.urgency as UrgencyKey]} · Published{' '}
-          {entry.publishedAt.toLocaleDateString()}
+          {new Date(entry.publishedAt).toLocaleDateString()}
         </p>
       </header>
 
@@ -124,13 +138,13 @@ export default async function LibraryEntryPage({
       <BuildRegistry
         entryId={entry.id}
         entrySlug={entry.slug}
-        builders={entry.buildRegistry.map((b) => ({
+        builders={(entry.buildRegistry ?? []).map((b) => ({
           id: b.id,
-          userId: b.user.id,
-          name: b.user.name,
-          githubUrl: b.user.githubUrl,
+          userId: b.userId,
+          name: b.user?.name ?? null,
+          githubUrl: b.user?.githubUrl ?? null,
           repoUrl: b.repoUrl,
-          registeredAt: b.registeredAt.toISOString(),
+          registeredAt: b.registeredAt,
         }))}
         kitUrl={entry.kitUrl}
         demoUrl={entry.demoUrl}
