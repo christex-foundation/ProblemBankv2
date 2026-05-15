@@ -86,7 +86,7 @@ export default async function HomePage({
           <p className="font-medium">Database not configured.</p>
           <p className="mt-1">{dbError}</p>
           <p className="mt-2">
-            Fill in <code>NEXT_PUBLIC_SUPABASE_URL</code> and{' '}
+            Fill in <code>SUPABASE_URL</code> and{' '}
             <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>, then run the
             migration in <code>supabase/migrations/0001_init.sql</code>.
           </p>

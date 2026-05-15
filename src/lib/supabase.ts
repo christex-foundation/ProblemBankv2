@@ -11,7 +11,7 @@
 import 'server-only';
 import { createClient, type SupabaseClient as RawSupabaseClient } from '@supabase/supabase-js';
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const url = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const globalForSupabase = globalThis as unknown as {
@@ -21,7 +21,7 @@ const globalForSupabase = globalThis as unknown as {
 function makeClient(): RawSupabaseClient {
   if (!url || !serviceRoleKey) {
     throw new Error(
-      'Supabase not configured (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)',
+      'Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)',
     );
   }
   return createClient(url, serviceRoleKey, {

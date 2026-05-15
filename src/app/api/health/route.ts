@@ -20,7 +20,7 @@ export async function GET() {
   // Env presence (don't log values)
   const envChecks: Array<[string, string]> = [
     ['NEXTAUTH_SECRET', 'NEXTAUTH_SECRET'],
-    ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL'],
+    ['SUPABASE_URL', 'SUPABASE_URL'],
     ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY'],
     ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY'],
     ['CLOUDINARY_API_KEY', 'CLOUDINARY_API_KEY'],
