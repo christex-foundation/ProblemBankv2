@@ -4,8 +4,8 @@ Walk every flow on **staging** (Vercel preview with staging Supabase) before fli
 
 Prereqs:
 - `.env.local` filled with all real values from `.env.local.example`
-- `pnpm db:migrate` run against staging Supabase
-- `pnpm db:seed` run once so the Library + feed have content
+- `supabase/migrations/0001_init.sql` applied to staging Supabase via the SQL editor
+- Test data seeded via SQL (see Phase 2 in the implementation plan)
 - Mark your test user as admin: `UPDATE "User" SET role = 'admin' WHERE email = 'you@example.com';`
 
 ---

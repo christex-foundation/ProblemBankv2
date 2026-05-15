@@ -31,10 +31,7 @@ A step-by-step you execute on launch day. Allow 90 minutes end-to-end. Run with 
   gh pr merge --squash
   ```
 - [ ] Vercel auto-deploys `main` → wait for build success
-- [ ] Run prod migration:
-  ```
-  DATABASE_URL=<prod_pooled> DIRECT_URL=<prod_direct> ./node_modules/.bin/prisma migrate deploy
-  ```
+- [ ] Apply schema to prod Supabase: open Supabase dashboard → prod project → SQL Editor → paste `supabase/migrations/0001_init.sql` from the repo → Run. Verify all 9 tables appear in Table Editor.
 - [ ] Smoke test prod URL (still on `*.vercel.app`): sign in with each method, submit a problem, view the seeded entry
 
 ## Launch day (T-0)
@@ -77,7 +74,7 @@ If anything breaks badly:
 2. **Database**: We do not destructively migrate on launch. The only schema change is the initial migration; nothing to roll back.
 3. **DNS**: Remove the `build` CNAME in Cloudflare → the domain stops resolving. Vercel deploy is still reachable at `*.vercel.app`.
 
-Avoid: `prisma migrate reset` in production. There is no path that requires this on launch.
+Avoid running destructive SQL (`DROP TABLE`, `TRUNCATE`) in production. There is no path that requires it on launch.
 
 ---
 

@@ -32,14 +32,14 @@ No Prisma. No browser-side Supabase. No ORM.
 ## Quick start
 
 ```bash
-pnpm install
+npm install
 cp .env.local.example .env.local
 # Fill in .env.local with real values from your Supabase + OAuth + Cloudinary + Turnstile setup.
 
 # Apply the schema to your Supabase project:
 # Supabase dashboard → SQL Editor → paste contents of supabase/migrations/0001_init.sql → Run.
 
-pnpm dev
+npm run dev
 # Open http://localhost:3000
 ```
 
@@ -58,13 +58,17 @@ Sign out and back in so the JWT picks up the new role, then visit `/admin/dashbo
 ## Scripts
 
 ```bash
-pnpm dev          # Next.js dev server (Turbopack)
-pnpm build        # Production build
-pnpm start        # Run the built app
-pnpm lint         # ESLint
-pnpm typecheck    # tsc --noEmit
-pnpm db:types     # (optional) regenerate src/types/database.types.ts from Supabase
+npm run dev        # Next.js dev server (Turbopack)
+npm run build      # Production build
+npm start          # Run the built app
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm run db:types   # (optional) regenerate src/types/database.types.ts from Supabase
 ```
+
+`.npmrc` sets `legacy-peer-deps=true` because next-auth v5 beta still
+peer-depends on Next 14/15 while we run Next 16. Remove the flag once
+next-auth's stable release lands.
 
 ## Project structure
 

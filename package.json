@@ -11,12 +11,6 @@
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.types.ts",
     "db:seed": "tsx supabase/seed.ts"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "sharp",
-      "unrs-resolver"
-    ]
-  },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.1.0",
     "@supabase/ssr": "^0.5.2",
