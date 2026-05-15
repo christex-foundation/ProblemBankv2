@@ -1,81 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Problem Bank
 
-## Getting Started
+A research-backed intelligence platform for Sierra Leone's most important unsolved problems. Read, download, build.
 
-First, run the development server:
+Owned and operated by **Christex Foundation**. Deployed at [build.christex.foundation](https://build.christex.foundation).
+
+## What's in here
+
+Two surfaces in one Next.js app:
+
+- **Library** — fully researched, Christex-published problem entries with six PDF documents, an optional infographic, an optional Proof of Concept, and a Build Registry of people working on each problem.
+- **Community feed** — anyone can raise a problem they experience in Sierra Leone and suggest what could be done. The community votes (3 per week, 5-minute unvote window). High-signal problems inform what Christex researches next.
+
+The legacy hackathon app is hosted separately and mapped to `/hackathon` at the hosting layer; this repo does not include it.
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, React 19) |
+| Database | Supabase Postgres (`@supabase/supabase-js`, service-role on the server only) |
+| Auth | NextAuth.js v5 — phone OTP, email/password, Google, GitHub |
+| Rich text | Tiptap with deferred Cloudinary image upload |
+| Files | Cloudinary (PDFs, images, infographic HTML) |
+| Bot protection | Cloudflare Turnstile |
+| OTP delivery | Twilio Verify (WhatsApp + SMS) |
+| Email | Resend (password reset only) |
+| Hosting | Vercel |
+
+No Prisma. No browser-side Supabase. No ORM.
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.local.example .env.local
+# Fill in .env.local with real values from your Supabase + OAuth + Cloudinary + Turnstile setup.
+
+# Apply the schema to your Supabase project:
+# Supabase dashboard → SQL Editor → paste contents of supabase/migrations/0001_init.sql → Run.
+
 pnpm dev
-# or
-bun dev
+# Open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Until `.env.local` is filled, DB-backed pages show a "Database not configured" banner instead of crashing.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Becoming an admin
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+After signing in once, promote yourself via Supabase SQL Editor:
 
-## Learn More
+```sql
+UPDATE "User" SET role = 'admin' WHERE email = 'you@christex.foundation';
+```
 
-To learn more about Next.js, take a look at the following resources:
+Sign out and back in so the JWT picks up the new role, then visit `/admin/dashboard`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Environment Variables
-
-### Ideas Page Feature
-
-The Ideas page requires Airtable configuration. Add these environment variables to your `.env.local` file:
+## Scripts
 
 ```bash
-# Airtable credentials for Ideas page
-AIRTABLE_TOKEN=your_airtable_token
-AIRTABLE_BASE_ID=your_base_id
-AIRTABLE_TABLE_NAME=your_table_name
-
-# Optional: Field names (defaults will be used if not set)
-AIRTABLE_TITLE_FIELD=Title
-AIRTABLE_BLURB_FIELD=Blurb
-AIRTABLE_CATEGORY_FIELD=Category
-AIRTABLE_SORT_FIELD=Order
-AIRTABLE_SORT_DIRECTION=asc
+pnpm dev          # Next.js dev server (Turbopack)
+pnpm build        # Production build
+pnpm start        # Run the built app
+pnpm lint         # ESLint
+pnpm typecheck    # tsc --noEmit
+pnpm db:types     # (optional) regenerate src/types/database.types.ts from Supabase
 ```
 
-**Note:** If these variables are not set, the Ideas page will show an empty state gracefully.
+## Project structure
 
-### Find-a-Team Feature
+```
+src/
+├── app/
+│   ├── (public)/        ← Library grid, /feed, /library/[slug], /builders/[id], /notifications
+│   ├── (auth)/          ← /signin, /signup, /reset, /reset/confirm
+│   ├── admin/           ← /admin/* — role-guarded
+│   ├── api/             ← submissions, votes, comments, build-registry, badge, notifications, admin/*
+│   ├── layout.tsx, robots.ts, sitemap.ts, not-found.tsx, error.tsx, global-error.tsx
+├── components/          ← Problem Bank-specific UI
+├── lib/                 ← supabase.ts, auth.ts, feed.ts, notifications.ts, github.ts, badge.ts, twilio.ts, turnstile.ts, cloudinary-client.ts, enums.ts
+└── types/database.ts    ← hand-written row types matching supabase/migrations/0001_init.sql
 
-The Find-a-Team feature requires Airtable configuration. Add these environment variables to your `.env.local` file:
+supabase/
+└── migrations/0001_init.sql   ← single source of truth schema
+```
+
+## Environment variables
+
+See `.env.local.example` for the full list. The Supabase block is intentionally minimal — server-only, service-role:
 
 ```bash
-# Airtable credentials for TeamBoard
-AIRTABLE_TEAM_TOKEN=your_airtable_token
-AIRTABLE_TEAM_BASE_ID=appXXXqFjLgeJNRDi
-AIRTABLE_TEAM_TABLE_ID=tblZKsVPjgaD7J9IG
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-**Note:** If `AIRTABLE_TEAM_*` variables are not set, the system will fall back to the base `AIRTABLE_*` variables.
+We **don't** need `NEXT_PUBLIC_SUPABASE_*` because the browser never talks to Supabase directly. Every read and write goes through API routes or server components that have already authenticated the caller via NextAuth.
 
-### Airtable Table Schema
+## Pre-launch + launch
 
-The TeamBoard table should have the following fields:
-- `Name` (text): Twitter/X handle (e.g., `@handle`) [required]
-- `X(twitter)` (text): full profile URL (e.g., `https://x.com/handle`)
-- `LinkedIn` (text): full LinkedIn profile URL (optional)
-- `Skillset` (multiple select): list of skills. Field allows adding new options; API will create options as needed.
-- `Repo` (long text): one or more repository URLs (newline or comma separated)
-# Force deployment refresh
+- `QA_CHECKLIST.md` — full QA pass across the 10 user flows plus performance, accessibility, and security.
+- `LAUNCH_RUNBOOK.md` — T-7 / T-3 / T-1 / launch day / rollback / post-launch checklist.
+
+## License
+
+Owned by Christex Foundation. Contact [eng@christex.foundation](mailto:eng@christex.foundation).
