@@ -1,19 +1,34 @@
 # Week 1 — Daily checklist
 
 Goal by end of week:
-- `.env.local` filled with real values, schema applied to staging Supabase, Twilio WhatsApp approval submitted, you signed in as admin, every non-phone-OTP flow working locally + on a Vercel preview.
-- **Problem Bank design system v1 drafted** (tokens + primitive components) ready to apply in Week 2.
-- **Admin dashboard redesign drafted** (layout, metrics, sketches) ready to implement in Week 2.
+- `.env.local` filled, schema applied to staging Supabase, Twilio approval submitted, you signed in as admin, every non-phone-OTP flow working locally + on Vercel preview.
+- **Design system v1 drafted** (tokens + primitive components) ready to apply in Week 2.
+- **Admin dashboard redesign drafted** (layout, metrics, sketches, query plan) ready to implement in Week 2.
 
 Each day has two tracks:
-- **Track A — Config & verification** (existing tasks, mostly ops work).
-- **Track B — Design** (drafting work, no shipping required — output is a doc / spec / sketch).
+- **Track A — Config & verification** (ops, accounts, smoke tests)
+- **Track B — Design** (drafting / spec / sketches — outputs are committed `design/*.md` files, not code)
 
-The two tracks are parallel; if you're one person, do Track A in the morning when fresh and Track B in the afternoon when account UIs are loading.
+Block durations are real-time estimates; clock anchors are illustrative. Shift to fit your day.
 
 ---
 
 ## Day 1 (Mon) — Critical path + design audit
+
+**Daily schedule (~6 h focused work):**
+
+| Block | Time | Track | Task |
+|---|---|---|---|
+| 1 | 09:00–09:30 | A | Submit Twilio WhatsApp approval |
+| 2 | 09:30–10:45 | A | Supabase staging project + apply schema |
+| 3 | 11:00–11:45 | A | Google OAuth app |
+| 4 | 11:45–12:30 | A | Fill `.env.local` + first sign-in smoke |
+| — | 12:30–13:30 | — | Lunch |
+| 5 | 13:30–13:45 | A | Promote yourself to admin |
+| 6 | 13:45–14:45 | B | Reference review → `design/REFERENCES.md` |
+| 7 | 14:45–15:30 | B | Audience + tone → `design/INTENT.md` |
+| 8 | 15:30–16:00 | B | Constraint list → `design/CONSTRAINTS.md` |
+| — | 16:00–16:15 | — | Day 1 gate check |
 
 ### Track A — Config
 
@@ -22,289 +37,322 @@ The two tracks are parallel; if you're one person, do Track A in the morning whe
   - **Why first:** 1–2 week lead time. Blocks Week 4 if you delay.
   - Done: status shows "Pending Approval".
 
-- [ ] **Supabase staging project** *(60 min)*
-  - New project `problem-bank-staging`. Region `eu-west-2 (London)`. Strong DB password (1Password).
-  - Settings → API → copy `Project URL` + `service_role` key.
-  - Done: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` saved.
-
-- [ ] **Apply schema** *(15 min)*
-  - SQL Editor → paste `supabase/migrations/0001_init.sql` → Run.
-  - Done: 9 tables visible in Table Editor.
+- [ ] **Supabase staging + schema** *(75 min)*
+  - New project `problem-bank-staging`. Region `eu-west-2 (London)`. Save DB password.
+  - Settings → API → copy `Project URL` (`SUPABASE_URL`) + `service_role` key (`SUPABASE_SERVICE_ROLE_KEY`).
+  - SQL Editor → paste `supabase/migrations/0001_init.sql` → Run. Confirm 9 tables in Table Editor.
+  - Done: schema applied, env values captured.
 
 - [ ] **Google OAuth** *(45 min)*
-  - Project "Problem Bank" → OAuth consent (External) → app name + support email + logo.
+  - Project "Problem Bank" → OAuth consent (External) → app name + email + logo.
   - Credentials → OAuth client ID → Web app. Redirect: `http://localhost:3000/api/auth/callback/google`.
-  - Done: Client ID + Secret saved.
+  - Copy Client ID + Secret.
 
-### Track B — Design system audit (≈3 h)
+- [ ] **Fill `.env.local` + first smoke** *(45 min)*
+  - `NEXTAUTH_SECRET = $(openssl rand -base64 32)`, `NEXTAUTH_URL=http://localhost:3000`, Supabase + Google vars.
+  - `npm run dev` → `localhost:3000` should load Library grid without yellow banner.
+  - `/signin` → Continue with Google → sign in.
+  - Done: `User` row visible in Supabase.
 
-- [ ] **Reference review** *(60 min)*
-  - Pull every visual asset you have: christex.foundation site, existing logos in `public/images/`, hackathon's old palette (`#f9f2e9` cream + `#E6B800` yellow if relevant).
-  - List visual systems you admire that fit "Sierra Leone-facing, research-backed, credible, mobile-first": e.g. Stripe Docs, Vercel Marketing, Notion, frontier-market analogues like Flutterwave or Andela.
-  - Done: a short reference doc (call it `design/REFERENCES.md` — create if needed) with screenshots / links + one-line notes per reference.
+- [ ] **Promote to admin** *(15 min)*
+  - SQL Editor: `UPDATE "User" SET role='admin' WHERE email='you@christex.foundation';`
+  - Sign out + back in. `/admin/dashboard` should render.
 
-- [ ] **Audience + tone** *(45 min)*
-  - For each user type, what does the design need to convey?
-    - **Entrepreneur / Developer:** trustworthy, build-ready, professional
-    - **Investor:** credibility, evidence, gravity
-    - **Community contributor (mobile-first SL):** approachable, fast, low-bandwidth
-  - Write 3 sentences of design intent (in `design/INTENT.md`).
-  - Done: intent doc committed.
+### Track B — Design audit
 
-- [ ] **Constraint list** *(30 min)*
-  - Mobile-first (smallest target: ~360px wide).
-  - Body text ≥ 16px (WCAG + bright outdoor light readability).
-  - Contrast ≥ 4.5:1 for body, 3:1 for large text.
-  - Slow 3G first-paint < 3s — no heavy decorative assets / animations on critical paths.
-  - Decoy font is already in `/public/fonts/` if you want to keep it; else strip.
-  - Done: `design/CONSTRAINTS.md` written.
+- [ ] **Reference review → `design/REFERENCES.md`** *(60 min)*
+  - Pull every existing asset (christex.foundation site, logos in `public/images/`, hackathon's old palette if useful).
+  - List visual systems to study: Stripe Docs, Vercel Marketing, Notion, frontier-market analogues.
+  - One-line commentary per reference.
+
+- [ ] **Audience + tone → `design/INTENT.md`** *(45 min)*
+  - For each user type (entrepreneur / developer, investor, community contributor), one paragraph: what should the design make them feel?
+  - Three sentences of overall design intent.
+
+- [ ] **Constraint list → `design/CONSTRAINTS.md`** *(30 min)*
+  - Mobile-first (360px target), body text ≥ 16px, contrast ≥ 4.5:1, Slow 3G first-paint < 3s, no heavy decoration on critical paths, font decision on Decoy + Geist.
+
+### Day 1 gate
+- [ ] WhatsApp approval submitted
+- [ ] Schema applied to staging Supabase
+- [ ] Google sign-in working locally
+- [ ] You are admin
+- [ ] 3 design docs committed
 
 ---
 
-## Day 2 (Tue) — Tokens + remaining auth providers
+## Day 2 (Tue) — Remaining auth + tokens
 
-### Track A — Config
+**Daily schedule (~5.5 h focused work):**
+
+| Block | Time | Track | Task |
+|---|---|---|---|
+| 1 | 09:00–09:30 | A | GitHub OAuth app |
+| 2 | 09:30–09:50 | A | Cloudflare Turnstile |
+| 3 | 09:50–10:20 | A | Resend domain + API key |
+| 4 | 10:30–12:00 | B | Color palette → `design/TOKENS.md` |
+| — | 12:00–13:00 | — | Lunch |
+| 5 | 13:00–14:00 | B | Type scale → `design/TOKENS.md` |
+| 6 | 14:15–15:15 | B | Spacing + radius + shadow + motion → `design/TOKENS.md` |
+| 7 | 15:30–16:00 | B | Map tokens to Tailwind 4 plan |
+
+### Track A — Auth + bot protection + email
 
 - [ ] **GitHub OAuth** *(30 min)*
-  - org → Developer settings → OAuth Apps → New. Homepage `https://build.christex.foundation`.
-  - Callbacks: `https://build.christex.foundation/api/auth/callback/github` + `http://localhost:3000/api/auth/callback/github`.
+  - Org → Developer settings → OAuth Apps → New. Homepage `https://build.christex.foundation`.
+  - Callbacks: production + `http://localhost:3000/api/auth/callback/github`.
   - Add `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET` to `.env.local`.
   - Done: GitHub sign-in works locally; `User.githubUrl` populated.
 
 - [ ] **Cloudflare Turnstile** *(20 min)*
-  - Add site `build.christex.foundation`. Managed widget. Hostnames: `build.christex.foundation`, `localhost`, `*.vercel.app`.
+  - Add site `build.christex.foundation` (Managed). Hostnames: production, `localhost`, `*.vercel.app`.
   - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` → `.env.local`.
-  - Done: widget renders on `/feed/submit` when signed in.
+  - Done: widget renders on `/feed/submit`.
 
 - [ ] **Resend** *(30 min)*
-  - API Key → add to `.env.local` as `RESEND_API_KEY`. `EMAIL_FROM=noreply@christex.foundation`.
+  - API Key → `.env.local` as `RESEND_API_KEY`. `EMAIL_FROM=noreply@christex.foundation`.
   - Domains → add `christex.foundation` → verify DKIM/SPF via Cloudflare DNS.
   - Done: domain shows "Verified".
 
-### Track B — Design tokens (≈4 h)
+### Track B — Design tokens
 
 - [ ] **Color palette** *(90 min)*
-  - Define and justify each role:
-    - Primary brand (action, focus, links)
-    - Secondary (accents, badges)
-    - Neutral scale (12 steps from white → black for backgrounds, borders, text)
-    - Semantic: success, warning, error, info
-    - Surface (page bg, card bg, elevated bg)
-  - Run every pair through a contrast checker (e.g. Stark, WebAIM).
-  - Done: `design/TOKENS.md` with hex values + intended usage per token.
+  - Primary brand, secondary, neutral scale (12 steps), semantic (success/warning/error/info), surface (page bg / card bg / elevated bg).
+  - Run every text/bg pair through a contrast checker.
+  - Hex values + intended usage per token.
 
 - [ ] **Type scale** *(60 min)*
-  - Font families: heading + body + mono (decide if Decoy + Geist stay, swap one, etc.).
-  - Scale: 12 / 14 / 16 / 18 / 20 / 24 / 30 / 36 / 48 / 60 / 72 px (or your preferred ratio).
-  - Line heights, weights, letter spacing.
+  - Font stack decision: heading + body + mono (Decoy + Geist or replacements).
+  - Scale 12 → 72 px. Line heights, weights, letter spacing.
   - Mobile defaults: body 16px floor.
-  - Done: type spec in `design/TOKENS.md`.
 
-- [ ] **Spacing, radius, shadow, motion** *(60 min)*
-  - Spacing scale: 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96 px (or your choice).
+- [ ] **Spacing + radius + shadow + motion** *(60 min)*
+  - Spacing: 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 / 96.
   - Radius: sm / md / lg / full.
-  - Shadow: subtle elevation (1 / 2 / 3 levels).
-  - Motion: durations, easing curves.
-  - Done: complete `design/TOKENS.md`.
+  - Shadow: 3 elevation levels.
+  - Motion: durations + easings.
 
-- [ ] **Map tokens to Tailwind** *(30 min)*
-  - Sketch how each token lands in `tailwind.config.ts` extensions (or `@theme` block in `globals.css` for Tailwind 4) — don't implement yet, just plan.
-  - Done: notes on which Tailwind tokens to extend, in `design/TOKENS.md`.
+- [ ] **Tailwind 4 mapping plan** *(30 min)*
+  - Sketch how each token lands in the `@theme` block of `globals.css`.
+  - List which Tailwind utilities you'll use vs. need custom classes.
+
+### Day 2 gate
+- [ ] Google, GitHub, locally-working sign-ins
+- [ ] Turnstile widget renders
+- [ ] Resend domain verified
+- [ ] `design/TOKENS.md` complete
 
 ---
 
 ## Day 3 (Wed) — Cloudinary + component primitives
 
-### Track A — Config
+**Daily schedule (~5.5 h focused work):**
+
+| Block | Time | Track | Task |
+|---|---|---|---|
+| 1 | 09:00–09:30 | A | Cloudinary account + upload preset |
+| 2 | 09:30–10:15 | A | Submission flow smoke (vote, unvote, lock) |
+| 3 | 10:30–11:00 | A | Comments + status flow smoke |
+| 4 | 11:00–11:45 | B | Button spec → `design/COMPONENTS.md` |
+| — | 11:45–12:45 | — | Lunch |
+| 5 | 12:45–13:30 | B | Input / Textarea / Select spec |
+| 6 | 13:30–14:00 | B | Card + Surface spec |
+| 7 | 14:15–14:45 | B | Badge + Tag spec |
+| 8 | 14:45–15:05 | B | DocumentTabs spec |
+| 9 | 15:05–15:35 | B | Nav + Footer spec |
+| 10 | 15:35–15:55 | B | Empty + loading + error states |
+
+### Track A — Cloudinary + flow smoke
 
 - [ ] **Cloudinary** *(30 min)*
-  - `Cloud name`, `API Key`, `API Secret`.
-  - Upload preset `problem_bank_unsigned`, unsigned, folder `problem-bank`.
-  - Four Cloudinary vars → `.env.local`. Restart dev server.
-  - Done: upload an image in `/feed/submit` → lands in Cloudinary `problem-bank/submissions/`.
+  - `Cloud name` + `API Key` + `API Secret`. Unsigned preset `problem_bank_unsigned`, folder `problem-bank`.
+  - Add 4 Cloudinary vars to `.env.local`. Restart dev server.
+  - Done: image uploaded from `/feed/submit` lands in `problem-bank/submissions/`.
 
-- [ ] **Submission flow smoke** *(45 min)*
-  - Submit 3 problems across sectors. One with an inline image. Vote, unvote within 5 min, lock after 5 min (mutate `votedAt` in SQL), 4th vote blocked.
-  - Done: all four behaviours observed.
+- [ ] **Submission flow** *(45 min)*
+  - Submit 3 problems across sectors. One with inline image.
+  - Vote, unvote within 5 min, lock after 5 min (mutate `votedAt` in SQL), 4th vote blocked.
 
 - [ ] **Comments + status flow** *(30 min)*
-  - Comment as admin → appears. Change submission status to `under_review` from `/admin/submissions` → comment input gone, existing comment readable, `Notification` row exists.
-  - Done: status change closes comments + creates notification.
+  - Comment as admin → appears.
+  - `/admin/submissions` → change status to `under_review` → reload public detail → comment input gone, existing comment readable, `Notification` row created.
 
-### Track B — Component primitives spec (≈4 h)
+### Track B — Component primitives spec
 
-For each primitive: states (default / hover / active / focus / disabled), sizes (sm / md / lg if applicable), variants, accessibility notes, anatomy diagram. **Spec only — no implementation yet.**
+Each component: variants, sizes, states (default/hover/active/focus/disabled), a11y notes, anatomy. **No code yet** — just the spec in `design/COMPONENTS.md`.
 
-- [ ] **Button** *(45 min)*
-  - Variants: primary, secondary, ghost, destructive, link.
-  - Sizes: sm (32px) / md (40px) / lg (48px — touch target on mobile).
-  - Loading state. Icon-only variant.
-  - Done: in `design/COMPONENTS.md`.
+- [ ] **Button** *(45 min)* — primary, secondary, ghost, destructive, link; sm/md/lg; loading; icon-only.
+- [ ] **Input / Textarea / Select** *(45 min)* — label + placeholder + helper + error; counter pattern (used by title/bio/comment).
+- [ ] **Card + Surface** *(30 min)* — used by every list grid + builder card + notification row.
+- [ ] **Badge + Tag** *(30 min)* — submission statuses, urgency, sector.
+- [ ] **DocumentTabs** *(20 min)* — 6 tabs, active/inactive/disabled.
+- [ ] **Nav + Footer** *(30 min)* — desktop + mobile menu pattern.
+- [ ] **Empty / loading / error** *(20 min)* — empty feed, empty library, "DB not configured", 404, 500.
 
-- [ ] **Input + Textarea + Select** *(45 min)*
-  - Label position, placeholder, helper text, error message.
-  - Disabled, read-only, focus ring.
-  - Character counter pattern (used on title 80/80, bio 160/160, comment 2000).
-  - Done: in `design/COMPONENTS.md`.
-
-- [ ] **Card + Surface** *(30 min)*
-  - Used for: Library entry grid card, feed card, builder card, notification row, admin entry row.
-  - Border vs shadow elevation. Hover state for clickable cards.
-  - Done: in `design/COMPONENTS.md`.
-
-- [ ] **Badge + Tag** *(30 min)*
-  - Status badges (Submitted, Gaining Traction, Under Review, Research in Progress, Not Viable, Live) — one color/icon per state.
-  - Urgency tags (Critical, High, Medium, Low).
-  - Sector tags (Health, Education, Agriculture, …).
-  - Done: in `design/COMPONENTS.md`.
-
-- [ ] **Document tab / DocumentTabs** *(20 min)*
-  - 6 tabs (Concept Note, PRD, Tech Design, User Flows, Roadmap, Pitch Deck) — visual hierarchy when active vs not, disabled (missing) state.
-  - Done: in `design/COMPONENTS.md`.
-
-- [ ] **Nav + Footer** *(30 min)*
-  - Top nav: logo, primary links, notifications bell, profile dropdown, sign-in CTA.
-  - Mobile menu pattern.
-  - Footer (already minimal — confirm content).
-  - Done: in `design/COMPONENTS.md`.
-
-- [ ] **Empty + loading + error states** *(20 min)*
-  - Empty feed, empty library, empty notifications, "DB not configured" warning, 404, 500.
-  - Done: in `design/COMPONENTS.md`.
+### Day 3 gate
+- [ ] Voting, commenting, status fan-out all verified
+- [ ] `design/COMPONENTS.md` complete (all 7 primitives)
 
 ---
 
-## Day 4 (Thu) — Admin dashboard design + content kickoff
+## Day 4 (Thu) — Auth edge cases + admin dashboard design
 
-### Track A — Config (light day, ≈2 h)
+**Daily schedule (~6 h focused work):**
+
+| Block | Time | Track | Task |
+|---|---|---|---|
+| 1 | 09:00–09:30 | A | Email + password signup |
+| 2 | 09:30–09:50 | A | Password reset via Resend |
+| 3 | 09:50–10:05 | A | Account merging |
+| 4 | 10:15–11:15 | A | Content team kickoff sync |
+| 5 | 11:15–12:15 | B | Dashboard audit + answer-list → `design/ADMIN_DASHBOARD.md` |
+| — | 12:15–13:15 | — | Lunch |
+| 6 | 13:15–14:45 | B | Layout sketch (paper / Figma / ASCII) |
+| 7 | 15:00–16:00 | B | Data + RPC plan per panel |
+| 8 | 16:00–16:30 | B | Chart library decision + component reuse audit |
+
+### Track A — Auth edge cases + content kickoff
 
 - [ ] **Email + password signup** *(30 min)*
-  - `/signup` → Email tab → name, email, password (≥ 8). Auto-signs in.
-  - Sign out → `/signin` → Email tab → signs in.
-  - Done: works end-to-end.
+  - Sign out of Google. `/signup` → Email tab → name + email + password (≥ 8) → auto-signs in.
+  - Sign out → `/signin` → Email tab → same credentials → signs in.
 
 - [ ] **Password reset via Resend** *(20 min)*
-  - `/reset` → enter email → check inbox → click link → set new password → sign in.
-  - Done: reset email arrives, new password works.
+  - `/reset` → email → click link in inbox → new password → sign in.
 
 - [ ] **Account merging** *(15 min)*
-  - Sign out. Sign in with Google using the email/password account's email.
-  - Done: one row in `User`, signed in.
+  - Sign in with Google using your email/password account's email → still one `User` row.
 
 - [ ] **Content team kickoff** *(60 min)*
-  - Walk Christex content team through `/admin/library/new` on staging.
-  - Hand them the docx spec for the 6 documents.
-  - Confirm first Library entry topic + completion target (aim by end of Week 5).
-  - Done: content team has started; target date captured.
+  - Walk Christex content team through `/admin/library/new` live on staging.
+  - Hand them the docx spec for the 6 PDFs.
+  - Confirm first Library entry topic + completion target (aim end of Week 5).
 
-### Track B — Admin dashboard design + plan (≈4 h)
+### Track B — Admin dashboard redesign
 
-The current `/admin/dashboard` shows 3 sections: status counts, recent entries, top badge fetches. It's functional but flat. Redesign it.
-
-- [ ] **Audit current dashboard** *(20 min)*
-  - Open `/admin/dashboard` on staging. Note what's missing for the people who'll use it daily (Christex Foundation research + ops team).
-  - Done: bullet list of pain points / wishlist in `design/ADMIN_DASHBOARD.md`.
-
-- [ ] **Define what the dashboard answers** *(40 min)*
-  - Questions an admin should answer at a glance:
-    - How many new submissions came in this week?
-    - Which sectors are surfacing the most?
-    - Which submissions are gaining traction *right now*?
-    - Where are entries stuck in the pipeline?
-    - How are published Library entries performing (badge fetches, builder count, GitHub activity)?
-    - What needs my action today?
-  - Pick the 5–7 questions that matter most. The rest go to follow-on views.
-  - Done: question list in `design/ADMIN_DASHBOARD.md`.
+- [ ] **Dashboard audit + answer-list** *(60 min)*
+  - Open current `/admin/dashboard`. Note what's missing for daily admin use.
+  - Pick the 5–7 questions a glance at the dashboard should answer (this week's submission volume, sectors trending, pipeline stuck points, Library entries with builders but no recent activity, etc.).
 
 - [ ] **Layout sketch** *(90 min)*
-  - Wireframe (paper, Figma, or ASCII) the new layout. Suggested zones:
-    - **Hero strip:** top metrics (this-week submissions, votes cast, unique voters, comments).
-    - **Pipeline column:** funnel from Submitted → Gaining Traction → Under Review → Live, with counts + click-through to filtered submission lists.
-    - **Action queue:** "Submissions awaiting review", "Submissions that hit Gaining Traction in last 7 days", "Library entries with builders but no recent GitHub activity".
-    - **Engagement:** chart of weekly submission + vote volume (last 8 weeks).
-    - **Top sectors:** horizontal bar of submission count by sector.
-    - **Recent activity:** stream of last 10 events (new submission / vote spike / status change / new builder).
-  - Done: wireframe pasted in `design/ADMIN_DASHBOARD.md`.
+  - Wireframe new layout (paper / Figma / ASCII). Suggested zones:
+    - **Hero strip:** week metrics (submissions, votes, voters, comments).
+    - **Pipeline:** funnel Submitted → Gaining Traction → Under Review → Live with counts → filtered submission list links.
+    - **Action queue:** awaiting review / hit Gaining Traction last 7 days / Library entries with stale builders.
+    - **Engagement:** weekly volume chart (8 weeks).
+    - **Top sectors:** horizontal bar.
+    - **Recent activity:** last 10 events feed.
 
 - [ ] **Data + RPC plan** *(60 min)*
-  - For each panel, write the Supabase query or RPC it needs.
-  - Decide which queries should be RPCs (`weekly_volume()`, `pipeline_counts()`, `stuck_entries()`) vs inline `from(...).select(...)`.
-  - Decide refresh model: load on page render? Server-side only (`force-dynamic`)? No live polling needed at this scale.
-  - Done: query plan written + a list of new SQL functions to add in a follow-on migration.
+  - Per panel, write the Supabase query or RPC needed.
+  - Decide RPC vs inline; list new SQL functions to add (`weekly_volume()`, `pipeline_counts()`, etc.).
+  - Decide refresh model (`force-dynamic` on render; no polling at this scale).
 
-- [ ] **Chart library decision** *(15 min)*
-  - Pick a lightweight chart lib: Recharts, Tremor, or simple SVG bars by hand. Tremor is dashboards-on-rails; Recharts gives more control.
-  - Done: choice + one-line reason in `design/ADMIN_DASHBOARD.md`.
+- [ ] **Chart library + component reuse** *(30 min)*
+  - Recharts vs Tremor vs hand-rolled SVG bars — pick one with a one-line reason.
+  - List new components to spec (metric card, stat-with-delta, bar chart wrapper, activity row).
 
-- [ ] **Component reuse check** *(15 min)*
-  - Which Day 3 component primitives can be reused vs need extension (e.g. metric card, stat card with delta, bar chart wrapper, activity row).
-  - Done: list of new components to spec.
+### Day 4 gate
+- [ ] All three sign-in methods (Google, GitHub, email/password) confirmed
+- [ ] Reset email arrives + new password works
+- [ ] Account merging verified
+- [ ] Content team has started
+- [ ] `design/ADMIN_DASHBOARD.md` complete
 
 ---
 
-## Day 5 (Fri) — Apply tokens + Vercel deploy
+## Day 5 (Fri) — Vercel staging + apply tokens
 
-### Track A — Config
+**Daily schedule (~5 h focused work):**
+
+| Block | Time | Track | Task |
+|---|---|---|---|
+| 1 | 09:00–09:20 | A | Connect repo to Vercel + Preview env vars |
+| 2 | 09:20–09:35 | A | Update OAuth callbacks for preview URL |
+| 3 | 09:35–10:35 | A | Smoke test deployed preview |
+| 4 | 10:45–11:45 | B | Update `globals.css` `@theme` with tokens |
+| — | 11:45–12:45 | — | Lunch |
+| 5 | 12:45–13:30 | B | Apply tokens to layout chrome (Nav, Footer, root) |
+| 6 | 13:30–14:15 | B | Apply tokens to homepage + FeedCard |
+| 7 | 14:15–14:35 | B | Document the system → `design/README.md` |
+| 8 | 14:35–15:00 | — | End-of-week gate check |
+
+### Track A — Vercel preview deploy
 
 - [ ] **Connect repo to Vercel** *(20 min)*
-  - Import `christex-foundation/ProblemBankv2`.
-  - Settings → Environment Variables → bulk paste from `.env.local` into the Preview scope.
-  - Leave `NEXTAUTH_URL` + `NEXT_PUBLIC_BASE_URL` blank for Preview (auto from `VERCEL_URL`).
-  - Don't fill Production yet (Week 5).
-  - Done: preview deploy succeeds.
+  - Import `christex-foundation/ProblemBankv2`. Framework: Next.js. Build: `npm run build`.
+  - Settings → Environment Variables → bulk paste from `.env.local` into Preview scope.
+  - Leave `NEXTAUTH_URL` + `NEXT_PUBLIC_BASE_URL` blank for Preview.
+  - Don't fill Production scope yet.
 
 - [ ] **Update OAuth callbacks** *(15 min)*
-  - Add Vercel preview URL to Google + GitHub authorised callbacks.
-  - Confirm Turnstile allows `*.vercel.app`.
-  - Done: both providers updated.
+  - Google + GitHub: add Vercel preview URL.
+  - Turnstile already allows `*.vercel.app`.
 
 - [ ] **Smoke test deployed** *(60 min)*
   - Incognito → preview URL.
   - Sign in (Google, GitHub, email/password).
-  - Submit a problem. Vote. Comment. Register on the Library entry.
-  - `/admin/dashboard` (as admin). `/api/health` → 200.
-  - Done: every flow works on preview.
+  - Submit, vote, comment, register on Library entry.
+  - `/admin/dashboard` (as admin), `/api/health` → 200.
 
-### Track B — Apply tokens to globals (≈3 h, optional / can slip to Week 2)
+### Track B — Apply tokens (implementation, optional / spillable)
 
-This is implementation work that depends on Day 2 tokens. If Day 2 design slipped, push this whole block.
+If Day 2 tokens are still in flux, push this block to Week 2 Day 1.
 
-- [ ] **Update Tailwind 4 theme** *(60 min)*
-  - In `src/app/globals.css`, replace the placeholder theme block with your token set (`@theme { --color-…, --font-…, --spacing-…, --radius-… }`).
-  - Done: tokens accessible as Tailwind utilities.
+- [ ] **Update Tailwind theme** *(60 min)*
+  - In `src/app/globals.css`, replace placeholder theme with token set (`@theme { --color-…, --font-…, --spacing-…, --radius-… }`).
 
 - [ ] **Apply to layout chrome** *(45 min)*
-  - `Footer`, `ProblemBankNav`, root `layout.tsx` — use new tokens (colors, type, spacing).
-  - Done: chrome reflects new design system.
+  - Update `ProblemBankNav`, `Footer`, root `layout.tsx` to use new tokens.
 
-- [ ] **Apply to homepage + feed card** *(45 min)*
-  - Library grid card, FeedCard component — token-driven colors + spacing + type.
-  - Done: visible polish on `/` and `/feed`.
+- [ ] **Apply to homepage + feed** *(45 min)*
+  - Library grid card on `/`, `FeedCard` on `/feed` — token-driven colors + spacing + type.
 
 - [ ] **Document the system** *(20 min)*
-  - In `design/README.md` link to TOKENS, COMPONENTS, INTENT, CONSTRAINTS, ADMIN_DASHBOARD docs.
-  - Done: design folder is navigable.
+  - `design/README.md` linking to all the design docs created this week.
+
+### Day 5 gate
+- [ ] Staging deployed to Vercel preview
+- [ ] OAuth works on the preview URL
+- [ ] All non-phone-OTP flows verified on the deployed URL
+- [ ] (Stretch) Tokens applied to layout + home + feed
 
 ---
 
-## End-of-week gate
+## End-of-week health check
 
 **Config:**
-- [ ] `.env.local` filled (Twilio fields OK to be empty if WhatsApp still pending — SMS-only path keeps you moving)
+- [ ] `.env.local` has 14 of 15 values filled (only Twilio still blank if WhatsApp pending). SMS-only path: `TWILIO_*` keys can be filled today.
 - [ ] Schema applied to staging Supabase
-- [ ] Vercel preview deployed, all non-phone-OTP flows verified there
-- [ ] Email + Google + GitHub sign-in all working
-- [ ] Christex content team started on first Library entry
+- [ ] Vercel preview deployed + smoke-tested
+- [ ] Google + GitHub + email/password sign-in all working
+- [ ] You can publish a Library entry end-to-end via Admin CMS
 
 **Design:**
-- [ ] `design/INTENT.md`, `design/CONSTRAINTS.md`, `design/TOKENS.md`, `design/COMPONENTS.md`, `design/ADMIN_DASHBOARD.md` all committed
+- [ ] `design/REFERENCES.md`, `design/INTENT.md`, `design/CONSTRAINTS.md`, `design/TOKENS.md`, `design/COMPONENTS.md`, `design/ADMIN_DASHBOARD.md`, `design/README.md` all committed
 - [ ] Admin dashboard wireframe + data plan ready for Week 2 implementation
 - [ ] (Stretch) Tokens applied to layout + homepage + feed
 
-**Twilio:**
-- [ ] WhatsApp approval status checked — chase Twilio if no movement after 4 business days
+**Content + ops:**
+- [ ] Christex content team has started on the first Library entry; target completion captured
+- [ ] WhatsApp approval status checked — escalate to Twilio if no movement after 4 business days
 
-If Track A is complete but Track B is half-done, the design work spills into Week 2 (push the implementation phase out a few days). If Track B is complete but Track A is half-done, you can't deploy — fix Track A first.
+If any item is not ticked, slip that to Day 1 of Week 2 and shift the rest of Week 2 down. Don't proceed to Week 2 with broken Day 5 items.
+
+---
+
+## Daily totals at a glance
+
+| Day | Track A | Track B | Total | Theme |
+|---|---|---|---|---|
+| Mon | 3h | 2.25h | 5.25h | Critical-path setup + design audit |
+| Tue | 1.5h | 4h | 5.5h | Auth providers + tokens |
+| Wed | 1.75h | 3.7h | 5.5h | Files & flow smoke + component spec |
+| Thu | 2h | 4h | 6h | Auth edge cases + admin dashboard redesign |
+| Fri | 1.6h | 2.8h | 4.4h | Vercel preview + apply tokens (stretch) |
+| **Total** | **9.85h** | **16.75h** | **26.65h** | |
+
+Design (Track B) is the larger half of the week. If you're a solo operator, Track A in the morning while you're fresh, Track B in the afternoon when account-creation UIs would just be loading anyway.
 
 ---
 
@@ -326,4 +374,4 @@ UPDATE "User" SET role = 'admin' WHERE email = 'you@christex.foundation';
 
 ---
 
-*When Week 1 is complete, Week 2 = implement the design tokens + admin dashboard redesign. Then jump to the deeper QA + content production weeks. See `LAUNCH_RUNBOOK.md` for T-7 → launch.*
+*Week 2 = implement design tokens + admin dashboard redesign + apply across remaining pages. Then `QA_CHECKLIST.md` in Week 3 and `LAUNCH_RUNBOOK.md` for T-7 → launch.*
