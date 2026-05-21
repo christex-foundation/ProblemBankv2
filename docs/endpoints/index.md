@@ -43,7 +43,7 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 | Library | POST | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
 | Library | PATCH | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
 | Library | DELETE | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
-| Builders | PATCH | `/api/builders/[id]` | pending | [builders.md](./builders.md) |
+| Builders | PATCH | `/api/builders/[id]` | hardened | [builders.md](./builders.md) |
 | Admin | POST | `/api/admin/library` | pending | [admin.md](./admin.md) |
 | Admin | PATCH | `/api/admin/library` | pending | [admin.md](./admin.md) |
 | Admin | PATCH | `/api/admin/submissions/[id]/status` | pending | [admin.md](./admin.md) |
