@@ -1,42 +1,16 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
+import { apiError, apiOk, parseOrError } from '@/lib/api-response';
+import { API_ERROR_CODES } from '@/lib/api-error-codes';
 import type { LibraryEntryRow } from '@/types/database';
+import {
+  CreateLibraryEntrySchema,
+  UpdateLibraryEntrySchema,
+} from './_schemas';
 
-const DocSchema = z.object({
-  docType: z.enum([
-    'concept_note',
-    'prd',
-    'technical_design',
-    'user_flows',
-    'roadmap',
-    'pitch_deck',
-  ]),
-  url: z.string().url(),
-  fileName: z.string().min(1).max(200),
-});
-
-const BaseSchema = z.object({
-  slug: z
-    .string()
-    .min(1)
-    .max(80)
-    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase letters, numbers, or dashes'),
-  title: z.string().min(1).max(200),
-  problemStatement: z.string().min(1),
-  sector: z.string().min(1).max(60),
-  urgency: z.enum(['critical', 'high', 'medium', 'low']),
-  kitUrl: z.string().url().optional().or(z.literal('')).nullable(),
-  demoUrl: z.string().url().optional().or(z.literal('')).nullable(),
-  infographicUrl: z.string().url().optional().or(z.literal('')).nullable(),
-  linkedSubmissionId: z.string().optional().nullable().or(z.literal('')),
-  documents: z.array(DocSchema).optional().default([]),
-  publish: z.boolean().default(false),
-});
-
-const CreateSchema = BaseSchema;
-const UpdateSchema = BaseSchema.extend({ id: z.string().min(1) });
+// TODO(auth): every method here requires the caller to be an admin. Once
+// auth lands, gate with `session.user.role !== 'admin'` and return
+// 403 not_admin. In this pass the routes are open and the body carries
+// the dev `createdBy` userId on POST.
 
 function emptyToNull(v: string | null | undefined): string | null {
   if (!v) return null;
@@ -44,64 +18,65 @@ function emptyToNull(v: string | null | undefined): string | null {
   return v;
 }
 
-export async function POST(req: Request) {
-  const session = await auth();
-  if (session?.user?.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  let body: unknown;
+async function readJson(req: Request): Promise<unknown | Response> {
   try {
-    body = await req.json();
+    return await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError(API_ERROR_CODES.validation_failed, 400, 'Body must be JSON.');
   }
-  const parsed = CreateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid input', issues: parsed.error.issues },
-      { status: 400 },
-    );
-  }
+}
 
-  const data = parsed.data;
-  const userId = session.user.id;
+export async function POST(req: Request) {
+  const body = await readJson(req);
+  if (body instanceof Response) return body;
+
+  const parsed = parseOrError(CreateLibraryEntrySchema, body);
+  if (!parsed.ok) return parsed.response;
+  const input = parsed.data;
+
   const supabase = getSupabase();
-
   const { data: entryRows, error: entryErr } = (await supabase
     .from('LibraryEntry')
     .insert({
-      slug: data.slug,
-      title: data.title,
-      problemStatement: data.problemStatement,
-      sector: data.sector,
-      urgency: data.urgency,
-      kitUrl: emptyToNull(data.kitUrl),
-      demoUrl: emptyToNull(data.demoUrl),
-      infographicUrl: emptyToNull(data.infographicUrl),
-      publishedAt: data.publish ? new Date().toISOString() : null,
-      createdBy: userId,
+      slug: input.slug,
+      title: input.title,
+      problemStatement: input.problemStatement,
+      sector: input.sector,
+      urgency: input.urgency,
+      kitUrl: emptyToNull(input.kitUrl),
+      demoUrl: emptyToNull(input.demoUrl),
+      infographicUrl: emptyToNull(input.infographicUrl),
+      publishedAt: input.publish ? new Date().toISOString() : null,
+      createdBy: input.createdBy,
     } as never)
-    .select('*')) as { data: LibraryEntryRow[] | null; error: unknown };
+    .select('*')) as { data: LibraryEntryRow[] | null; error: { code?: string; message: string } | null };
+
   if (entryErr || !entryRows?.[0]) {
-    return NextResponse.json({ error: 'Failed to create entry' }, { status: 500 });
+    // Postgres unique violation code is 23505 — surface as a stable code.
+    if (entryErr?.code === '23505') {
+      return apiError(API_ERROR_CODES.duplicate_slug, 409, 'Slug already exists.');
+    }
+    return apiError(
+      API_ERROR_CODES.internal_error,
+      500,
+      entryErr?.message ?? 'Failed to create entry.',
+    );
   }
   const entry = entryRows[0];
 
-  if (data.documents.length > 0) {
-    await supabase
-      .from('Document')
-      .insert(
-        data.documents.map((d) => ({
-          libraryEntryId: entry.id,
-          docType: d.docType,
-          cloudinaryUrl: d.url,
-          fileName: d.fileName,
-        })) as never,
-      );
+  const docsForInsert = input.documents ?? [];
+  if (docsForInsert.length > 0) {
+    await supabase.from('Document').insert(
+      docsForInsert.map((d) => ({
+        libraryEntryId: entry.id,
+        docType: d.docType,
+        cloudinaryUrl: d.url,
+        fileName: d.fileName,
+      })) as never,
+    );
   }
 
-  const linked = emptyToNull(data.linkedSubmissionId ?? null);
+  const linked = emptyToNull(input.linkedSubmissionId ?? null);
   if (linked) {
     await supabase
       .from('Submission')
@@ -109,66 +84,64 @@ export async function POST(req: Request) {
       .eq('id', linked);
   }
 
-  return NextResponse.json({ entry }, { status: 201 });
+  return apiOk({ entry }, { status: 201 });
 }
 
 export async function PATCH(req: Request) {
-  const session = await auth();
-  if (session?.user?.role !== 'admin') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  const body = await readJson(req);
+  if (body instanceof Response) return body;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-  const parsed = UpdateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid input', issues: parsed.error.issues },
-      { status: 400 },
-    );
-  }
+  const parsed = parseOrError(UpdateLibraryEntrySchema, body);
+  if (!parsed.ok) return parsed.response;
+  const input = parsed.data;
 
-  const data = parsed.data;
   const supabase = getSupabase();
-
   const { data: existing } = (await supabase
     .from('LibraryEntry')
     .select('publishedAt')
-    .eq('id', data.id)
+    .eq('id', input.id)
     .maybeSingle()) as { data: Pick<LibraryEntryRow, 'publishedAt'> | null };
-  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const publishedAt = data.publish
+  if (!existing) {
+    return apiError(API_ERROR_CODES.not_found, 404, 'Library entry not found.');
+  }
+
+  const publishedAt = input.publish
     ? existing.publishedAt ?? new Date().toISOString()
     : null;
 
   const { data: updatedRows, error: updErr } = (await supabase
     .from('LibraryEntry')
     .update({
-      slug: data.slug,
-      title: data.title,
-      problemStatement: data.problemStatement,
-      sector: data.sector,
-      urgency: data.urgency,
-      kitUrl: emptyToNull(data.kitUrl),
-      demoUrl: emptyToNull(data.demoUrl),
-      infographicUrl: emptyToNull(data.infographicUrl),
+      slug: input.slug,
+      title: input.title,
+      problemStatement: input.problemStatement,
+      sector: input.sector,
+      urgency: input.urgency,
+      kitUrl: emptyToNull(input.kitUrl),
+      demoUrl: emptyToNull(input.demoUrl),
+      infographicUrl: emptyToNull(input.infographicUrl),
       publishedAt,
     } as never)
-    .eq('id', data.id)
-    .select('*')) as { data: LibraryEntryRow[] | null; error: unknown };
+    .eq('id', input.id)
+    .select('*')) as { data: LibraryEntryRow[] | null; error: { code?: string; message: string } | null };
+
   if (updErr || !updatedRows?.[0]) {
-    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
+    if (updErr?.code === '23505') {
+      return apiError(API_ERROR_CODES.duplicate_slug, 409, 'Slug already exists.');
+    }
+    return apiError(
+      API_ERROR_CODES.internal_error,
+      500,
+      updErr?.message ?? 'Failed to update entry.',
+    );
   }
   const updated = updatedRows[0];
 
-  if (data.documents.length > 0) {
+  const docsForUpsert = input.documents ?? [];
+  if (docsForUpsert.length > 0) {
     await supabase.from('Document').upsert(
-      data.documents.map((d) => ({
+      docsForUpsert.map((d) => ({
         libraryEntryId: updated.id,
         docType: d.docType,
         cloudinaryUrl: d.url,
@@ -178,7 +151,7 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const linked = emptyToNull(data.linkedSubmissionId ?? null);
+  const linked = emptyToNull(input.linkedSubmissionId ?? null);
   if (linked) {
     await supabase
       .from('Submission')
@@ -186,5 +159,5 @@ export async function PATCH(req: Request) {
       .eq('id', linked);
   }
 
-  return NextResponse.json({ entry: updated });
+  return apiOk({ entry: updated });
 }

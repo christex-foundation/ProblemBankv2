@@ -44,9 +44,9 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 | Library | PATCH | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
 | Library | DELETE | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
 | Builders | PATCH | `/api/builders/[id]` | hardened | [builders.md](./builders.md) |
-| Admin | POST | `/api/admin/library` | pending | [admin.md](./admin.md) |
-| Admin | PATCH | `/api/admin/library` | pending | [admin.md](./admin.md) |
-| Admin | PATCH | `/api/admin/submissions/[id]/status` | pending | [admin.md](./admin.md) |
+| Admin | POST | `/api/admin/library` | hardened | [admin.md](./admin.md) |
+| Admin | PATCH | `/api/admin/library` | hardened | [admin.md](./admin.md) |
+| Admin | PATCH | `/api/admin/submissions/[id]/status` | hardened | [admin.md](./admin.md) |
 | Integrations | POST | `/api/cloudinary/sign` | pending | [integrations.md](./integrations.md) |
 | Integrations | GET | `/api/github/activity` | pending | [integrations.md](./integrations.md) |
 | Auth | * | `/api/auth/**` | deferred | — |
