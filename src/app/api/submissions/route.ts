@@ -1,87 +1,68 @@
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
-import { MAX_TITLE_LEN } from '@/lib/enums';
+import { apiError, apiOk, parseOrError } from '@/lib/api-response';
+import { API_ERROR_CODES } from '@/lib/api-error-codes';
 import type { SubmissionRow } from '@/types/database';
-
-const CreateSchema = z.object({
-  title: z.string().min(1).max(MAX_TITLE_LEN),
-  description: z.string().min(1),
-  potentialSolution: z.string().optional(),
-  urgency: z.enum(['critical', 'high', 'medium', 'low']),
-  category: z.string().min(1).max(60),
-  turnstileToken: z.string().min(1),
-});
+import {
+  CreateSubmissionSchema,
+  ListSubmissionsQuerySchema,
+} from './_schemas';
 
 export async function POST(req: Request) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  // TODO(auth): replace dev userId with auth() session.user.id once auth lands.
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    return apiError(API_ERROR_CODES.validation_failed, 400, 'Body must be JSON.');
   }
 
-  const parsed = CreateSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Invalid input', issues: parsed.error.issues },
-      { status: 400 },
-    );
-  }
+  const parsed = parseOrError(CreateSubmissionSchema, body);
+  if (!parsed.ok) return parsed.response;
+  const input = parsed.data;
 
   const ip = req.headers.get('x-forwarded-for') ?? undefined;
-  if (!(await verifyTurnstile(parsed.data.turnstileToken, ip))) {
-    return NextResponse.json({ error: 'Bot check failed' }, { status: 400 });
+  if (!(await verifyTurnstile(input.turnstileToken, ip))) {
+    return apiError(API_ERROR_CODES.turnstile_failed, 400, 'Bot check failed.');
   }
 
   const { data, error } = (await getSupabase()
     .from('Submission')
     .insert({
-      userId: session.user.id,
-      title: parsed.data.title.trim(),
-      description: parsed.data.description,
-      potentialSolution: parsed.data.potentialSolution ?? null,
-      urgency: parsed.data.urgency,
-      category: parsed.data.category,
+      userId: input.userId,
+      title: input.title.trim(),
+      description: input.description,
+      potentialSolution: input.potentialSolution ?? null,
+      urgency: input.urgency,
+      category: input.category,
     } as never)
-    .select('*')) as { data: SubmissionRow[] | null; error: unknown };
+    .select('*')) as { data: SubmissionRow[] | null; error: { message: string } | null };
 
-  if (error) {
-    return NextResponse.json({ error: 'Insert failed' }, { status: 500 });
+  if (error || !data?.[0]) {
+    return apiError(
+      API_ERROR_CODES.internal_error,
+      500,
+      error?.message ?? 'Failed to create submission.',
+    );
   }
-  return NextResponse.json({ submission: data?.[0] }, { status: 201 });
-}
 
-const ListQuerySchema = z.object({
-  sort: z.enum(['votes', 'recent', 'urgency']).default('votes'),
-  category: z.string().optional(),
-  urgency: z.enum(['critical', 'high', 'medium', 'low']).optional(),
-  status: z
-    .enum(['submitted', 'under_review', 'research_in_progress', 'not_viable', 'live'])
-    .optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-});
+  return apiOk({ submission: data[0] }, { status: 201 });
+}
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const parsed = ListQuerySchema.safeParse(Object.fromEntries(url.searchParams));
-  if (!parsed.success) {
-    return NextResponse.json({ error: 'Invalid query' }, { status: 400 });
-  }
+  const parsed = parseOrError(
+    ListSubmissionsQuerySchema,
+    Object.fromEntries(url.searchParams),
+  );
+  if (!parsed.ok) return parsed.response;
   const { sort, category, urgency, status, limit } = parsed.data;
 
   const supabase = getSupabase();
   let query = supabase
     .from('Submission')
     .select('*, user:User(id, name)')
-    .limit(limit);
+    .limit(limit ?? 50);
 
   if (category) query = query.eq('category', category);
   if (urgency) query = query.eq('urgency', urgency);
@@ -95,7 +76,9 @@ export async function GET(req: Request) {
         : query.order('voteCount', { ascending: false });
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    return apiError(API_ERROR_CODES.internal_error, 500, error.message);
+  }
 
-  return NextResponse.json({ submissions: data ?? [] });
+  return apiOk({ submissions: data ?? [] });
 }
