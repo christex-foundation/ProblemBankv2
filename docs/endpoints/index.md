@@ -47,6 +47,6 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 | Admin | POST | `/api/admin/library` | hardened | [admin.md](./admin.md) |
 | Admin | PATCH | `/api/admin/library` | hardened | [admin.md](./admin.md) |
 | Admin | PATCH | `/api/admin/submissions/[id]/status` | hardened | [admin.md](./admin.md) |
-| Integrations | POST | `/api/cloudinary/sign` | pending | [integrations.md](./integrations.md) |
-| Integrations | GET | `/api/github/activity` | pending | [integrations.md](./integrations.md) |
+| Integrations | POST | `/api/cloudinary/sign` | hardened | [integrations.md](./integrations.md) |
+| Integrations | GET | `/api/github/activity` | hardened | [integrations.md](./integrations.md) |
 | Auth | * | `/api/auth/**` | deferred | — |
