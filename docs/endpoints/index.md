@@ -40,9 +40,9 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 | Comments | POST | `/api/submissions/[id]/comments` | hardened | [comments.md](./comments.md) |
 | Notifications | GET | `/api/notifications` | deferred | — |
 | Notifications | PATCH | `/api/notifications` | deferred | — |
-| Library | POST | `/api/library/[id]/build-registry` | pending | [library.md](./library.md) |
-| Library | PATCH | `/api/library/[id]/build-registry` | pending | [library.md](./library.md) |
-| Library | DELETE | `/api/library/[id]/build-registry` | pending | [library.md](./library.md) |
+| Library | POST | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
+| Library | PATCH | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
+| Library | DELETE | `/api/library/[id]/build-registry` | hardened | [library.md](./library.md) |
 | Builders | PATCH | `/api/builders/[id]` | pending | [builders.md](./builders.md) |
 | Admin | POST | `/api/admin/library` | pending | [admin.md](./admin.md) |
 | Admin | PATCH | `/api/admin/library` | pending | [admin.md](./admin.md) |
