@@ -36,8 +36,8 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 | Votes | POST | `/api/submissions/[id]/vote` | deferred | — |
 | Votes | DELETE | `/api/submissions/[id]/vote` | deferred | — |
 | Votes | GET | `/api/me/votes` | deferred | — |
-| Comments | GET | `/api/submissions/[id]/comments` | pending | [comments.md](./comments.md) |
-| Comments | POST | `/api/submissions/[id]/comments` | pending | [comments.md](./comments.md) |
+| Comments | GET | `/api/submissions/[id]/comments` | hardened | [comments.md](./comments.md) |
+| Comments | POST | `/api/submissions/[id]/comments` | hardened | [comments.md](./comments.md) |
 | Notifications | GET | `/api/notifications` | deferred | — |
 | Notifications | PATCH | `/api/notifications` | deferred | — |
 | Library | POST | `/api/library/[id]/build-registry` | pending | [library.md](./library.md) |
