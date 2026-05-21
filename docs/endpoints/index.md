@@ -29,8 +29,8 @@ Inventory of the HTTP surface under `src/app/api/**`. Updated as each domain is 
 
 | Domain | Method | Path | Status | Doc |
 |---|---|---|---|---|
-| Health | GET | `/api/health` | pending | [health.md](./health.md) |
-| Badge | GET | `/api/badge/[slug]` | pending | [badge.md](./badge.md) |
+| Health | GET | `/api/health` | hardened | [health.md](./health.md) |
+| Badge | GET | `/api/badge/[slug]` | hardened | [badge.md](./badge.md) |
 | Submissions | GET | `/api/submissions` | pending | [submissions.md](./submissions.md) |
 | Submissions | POST | `/api/submissions` | pending | [submissions.md](./submissions.md) |
 | Votes | POST | `/api/submissions/[id]/vote` | deferred | — |
