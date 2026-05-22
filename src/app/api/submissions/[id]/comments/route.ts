@@ -1,3 +1,4 @@
+import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
 import { notifyNewComment } from '@/lib/notifications';
@@ -23,7 +24,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  // TODO(auth): replace dev userId with auth() session.user.id.
+  const session = await auth();
+  if (!session?.user) {
+    return apiError(API_ERROR_CODES.unauthorized, 401, 'Sign in required.');
+  }
+
   const rawParams = await params;
   const parsedParams = parseOrError(CommentParamsSchema, rawParams);
   if (!parsedParams.ok) return parsedParams.response;
@@ -68,7 +73,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data: rows, error } = (await supabase
     .from('Comment')
     .insert({
-      userId: input.userId,
+      userId: session.user.id,
       submissionId,
       content: input.content,
     } as never)
@@ -87,7 +92,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .update({ commentCount: (submission.commentCount ?? 0) + 1 } as never)
     .eq('id', submissionId);
 
-  notifyNewComment(submissionId, input.userId).catch(() => {});
+  notifyNewComment(submissionId, session.user.id).catch(() => {});
 
   return apiOk({ comment: rows[0] }, { status: 201 });
 }

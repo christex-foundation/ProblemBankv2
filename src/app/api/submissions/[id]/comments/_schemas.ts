@@ -5,10 +5,7 @@ export const CommentParamsSchema = z.object({
   id: z.string().uuid(),
 });
 
-// TODO(auth): drop `userId` — once auth lands, the session provides the
-// commenter's id and zod stops accepting userId from clients.
 export const CreateCommentSchema = z.object({
-  userId: z.string().uuid(),
   content: z.string().min(1).max(MAX_COMMENT_LEN),
   turnstileToken: z.string().optional(),
 });
