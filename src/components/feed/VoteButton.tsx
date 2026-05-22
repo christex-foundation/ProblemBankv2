@@ -41,8 +41,6 @@ export default function VoteButton({
 
   const elapsed = votedAt ? now - votedAt.getTime() : 0;
   const canUnvote = !!votedAt && elapsed < UNVOTE_WINDOW_MS;
-  const unvoteRemainingMs = canUnvote ? UNVOTE_WINDOW_MS - elapsed : 0;
-  const unvoteSecsLeft = Math.max(0, Math.ceil(unvoteRemainingMs / 1000));
 
   async function toggle() {
     if (disabled) return;
@@ -113,9 +111,6 @@ export default function VoteButton({
     >
       <span aria-hidden="true">{votedAt ? '▲' : '△'}</span>
       <span>{count}</span>
-      {canUnvote && (
-        <span className="text-xs ml-1 opacity-75">unvote {unvoteSecsLeft}s</span>
-      )}
     </button>
   );
 }
