@@ -24,16 +24,40 @@ export function clearPendingFile(blobUrl: string) {
   URL.revokeObjectURL(blobUrl);
 }
 
+export type UploadResult = {
+  html: string;
+  imagesDropped: number;
+};
+
+function stripBlobImages(html: string, blobUrls: string[]): string {
+  let out = html;
+  for (const blobUrl of blobUrls) {
+    out = out.replace(
+      new RegExp(`<img[^>]*src="${escapeForRegex(blobUrl)}"[^>]*>`, 'g'),
+      '',
+    );
+    clearPendingFile(blobUrl);
+  }
+  return out;
+}
+
+function escapeForRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
  * Find every <img src="blob:..."> inside `html`, upload the stashed File to Cloudinary,
  * and return `html` with each blob URL replaced by the resulting secure URL.
+ *
+ * When Cloudinary is not configured on the server (503 from /api/cloudinary/sign),
+ * images are stripped from the HTML so the surrounding submission still succeeds.
  */
 export async function uploadTiptapImages(
   html: string,
   folder = 'problem-bank/submissions',
-): Promise<string> {
+): Promise<UploadResult> {
   const blobUrls = Array.from(html.matchAll(/src="(blob:[^"]+)"/g)).map((m) => m[1]);
-  if (blobUrls.length === 0) return html;
+  if (blobUrls.length === 0) return { html, imagesDropped: 0 };
 
   const store = getPendingStore();
   const sigResp = await fetch('/api/cloudinary/sign', {
@@ -41,9 +65,14 @@ export async function uploadTiptapImages(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ folder }),
   });
+
+  if (sigResp.status === 503) {
+    return { html: stripBlobImages(html, blobUrls), imagesDropped: blobUrls.length };
+  }
   if (!sigResp.ok) {
     throw new Error('Failed to get Cloudinary signature');
   }
+
   const { signature, timestamp, cloudName, apiKey } = (await sigResp.json()) as {
     signature: string;
     timestamp: number;
@@ -78,5 +107,5 @@ export async function uploadTiptapImages(
     clearPendingFile(blobUrl);
   }
 
-  return updated;
+  return { html: updated, imagesDropped: 0 };
 }

@@ -45,6 +45,28 @@ export function zodErrorFields(err: z.ZodError): Record<string, string> {
   return fields;
 }
 
+// Read a human-readable message out of the API error envelope. Safe to call
+// on any JSON body; returns undefined if the shape doesn't match. Use this on
+// the client when the server returns a non-2xx so toasts don't render the raw
+// object as `[object Object]`. When `fields` is present (validation_failed),
+// the per-field issues are appended so the user can see which field failed.
+export function apiErrorMessage(json: unknown): string | undefined {
+  if (typeof json !== 'object' || json === null) return undefined;
+  const err = (json as { error?: unknown }).error;
+  if (typeof err !== 'object' || err === null) return undefined;
+  const o = err as { message?: unknown; fields?: unknown };
+  const message = typeof o.message === 'string' ? o.message : undefined;
+  if (typeof o.fields === 'object' && o.fields !== null) {
+    const parts = Object.entries(o.fields as Record<string, unknown>)
+      .filter(([, v]) => typeof v === 'string')
+      .map(([k, v]) => `${k}: ${v}`);
+    if (parts.length > 0) {
+      return message ? `${message} (${parts.join('; ')})` : parts.join('; ');
+    }
+  }
+  return message;
+}
+
 // Parse `input` with a schema and either return the value or short-circuit
 // with a 400 validation_failed response. Used at the top of route handlers.
 export function parseOrError<T>(

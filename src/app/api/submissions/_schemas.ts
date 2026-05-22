@@ -15,16 +15,13 @@ const statusEnum = z.enum([
 // in scope so callers can show a typed dropdown.
 const categorySchema = z.union([z.enum(CATEGORIES), z.string().min(1).max(60)]);
 
-// TODO(auth): drop `userId` from the body — once auth lands, the session
-// supplies the caller's id and zod stops accepting userId from clients.
 export const CreateSubmissionSchema = z.object({
-  userId: z.string().uuid(),
   title: z.string().min(1).max(MAX_TITLE_LEN),
   description: z.string().min(1),
   potentialSolution: z.string().optional(),
   urgency: urgencyEnum,
   category: categorySchema,
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 export type CreateSubmissionInput = z.infer<typeof CreateSubmissionSchema>;

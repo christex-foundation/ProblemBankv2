@@ -1,3 +1,4 @@
+import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
 import { apiError, apiOk, parseOrError } from '@/lib/api-response';
@@ -9,7 +10,11 @@ import {
 } from './_schemas';
 
 export async function POST(req: Request) {
-  // TODO(auth): replace dev userId with auth() session.user.id once auth lands.
+  const session = await auth();
+  if (!session?.user) {
+    return apiError(API_ERROR_CODES.unauthorized, 401, 'Sign in required.');
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -29,7 +34,7 @@ export async function POST(req: Request) {
   const { data, error } = (await getSupabase()
     .from('Submission')
     .insert({
-      userId: input.userId,
+      userId: session.user.id,
       title: input.title.trim(),
       description: input.description,
       potentialSolution: input.potentialSolution ?? null,

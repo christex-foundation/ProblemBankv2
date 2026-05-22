@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import TiptapEditor from '@/components/editor/TiptapEditor';
 import DocumentUploader from '@/components/admin/DocumentUploader';
 import { uploadTiptapImages } from '@/lib/cloudinary-client';
+import { apiErrorMessage } from '@/lib/api-response';
 import { SECTORS, URGENCY_LABELS, DOC_TYPES, type DocTypeKey } from '@/lib/enums';
 
 interface ExistingDocument {
@@ -89,10 +90,11 @@ export default function EntryForm({ initial, submissions }: Props) {
     }
     setBusy(true);
     try {
-      const problemHtml = await uploadTiptapImages(
+      const problemUp = await uploadTiptapImages(
         problemStatement,
         'problem-bank/library-problem-statements',
       );
+      const problemHtml = problemUp.html;
 
       const docsPayload = Object.entries(documents)
         .filter(([, v]) => v !== null)
@@ -123,7 +125,7 @@ export default function EntryForm({ initial, submissions }: Props) {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to save');
+      if (!res.ok) throw new Error(apiErrorMessage(data) ?? 'Failed to save');
 
       toast.success(publish ? 'Published' : 'Draft saved');
       if (publish) {

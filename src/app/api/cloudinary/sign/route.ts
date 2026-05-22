@@ -21,8 +21,8 @@ export async function POST(req: Request) {
   if (!cloudName || !apiKey || !apiSecret) {
     return apiError(
       API_ERROR_CODES.upload_unconfigured,
-      500,
-      'Cloudinary credentials are not configured on the server.',
+      503,
+      'Image uploads disabled — Cloudinary not configured.',
     );
   }
 

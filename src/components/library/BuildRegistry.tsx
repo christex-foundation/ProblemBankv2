@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/api-response';
 import BuilderRepoActivity from '@/components/library/BuilderRepoActivity';
 
 interface Builder {
@@ -60,7 +61,7 @@ export default function BuildRegistry({
         body: JSON.stringify({}),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to register');
+      if (!res.ok) throw new Error(apiErrorMessage(data) ?? 'Failed to register');
       setList([
         ...list,
         {
@@ -92,7 +93,7 @@ export default function BuildRegistry({
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error ?? 'Failed to save');
+        throw new Error(apiErrorMessage(data) ?? 'Failed to save');
       }
       setList(
         list.map((b) => (b.userId === myUserId ? { ...b, repoUrl: repoUrl || null } : b)),

@@ -10,7 +10,7 @@ export const CommentParamsSchema = z.object({
 export const CreateCommentSchema = z.object({
   userId: z.string().uuid(),
   content: z.string().min(1).max(MAX_COMMENT_LEN),
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 export type CreateCommentInput = z.infer<typeof CreateCommentSchema>;

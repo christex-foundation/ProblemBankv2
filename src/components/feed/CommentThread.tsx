@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/api-response';
 import { MAX_COMMENT_LEN } from '@/lib/enums';
 
 interface Comment {
@@ -44,7 +45,7 @@ export default function CommentThread({ submissionId, initialComments, open, clo
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error ?? 'Failed to comment');
+        throw new Error(apiErrorMessage(data) ?? 'Failed to comment');
       }
       setComments([...comments, data.comment]);
       setText('');
