@@ -1,486 +1,283 @@
-/* Import Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;900&display=swap');
-
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
-/* Decoy Font Faces */
-@font-face {
-  font-family: 'Decoy';
-  src: url('/fonts/fonnts.com-Decoy-.otf') format('opentype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Decoy';
-  src: url('/fonts/fonnts.com-Decoy-Light.otf') format('opentype');
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Decoy';
-  src: url('/fonts/fonnts.com-Decoy-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Decoy';
-  src: url('/fonts/fonnts.com-Decoy-Black.otf') format('opentype');
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Decoy';
-  src: url('/fonts/fonnts.com-Decoy-Ultra-Black.otf') format('opentype');
-  font-weight: 950;
-  font-style: normal;
-  font-display: swap;
-}
-
+/* Design tokens.
+ * Mirror of src/design/tokens.ts. When a value is settled in design review,
+ * update BOTH places so Tailwind utilities and JS code stay in sync. */
 :root {
-  /* Primary Colors */
-  --black: #1e1e1e;
-  --light-brown: #a79785;
-  --yellow: #f0b420;
-  --purple: #b0a5f4;
-  --red: #f36c5a;
+  --background: #cecbba;
+  --paper: #faf8f3;
+  --foreground: #0e0e0d;
+  --muted: #6e6a62;
+  --rule: #1a1a1a;
+  --accent: #c8442a;
 
-  /* Neutral Colors */
-  --bg-color: #f9f2e9;
-  --light-brown-gray: #f2e8dc;
-  --gray: #fffaf3;
-  --light-black: #403f3e;
-  --dark-brown-gray: #e8ddd0;
-  --white: #ffffff;
+  --cat-economy: #c8442a;
+  --cat-infrastructure: #2f5e3e;
+  --cat-social: #3b5b9a;
+  --cat-safety: #8a6d3b;
 
-  /* Semantic Colors */
-  --success: #3898ec;
-  --error: #ea384c;
-  --warning: #f0b420;
-  --info: #0082f3;
-
-  /* Opacity Colors */
-  --light-brown-alpha: #a7978540;
-  --black-alpha: #1e1e1e99;
-  --transparent-bg: #f2e8dc00;
-
-  /* Typography */
-  --font-family-primary: 'Decoy', serif;
-  --font-family-secondary: 'Raleway', sans-serif;
-  --font-family-fallback: sans-serif;
-
-  /* Font Weights */
-  --font-weight-light: 300;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-black: 900;
-  --font-weight-ultra-black: 950;
-
-  /* Font Sizes - Desktop */
-  --font-size-txt12: 0.8vw;
-  --font-size-txt14: 0.9vw;
-  --font-size-txt16: 1.1vw;
-  --font-size-txt20: 1.3vw;
-  --font-size-txt26: 1.8vw;
-  --font-size-txt40: 2.7vw;
-  --font-size-txt60: 4.1vw;
-  --font-size-txt100: 6.9vw;
-  --font-size-txt140: 9.7vw;
-  --font-size-txt150: 10.4vw;
-  --font-size-txt220: 15.2vw;
-
-  /* Line Heights */
-  --line-height-h100: 100%;
-  --line-height-h110: 110%;
-  --line-height-h130: 130%;
-
-  /* Spacing */
-  --container-padding: 3.3vw 1.6vw;
-  --intro-padding: 8vw 1.6vw;
-  --footer-padding: 7vw 1.6vw 1.6vw;
-
-  /* Grid Gaps */
-  --grid-gap-xs: 0.4vw;
-  --grid-gap-sm: 0.8vw;
-  --grid-gap-md: 1.1vw;
-  --grid-gap-lg: 2.2vw;
-  --grid-gap-xl: 4vw;
-
-  /* Margins */
-  --margin-xs: 0.5vw;
-  --margin-sm: 1vw;
-  --margin-md: 2vw;
-  --margin-lg: 4vw;
-  --margin-xl: 6vw;
-
-  /* Padding */
-  --padding-xs: 0.3vw;
-  --padding-sm: 0.7vw;
-  --padding-md: 1.1vw;
-  --padding-lg: 2.2vw;
-  --padding-xl: 3.3vw;
-
-  /* Shadows */
-  --shadow-light: 1px 2px 9px #7b5e5c0f;
-  --shadow-medium: 5px 2px 9px #7b5e5c0f;
-  --shadow-focus: 0 0 3px 1px #3898ec;
-
-  /* Border Radius */
-  --border-radius-none: 0;
-  --border-radius-sm: 0.2vw;
-  --border-radius-md: 0.4vw;
-  --border-radius-lg: 0.8vw;
-
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s ease;
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-/* Mobile Font Sizes */
-@media (max-width: 768px) {
-  :root {
-    --font-size-txt12: 3.2vw;
-    --font-size-txt14: 3.7vw;
-    --font-size-txt16: 4vw;
-    --font-size-txt20: 5.3vw;
-    --font-size-txt26: 5.3vw;
-    --font-size-txt40: 8.8vw;
-    --font-size-txt60: 11.4vw;
-    --font-size-txt100: 15.4vw;
-    --font-size-txt140: 15.4vw;
-    --font-size-txt150: 19.4vw;
-    --font-size-txt220: 22vw;
-  }
-}
-
-body {
-  color: var(--black);
-  background: var(--bg-color);
-  font-family: var(--font-family-secondary);
-  font-weight: var(--font-weight-normal);
-  line-height: var(--line-height-h130);
-}
-
-/* Typography Classes */
-.txt12 { font-size: var(--font-size-txt12); line-height: var(--line-height-h100); }
-.txt14 { font-size: var(--font-size-txt14); line-height: var(--line-height-h110); }
-.txt16 { font-size: var(--font-size-txt16); line-height: var(--line-height-h130); }
-.txt20 { font-size: var(--font-size-txt20); line-height: var(--line-height-h130); }
-.txt26 { font-size: var(--font-size-txt26); line-height: var(--line-height-h130); }
-.txt40 { font-size: var(--font-size-txt40); line-height: var(--line-height-h110); font-family: var(--font-family-primary); }
-.txt60 { font-size: var(--font-size-txt60); line-height: var(--line-height-h110); font-family: var(--font-family-primary); }
-.txt100 { font-size: var(--font-size-txt100); line-height: var(--line-height-h100); font-family: var(--font-family-primary); }
-.txt140 { font-size: var(--font-size-txt140); line-height: var(--line-height-h100); font-family: var(--font-family-primary); }
-.txt150 { font-size: var(--font-size-txt150); line-height: var(--line-height-h100); font-family: var(--font-family-primary); }
-.txt220 { font-size: var(--font-size-txt220); line-height: var(--line-height-h100); font-family: var(--font-family-primary); }
-
-/* Font Weight Modifiers */
-.light { font-weight: var(--font-weight-light); }
-.normal { font-weight: var(--font-weight-normal); }
-.medium { font-weight: var(--font-weight-medium); }
-.semi { font-weight: var(--font-weight-semibold); }
-.bold { font-weight: var(--font-weight-bold); }
-.black { font-weight: var(--font-weight-black); }
-.ultra-black { font-weight: var(--font-weight-ultra-black); }
-
-/* Text Modifiers */
-.upper { text-transform: uppercase; }
-
-/* Button Styles */
-.sec-btn {
-  display: inline-block;
-  position: relative;
-  padding: var(--padding-md) 2.5vw;
-  text-decoration: none;
-  cursor: pointer;
-  overflow: hidden;
-  background-color: var(--yellow);
-  color: var(--black);
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-normal);
-  font-weight: var(--font-weight-semibold);
-}
-
-.sec-btn:hover {
-  transform: scale(1.05);
-}
-
-.sec-btn.transparent {
-  background-color: transparent;
-  border: 1px solid var(--light-brown);
-  color: var(--black);
-}
-
-.sec-btn.black-bg {
-  background-color: var(--black);
-  color: var(--white);
-}
-
-/* Layout Classes */
-.container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: var(--container-padding);
-}
-
-.grid {
-  display: grid;
-  gap: var(--grid-gap-md);
-}
-
-.flex {
-  display: flex;
-  align-items: center;
-  gap: var(--grid-gap-sm);
-}
-
-/* Utility Classes */
-.hidden { display: none; }
-.visible { display: block; }
-.rel { position: relative; }
-.abs { position: absolute; }
-.fixed { position: fixed; }
-.op30 { opacity: 0.3; }
-.op50 { opacity: 0.5; }
-
-@media (max-width: 768px) {
-  .mob-hide { display: none; }
-}
-
-/* Decorative Elements */
-.noise {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.1;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.dec-img {
-  position: absolute;
-  pointer-events: none;
-}
-
-/* Navigation */
-.nav {
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.6vw;
-  background-color: var(--bg-color);
-}
-
-.nav-btn {
-  display: inline-block;
-  padding: var(--padding-sm) 1.6vw;
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-normal);
-  text-decoration: none;
-  color: var(--black);
-}
-
-.nav-btn:hover {
-  background-color: var(--light-brown-alpha);
-}
-
-/* Cards */
-.service-card {
-  padding: var(--padding-lg);
-  background-color: var(--white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-medium);
-  text-align: center;
-}
-
-.for-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6vw;
-}
-
-/* Preloader */
-.preloader {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background-color: var(--bg-color);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  /* Line clamp utilities for text truncation */
-  .line-clamp-5 {
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  /* Motion (mirrors motion in src/design/tokens.ts). */
+  --motion-duration-fast: 180ms;
+  --motion-duration-base: 260ms;
+  --motion-duration-slow: 460ms;
+  --motion-duration-deliberate: 900ms;
+  --motion-ease-standard: cubic-bezier(.2, .85, .25, 1);
+  --motion-ease-overshoot: cubic-bezier(.2, .85, .25, 1.05);
+  --motion-ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --motion-distance-whisper: 6px;
+  --motion-distance-soft: 12px;
 }
 
 @theme inline {
-  /* Tailwind Color Extensions */
-  --color-purpose-black: #1e1e1e;
-  --color-purpose-light-brown: #a79785;
-  --color-purpose-yellow: #f0b420;
-  --color-purpose-purple: #b0a5f4;
-  --color-purpose-red: #f36c5a;
-  --color-purpose-bg: #f9f2e9;
-  --color-purpose-light-brown-gray: #f2e8dc;
-  --color-purpose-gray: #fffaf3;
-  --color-purpose-light-black: #403f3e;
-  --color-purpose-dark-brown-gray: #e8ddd0;
-  --color-purpose-white: #ffffff;
-  --color-purpose-success: #3898ec;
-  --color-purpose-error: #ea384c;
-  --color-purpose-warning: #f0b420;
-  --color-purpose-info: #0082f3;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-}
+  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-rule: var(--rule);
+  --font-sans: var(--font-inter);
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+  --animate-marquee-vertical: marquee-vertical 150s linear infinite;
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+  @keyframes marquee-vertical {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      transform: translate3d(0, -50%, 0);
+    }
   }
 }
 
-/* Navigation Menu Visibility Fix - Force menu to show at 1024px+ */
-.nav-menu-desktop {
-  display: none;
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
 }
 
-@media (min-width: 1024px) {
-  .nav-menu-desktop {
-    display: block !important;
-  }
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "ss01", "cv11";
+  /* Scroll/Mount slide primitives translate children beyond the document's
+   * inline edge before settling. Clip horizontal overflow at the body so
+   * the page doesn't pick up a phantom horizontal scrollbar. `clip` (vs
+   * `hidden`) avoids creating a scroll container, which keeps `position:
+   * sticky` working in SynapserHero and any future sticky sections. */
+  overflow-x: clip;
 }
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum", "ss01";
+}
+
+::selection {
+  background: rgba(200, 68, 42, 0.45);
+}
+
+.section-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Synapser-style ambient film grain.
+ * Static appearance (opacity, blend, tile, noise) is set by <GrainOverlay />
+ * from src/design/primitives.tsx, driven by effect.grain in tokens.ts.
+ * Only the flicker animation lives here. */
+.grain-overlay-motion {
+  animation: grain-shift 1.8s steps(8) infinite;
+}
+
+@keyframes grain-shift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  10%      { transform: translate3d(-4%, -3%, 0); }
+  20%      { transform: translate3d(3%, -6%, 0); }
+  30%      { transform: translate3d(-2%, 4%, 0); }
+  40%      { transform: translate3d(5%, 1%, 0); }
+  50%      { transform: translate3d(-5%, 2%, 0); }
+  60%      { transform: translate3d(2%, -4%, 0); }
+  70%      { transform: translate3d(-3%, 5%, 0); }
+  80%      { transform: translate3d(4%, -2%, 0); }
+  90%      { transform: translate3d(-1%, 3%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-overlay-motion { animation: none; }
+}
+
+/* ─── Whisper motion system ───────────────────────────────────────────────
+ * Editorial-scale fades + lifts. Durations and easings come from CSS
+ * custom properties at :root, which mirror motion in src/design/tokens.ts.
+ * Reveal primitives toggle data attributes; this stylesheet drives the
+ * actual visual change.
+ */
+
+/* Reveal: starts shifted + transparent, settles when [data-reveal="in"]. */
+[data-reveal="out"] {
+  opacity: 0;
+  transform: translate3d(0, var(--motion-distance-whisper), 0);
+  will-change: opacity, transform;
+}
+[data-reveal="in"] {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease-standard),
+    transform var(--motion-duration-slow) var(--motion-ease-standard);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+[data-reveal-distance="soft"][data-reveal="out"] {
+  transform: translate3d(0, var(--motion-distance-soft), 0);
+}
+
+/* TextReveal: opacity + small letter-spacing settle for headings. */
+[data-text-reveal="out"] {
+  opacity: 0;
+  letter-spacing: 0.04em;
+  will-change: opacity, letter-spacing;
+}
+[data-text-reveal="in"] {
+  opacity: 1;
+  letter-spacing: inherit;
+  transition:
+    opacity var(--motion-duration-deliberate) var(--motion-ease-standard),
+    letter-spacing var(--motion-duration-deliberate) var(--motion-ease-standard);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+/* Page transition: keyed remount on route change. */
+.motion-page-enter {
+  animation: page-enter var(--motion-duration-deliberate) var(--motion-ease-standard) both;
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translate3d(0, var(--motion-distance-whisper), 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ScrollWordReveal: container sets --p (0..1 local progress), each word
+ * carries its own --t (0..1 stagger offset). Opacity is clamped to [0,1]
+ * by the spec, so values outside the range are safe. Words flagged with
+ * data-strong / data-accent get a marker-style accent highlight that
+ * grows in width with the same per-word progress as the opacity. */
+[data-scroll-words] {
+  --p: 0;
+}
+[data-scroll-word] {
+  opacity: calc((var(--p) - var(--t)) * 6);
+}
+[data-scroll-word][data-strong],
+[data-scroll-word][data-accent] {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--accent) 22%, transparent),
+    color-mix(in srgb, var(--accent) 22%, transparent)
+  );
+  background-repeat: no-repeat;
+  background-position: 0 0.78em;
+  background-size: clamp(0%, calc((var(--p) - var(--t)) * 600%), 104%) 0.62em;
+  padding: 0 0.06em;
+}
+[data-scroll-word][data-accent] {
+  background-image: linear-gradient(
+    color-mix(in srgb, var(--accent) 32%, transparent),
+    color-mix(in srgb, var(--accent) 32%, transparent)
+  );
+}
+
+/* ScrollWipeReveal: left-to-right (default) or right-to-left clip-path
+ * wipe driven by --p. Pairs with ScrollWordReveal for headline + body
+ * choreography. */
+[data-scroll-wipe] {
+  --p: 0;
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+  -webkit-clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+[data-scroll-wipe][data-wipe-direction="left"] {
+  clip-path: inset(0 0 0 calc((1 - var(--p)) * 100%));
+  -webkit-clip-path: inset(0 0 0 calc((1 - var(--p)) * 100%));
+}
+
+/* ScrollSlideReveal: horizontal translate + fade driven by --p. */
+[data-scroll-slide] {
+  --p: 0;
+  --slide-distance: 30%;
+  opacity: var(--p);
+  will-change: transform, opacity;
+}
+[data-scroll-slide][data-slide-from="left"] {
+  transform: translateX(calc((var(--p) - 1) * var(--slide-distance)));
+}
+[data-scroll-slide][data-slide-from="right"] {
+  transform: translateX(calc((1 - var(--p)) * var(--slide-distance)));
+}
+
+/* MountSlideReveal: keyframe-driven horizontal slide + fade played once on
+ * mount. Use for elements above the fold where scroll-driven reveals
+ * would complete invisibly. */
+[data-mount-slide] {
+  --ms-distance: 30%;
+  --ms-delay: 0ms;
+  --ms-duration: 900ms;
+  will-change: transform, opacity;
+}
+[data-mount-slide][data-slide-from="left"] {
+  animation: mount-slide-from-left var(--ms-duration) var(--motion-ease-standard) var(--ms-delay) both;
+}
+[data-mount-slide][data-slide-from="right"] {
+  animation: mount-slide-from-right var(--ms-duration) var(--motion-ease-standard) var(--ms-delay) both;
+}
+@keyframes mount-slide-from-left {
+  from { transform: translateX(calc(-1 * var(--ms-distance))); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes mount-slide-from-right {
+  from { transform: translateX(var(--ms-distance)); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* Soft transition utility for interactive surfaces (buttons, links, cards). */
+.transition-soft {
+  transition-property: background-color, color, border-color, opacity, transform, letter-spacing;
+  transition-duration: var(--motion-duration-slow);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Underline slide: pair with hover state on anchor-style links. */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size var(--motion-duration-slow) var(--motion-ease-standard);
+}
+.link-underline:hover,
+.link-underline:focus-visible {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal="out"],
+  [data-reveal="in"],
+  [data-text-reveal="out"],
+  [data-text-reveal="in"] {
+    opacity: 1;
+    transform: none;
+    letter-spacing: inherit;
+    transition: none;
+  }
+  .motion-page-enter { animation: none; }
+  .transition-soft { transition: none; }
+  .link-underline { transition: none; background-size: 0% 1px; }
+  [data-scroll-word] { opacity: 1; transition: none; }
+  [data-scroll-word][data-strong],
+  [data-scroll-word][data-accent] { background-size: 100% 0.62em; transition: none; }
+  [data-scroll-wipe] { clip-path: none; -webkit-clip-path: none; transition: none; }
+  [data-scroll-slide] { transform: none; opacity: 1; }
+  [data-mount-slide] { animation: none; transform: none; opacity: 1; }
+}
+
+
