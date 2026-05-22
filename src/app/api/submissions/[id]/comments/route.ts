@@ -70,12 +70,41 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     );
   }
 
+  if (input.parentCommentId) {
+    const { data: parent } = (await supabase
+      .from('Comment')
+      .select('submissionId, parentCommentId')
+      .eq('id', input.parentCommentId)
+      .maybeSingle()) as {
+      data: Pick<CommentRow, 'submissionId' | 'parentCommentId'> | null;
+    };
+
+    if (!parent) {
+      return apiError(API_ERROR_CODES.not_found, 404, 'Parent comment not found.');
+    }
+    if (parent.submissionId !== submissionId) {
+      return apiError(
+        API_ERROR_CODES.validation_failed,
+        400,
+        'Parent belongs to a different submission.',
+      );
+    }
+    if (parent.parentCommentId !== null) {
+      return apiError(
+        API_ERROR_CODES.validation_failed,
+        400,
+        'Cannot reply to a reply.',
+      );
+    }
+  }
+
   const { data: rows, error } = (await supabase
     .from('Comment')
     .insert({
       userId: session.user.id,
       submissionId,
       content: input.content,
+      parentCommentId: input.parentCommentId ?? null,
     } as never)
     .select('*, user:User(id, name)')) as { data: CommentRow[] | null; error: { message: string } | null };
 
@@ -92,6 +121,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .update({ commentCount: (submission.commentCount ?? 0) + 1 } as never)
     .eq('id', submissionId);
 
+  // Replies don't need bespoke notification: the parent commenter is already
+  // among the "prior commenters" notifyNewComment pings.
   notifyNewComment(submissionId, session.user.id).catch(() => {});
 
   return apiOk({ comment: rows[0] }, { status: 201 });
