@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { PageTransition } from "@/design";
+import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <PageTransition>{children}</PageTransition>
+        <SessionProviderWrapper>
+          <PageTransition>{children}</PageTransition>
+        </SessionProviderWrapper>
       </body>
     </html>
   );
