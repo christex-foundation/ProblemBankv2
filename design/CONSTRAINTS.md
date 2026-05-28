@@ -10,7 +10,7 @@ Hard limits the design system has to live within. Some are inherited from the au
 |---|---|---|
 | **Mobile-first, 360px target** | Sierra Leone phone-first audience, primary product spec | Every page is designed for a 360px viewport before any `md:` overrides. `Section`'s default padding is `px-6` (24px) at base. |
 | **Body text ≥ 16px** | Readability on low-end Android | `Body size="md"` resolves to `text-base md:text-lg` (16px → 18px). `Body size="sm"` (14px) is only for metadata, never running copy. |
-| **Contrast ≥ 4.5:1** | WCAG AA, low-light reading | The neutral palette already meets it: `--foreground: #0e0e0d` on `--background: #cecbba` is ~12:1. `text-foreground/55` on background is ~5:1 (passes). `text-foreground/45` is the floor for non-essential text only. |
+| **Contrast ≥ 4.5:1** | WCAG AA, low-light reading | The neutral palette already meets it: `--foreground: #0e0e0d` on `--background: #F8F0E7` is ~19:1. `text-foreground/55` on background is ~9:1 (passes). `text-foreground/45` is the floor for non-essential text only. |
 | **Slow 3G first-paint < 3s** | Sierra Leone bandwidth | No webfont serif (system stack). One webfont sans (Inter) with `display: swap`. No images above the fold on landing; the hero is text + animated DOM nodes, no raster. |
 | **No heavy decoration on critical paths** | Same | The `/feed/submit`, `/signin`, `/library/[slug]` surfaces will not get film grain, scroll-driven reveals, or `SynapserHero`-style animation. Those are landing-only. |
 
@@ -47,7 +47,7 @@ These are choices we already made. Changing them means a system-wide audit.
 | Choice | Where | Why locked |
 |---|---|---|
 | **Single accent color** | `--accent: #c8442a`, `tokens.ts:16` | The whole landing page relies on accent being the only attention color. Adding a second accent breaks the hierarchy. |
-| **No shadows** | `tokens.ts` only ships `border.hairline` and `border.card`; no `shadow` token | We use rules (`RuleLine`, `RuleColumn`) and borders for separation, not elevation. Materializes the "editorial / paper" feel. |
+| **No shadows** (one exception) | `tokens.ts` only ships `border.hairline` and `border.card`; no `shadow` token | We use rules (`RuleLine`, `RuleColumn`) and borders for separation, not elevation. Materializes the "editorial / paper" feel. **The single sanctioned exception** is `DocumentPolaroids` on `/library/[slug]`, where Tailwind's `shadow-md` / `shadow-lg` is used to render polaroid cards as physical objects (sitting on the page rather than printed into it). Do not import shadow elsewhere without naming it as a similar physical-object beat. |
 | **No rounded corners** | Buttons, papers, cards: all square (`tokens.ts` has no radius scale) | Same reason. Right angles read as institutional / printed, not consumer SaaS. |
 | **Vertical rhythm in `vh`, not `px`** | `Section` primitive uses `pt-[6vh] md:pt-[10vh] pb-[14vh] md:pb-[18vh]` and similar | Sections breathe the same way at any viewport height. Trade-off: harder to predict pixel-exact spacing. |
 | **Headlines stretch via SVG `textLength`** | `EqualWidthHeadline`, `BuildWhatMattersHeadline`, etc. | Lets us hit display-scale type without relying on a webfont with that weight, and makes every line span the same width regardless of character count. Trade-off: not selectable text, must duplicate copy in `aria-label`. |

@@ -4,8 +4,9 @@
  * Mirror of src/design/tokens.ts. When a value is settled in design review,
  * update BOTH places so Tailwind utilities and JS code stay in sync. */
 :root {
-  --background: #cecbba;
+  --background: #F8F0E7;
   --paper: #faf8f3;
+  --shelf: #F1E7DB;
   --foreground: #0e0e0d;
   --muted: #6e6a62;
   --rule: #1a1a1a;
@@ -32,6 +33,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-paper: var(--paper);
+  --color-shelf: var(--shelf);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-rule: var(--rule);
@@ -53,6 +55,13 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+/* Always reserve room for the vertical scrollbar so navigating between a
+ * scrollable page and a non-scrollable one doesn't shift horizontal layout
+ * by ~15px ("the shake"). */
+html {
+  overflow-y: scroll;
 }
 
 body {

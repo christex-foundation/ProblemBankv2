@@ -48,6 +48,10 @@ Each section below carries:
 
 Single size shipped: `px-8 py-4, text-[11px] uppercase tracking-[0.28em] font-semibold`. **Open: sm / lg variants not yet specced** — Week 2 should add them when the feed surfaces need a `sm` button (vote, comment submit).
 
+### Width convention
+
+The Button primitive does not bake a width. Buttons are content-sized by default; when two sit together as a paired CTA (e.g. the closer on `/library`), apply a shared `min-w-[220px]` at the call site to keep them visually balanced. Verified pattern, not a hard rule.
+
 ### States
 
 | State | Treatment |
@@ -125,7 +129,21 @@ Helper text or error message            ← 12px, muted or accent on error
 
 ## 3. Card + Surface
 
-**Status:** `Paper` surface shipped in `primitives.tsx`. A consumer-facing `Card` (for `FeedCard`, `BuilderCard`, notification rows) is **not yet built**; existing instances are ad-hoc.
+**Status:** Both `Paper` and `Card` shipped in `src/design/primitives.tsx`. `Card` is the consumer-facing interactive surface (Library shelf tiles, feed cards, builder cards, notification rows); `Paper` remains for non-interactive floating surfaces (dropdown panels, polaroid frames).
+
+### API
+
+```ts
+<Card as="article" interactive className="..." />
+```
+
+| Prop | Default | Use |
+|---|---|---|
+| `interactive` | `true` | Adds `hover:border-foreground/40` + `focus-visible:border-foreground/40` for clickable cards. Set `false` for static tiles. |
+| `as` | `"div"` | Override the rendered element (e.g. `"article"`). |
+| `className` | — | Appended after the base classes; pass layout/spacing here. |
+
+Base styling: `block bg-paper border border-foreground/15 p-6 md:p-7 transition-soft`. Cards do NOT carry a tone variant; surface color comes from the wrapping `Section` or an explicit `bg-*` className (e.g. the library shelf cards use `bg-shelf` on their `<li>` wrapper).
 
 ### Anatomy (Paper)
 
@@ -187,7 +205,43 @@ Cards are layout-driven (fill their grid cell). No size variants.
 
 ## 4. Badge + Tag
 
-**Status:** **Not yet built.** Submission statuses, urgency, sector all need consistent treatment. Specced here.
+**Status:** Shipped in `src/design/primitives.tsx`. Used on Library cards, detail-page hero badges, and the library filter row.
+
+### API
+
+```ts
+<Badge variant="pill" tone="accent">…</Badge>
+```
+
+| Prop | Values | Default |
+|---|---|---|
+| `variant` | `tag` / `pill` / `solid` | `pill` |
+| `tone` | `default` / `accent` / `muted` / `faint` / `infrastructure` / `social` / `safety` | `default` |
+| `className` | — | appended last |
+
+### Sector → tone helper
+
+The sector palette has only four token buckets but the schema defines eight sectors. The mapping lives in `src/lib/library.ts` as `sectorBadgeTone()`:
+
+| Sector | Tone |
+|---|---|
+| Health, Education | `social` |
+| Agriculture, Infrastructure | `infrastructure` |
+| Finance, Logistics, Energy | `safety` |
+| Other | `muted` |
+
+The accent color is reserved for the everyday "this matters" cue (origin: community, critical urgency), so no sector is permanently routed to `accent`.
+
+### Urgency → variant + tone helper
+
+`urgencyBadge()` in `src/lib/library.ts` returns:
+
+| Urgency | Variant | Tone |
+|---|---|---|
+| critical | `solid` | `accent` |
+| high | `pill` | `accent` |
+| medium | `pill` | `muted` |
+| low | `pill` | `faint` |
 
 ### Anatomy
 
@@ -238,54 +292,70 @@ Or, for `pill` variant:
 
 ---
 
-## 5. DocumentTabs
+## 5. DocumentPolaroids
 
-**Status:** **Not yet built.** Required for `/library/[slug]` (six PDF tabs: Concept Note / PRD / Technical Design / Wireframes / Roadmap / Pitch Deck).
+**Status:** Shipped in `src/components/library/DocumentPolaroids.tsx`. Used on the `/library/[slug]` "The kit" section.
+
+> Replaces the original "DocumentTabs" idea. Tabs forced a single-doc-at-a-time read with 5 ghosted slots for the docs an entry didn't have; polaroids show only what exists and treat each PDF as its own object on the page. `DocumentTabs.tsx` still exists in `src/components/library/` as a legacy file; new work uses `DocumentPolaroids`.
 
 ### Anatomy
 
 ```
-┌─── ACTIVE ─────┬─ Inactive ─┬─ Inactive ─┬─ Inactive ─┬─ Inactive ─┬─ Inactive ─┐
-│ Concept Note   │   PRD      │ Tech…      │ Wire…      │ Road…      │ Pitch…     │
-└────────────────┴────────────┴────────────┴────────────┴────────────┴────────────┘
-                                                                                    
-   2px accent underline only under active tab; others underlined hairline on hover.
-
-┌────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                │
-│                       Active tab's PDF content / embed                         │
-│                                                                                │
-└────────────────────────────────────────────────────────────────────────────────┘
+                       ┌─────────────────────┐
+                       │ ┌─────────────────┐ │
+                       │ │  01 / 5    PDF  │ │   ← count strip
+                       │ │                 │ │
+                       │ │     CONCEPT     │ │   ← label, 2 lines, centered
+                       │ │      NOTE       │ │
+                       │ │                 │ │
+                       │ └─────────────────┘ │
+                       └─────────────────────┘   ← polaroid frame: shadow-md
+                              (tilted ±1–3°)
 ```
+
+### Layout
+
+The grid is row-driven, not column-driven, so partial counts read as balanced rows:
+
+| Doc count | Row split |
+|---|---|
+| 1 | `[1]` |
+| 2 | `[2]` |
+| 3 | `[3]` |
+| 4 | `[2, 2]` |
+| 5 | `[3, 2]` (second row centered under the first) |
+| 6 | `[3, 3]` |
+
+Mobile (< sm): single column always.
+
+### Per-card visual
+
+- **Frame**: `bg-paper border border-foreground/15 shadow-md p-4 pb-5 w-[240px] md:w-[280px]`. On hover the shadow lifts (`shadow-lg`) and the card straightens + scales to 1.04.
+- **Page area**: `aspect-[3/4] bg-background border border-foreground/10 p-4 flex flex-col`. Count strip at top (`01 / N` left, `PDF` right), label centered in the remaining space.
+- **Label**: split across (up to) 2 lines via `labelTwoLines()`. Single-word labels (`PRD`, `Roadmap`) stay on one line. Class: `text-center font-black tracking-[-0.02em] leading-[1.05] text-2xl md:text-3xl text-foreground`.
+- **Tilt**: deterministic from `doc.id` hash, picked from `[-rotate-3, -rotate-2, -rotate-1, rotate-1, rotate-2, rotate-3]`. Same id → same tilt every render.
 
 ### Variants
 
-Single variant. Tabs themselves are uppercase eyebrow-style (`text-[11px] tracking-[0.22em] uppercase`).
-
-### Sizes
-
-- Desktop: tab bar fills container, equal-width cells.
-- Mobile (< 640px): horizontal scroll with `overflow-x-auto`, snap on each tab.
+Single variant.
 
 ### States
 
 | State | Treatment |
 |---|---|
-| Inactive | `text-foreground/55`, no underline |
-| Hover | `text-foreground`, hairline underline (uses `link-underline` utility) |
-| Active | `text-foreground`, 2px accent underline |
-| Disabled | `text-foreground/30 cursor-not-allowed` — used when a doc type isn't uploaded for this entry |
-| Focus | `:focus-visible` ring (browser default) |
+| Default | Tilted ±1–3°, `shadow-md` |
+| Hover | `rotate-0 scale-[1.04] shadow-lg` (300ms transition-all) |
+| Focus | Browser `:focus-visible` on the `<a>` |
+| Empty | Renders an italic placeholder ("No documents have been added to this entry yet.") |
 
 ### A11y
 
-- Use `role="tablist"`, `role="tab"`, `aria-selected`, `aria-controls`, `aria-labelledby` on the panel.
-- Arrow-key navigation between tabs (left/right).
-- The PDF panel is the focusable content; pressing the active tab again does nothing.
+- Each polaroid is an `<a>` with `title="Open {label} ({fileName})"` and `target="_blank" rel="noopener noreferrer"`.
+- Tilt is purely decorative; reading order is preserved by sorting items into canonical kit order (`DOC_TYPES` from `src/lib/enums.ts`) before render.
 
-### Open
+### Source
 
-- PDF viewer: embedded iframe vs link out. Decide before Week 4.
+`src/components/library/DocumentPolaroids.tsx`.
 
 ---
 
@@ -317,11 +387,12 @@ Single variant. Tabs themselves are uppercase eyebrow-style (`text-[11px] tracki
 
 ### Variants
 
-| Variant | Use |
-|---|---|
-| `marketing` | Landing page only; full wordmark + sign-in CTA |
-| `explore` | Mode-switcher between the data exploration surfaces (`src/components/Nav.tsx`) |
-| `app` (proposed) | `/feed`, `/library`, `/admin/*` — needs the notifications bell + avatar |
+| Variant | Use | Source |
+|---|---|---|
+| `marketing` | Landing page only; full wordmark + sign-in CTA | inline in `src/app/page.tsx` |
+| `explore` | Mode-switcher between the data exploration surfaces | `src/components/Nav.tsx` |
+| `library` | Slim sticky top nav for `/library` and `/library/[slug]`; matches the marketing pattern, NO auth dependencies (safe to use without `next-auth` installed) | `src/components/LibraryNav.tsx` |
+| `app` (proposed, production-only) | `/feed`, `/admin/*` — adds the notifications bell + avatar. Lives in the archived production code at `src/app/_archive/`; uses `ProblemBankNav` which requires `next-auth`. | `src/components/ProblemBankNav.tsx` |
 
 ### States
 
@@ -352,6 +423,105 @@ Social icons (from `react-icons/si`): Discord, WhatsApp, X, TikTok, YouTube, Ins
 ### Source
 
 `src/components/Nav.tsx`, `src/components/Footer.tsx`, inline nav at `src/app/page.tsx:73–109`.
+
+---
+
+## 6b. FilterDropdown
+
+**Status:** Shipped in `src/components/library/FilterDropdown.tsx`. Used on `/library` for the Sector / Urgency / Source filter row. Editorial dropdown; not a generic form select.
+
+### Anatomy
+
+```
+SECTOR  ALL ▼               ← button: muted label + current value + caret
+       └──────────┐
+                  │ ALL            ← active option (accent)
+                  │ HEALTH         ← option rows, hairline-separated
+                  │ EDUCATION
+                  │ AGRICULTURE
+                  └────────────────
+```
+
+### API
+
+```ts
+<FilterDropdown
+  label="Sector"
+  active={sp.sector ?? ''}
+  options={[
+    { value: '', label: 'All', href: '/library' },
+    { value: 'Health', label: 'Health', href: '/library?sector=Health' },
+    …
+  ]}
+/>
+```
+
+The server-side parent **precomputes the hrefs** so the dropdown stays presentational. The component only owns open/close state.
+
+### Behavior
+
+- Click toggles. Outside click + `Escape` close.
+- Options are Next `<Link>`s with `scroll={false}` so the page keeps its scroll position after a filter change.
+- Label tint flips: muted gray when the active value is the empty/default; accent when a filter is applied.
+
+### A11y
+
+- Button: `aria-haspopup="listbox"`, `aria-expanded={open}`.
+- Panel: `role="listbox"` with `aria-label={label}`.
+- Options: `role="option"`, `aria-selected={isActive}`.
+
+### Source
+
+`src/components/library/FilterDropdown.tsx`.
+
+---
+
+## 6c. LibraryBuilders
+
+**Status:** Shipped in `src/components/library/LibraryBuilders.tsx`. Used inside the Registry tagline block on `/library/[slug]`. Sample-data stub for the production `BuildRegistry` component (which lives at `src/_archive/.../BuildRegistry.tsx` and requires `next-auth`).
+
+### API
+
+```ts
+<LibraryBuilders
+  entrySlug={entry.slug}
+  builders={entry.builders}
+  hideHeader
+  hideList
+/>
+```
+
+| Prop | Use |
+|---|---|
+| `entrySlug` | Used to construct the sign-in callback URL on the "I'm building this" CTA. |
+| `builders` | Sample builder records from `SAMPLE_LIBRARY_ENTRIES`. |
+| `hideHeader` | Suppress the internal eyebrow + count headline when the calling section provides its own tagline above (always set on the new Registry section). |
+| `hideList` | Hide the public builders list (names + repo URLs + join dates). The badge / repo activity is gated to signed-in users, so the list isn't surfaced publicly. The CTA and the count (from the parent tagline) still render. |
+
+The CTA is the only interactive piece: an `accent` `ButtonLink` whose `href` is `/signin?callbackUrl=/library/{slug}`. The companion caption ("Sign in to register, pin your repo, and grab the README badge.") is one-line via `whitespace-nowrap`.
+
+---
+
+## 6d. EntryMark
+
+**Status:** Built (`src/components/library/EntryMark.tsx`) but **currently unused** in the active UI. Built as a per-entry visual signature — a small constellation of 3–5 dots, positions deterministically hashed from the entry id, fill in the entry's sector color. Originally rendered between the title and summary on the shelf cards; removed at design review because the dots competed with the editorial title hierarchy.
+
+Kept on disk because (a) the deterministic-hash pattern is reusable for any future per-entry mark (e.g. a related-entries module, a Matrix-view dot per problem) and (b) it ties back to the full-page `LibraryConstellation` visual language.
+
+### API
+
+```ts
+<EntryMark id={entry.id} sector={entry.sector} size={72} />
+```
+
+| Prop | Default | Use |
+|---|---|---|
+| `id` | — | Seed for dot positions and count. Same id always renders the same mark. |
+| `sector` | — | Picks the dot color from `SECTOR_COLOR` (defined inside the file). |
+| `size` | `60` | Width + height in CSS px. |
+| `className` | — | Appended to the SVG. |
+
+If reused, remove the explicit "currently unused" mark in this doc.
 
 ---
 
@@ -422,21 +592,25 @@ Open items for the Designer when onboarded:
 
 | File | Primitives provided |
 |---|---|
-| `src/design/tokens.ts` | `color`, `emphasis`, `type`, `space`, `motion`, `border`, `effect` |
-| `src/design/typography.tsx` | `Eyebrow`, `Lede`, `Body`, `Tagline`, `Heading`, `Stat` |
-| `src/design/primitives.tsx` | `Section`, `Container`, `Stack`, `Button`, `ButtonLink`, `Paper`, `RuleLine`, `RuleColumn`, `GrainOverlay` |
-| `src/design/motion.tsx` | `Reveal`, `RevealGroup`, `TextReveal`, `useScrollProgress`, `ScrollWordReveal`, `ScrollWipeReveal`, `ScrollSlideReveal`, `MountSlideReveal`, `PageTransition` |
+| `src/design/tokens.ts` | `color` (incl. `shelf`), `emphasis`, `type`, `space`, `motion`, `border`, `effect` |
+| `src/design/typography.tsx` | `Eyebrow`, `Lede`, `Body`, `Tagline` (now `tone: "onLight" \| "onDark"`), `Heading`, `Stat` |
+| `src/design/primitives.tsx` | `Section` (accepts `className` for pad overrides), `Container`, `Stack`, `Button`, `ButtonLink`, `Paper`, `Card`, `Badge`, `RuleLine`, `RuleColumn`, `GrainOverlay` |
+| `src/design/motion.tsx` | `Reveal`, `RevealGroup`, `TextReveal`, `useScrollProgress`, `ScrollWordReveal`, `ScrollWipeReveal`, `ScrollSlideReveal`, `MountSlideReveal`, `PageTransition` (now `flex-1 flex flex-col` so nested sticky-footer patterns work) |
+| `src/components/library/FilterDropdown.tsx` | `FilterDropdown` |
+| `src/components/library/DocumentPolaroids.tsx` | `DocumentPolaroids` |
+| `src/components/library/LibraryBuilders.tsx` | `LibraryBuilders` (props: `hideHeader`, `hideList`) |
+| `src/components/LibraryNav.tsx` | `LibraryNav` |
 
-The seven Day-3 primitives map onto these as follows:
+Shipped status of the seven Day-3 primitives:
 
 | Day-3 primitive | Status |
 |---|---|
 | Button | Shipped (`primitives.tsx`) |
 | Input / Textarea / Select | **Not shipped** — spec only |
-| Card + Surface | Surface shipped (`Paper`); Card **not shipped** |
-| Badge + Tag | **Not shipped** — spec only |
-| DocumentTabs | **Not shipped** — spec only |
-| Nav + Footer | Shipped ad-hoc, **not as primitive** |
+| Card + Surface | Both shipped (`Paper`, `Card`) |
+| Badge + Tag | Shipped (`Badge` in `primitives.tsx`) |
+| DocumentTabs | Superseded by `DocumentPolaroids` (§5) |
+| Nav + Footer | `LibraryNav` shipped (`components/LibraryNav.tsx`); Footer shipped (`components/Footer.tsx`); `ProblemBankNav` archived under `_archive/` until auth wiring lands |
 | Empty / loading / error | **Not shipped** — spec only |
 
-Week 2 implementation order should be: Input → Card → Badge → DocumentTabs → Nav/Footer consolidation → Empty/Loading/Error.
+Library-page-specific components added in Week 2 implementation: `FilterDropdown`, `DocumentPolaroids`, `LibraryBuilders`, `LibraryNav`. See their respective sections above and `app/library/page.tsx` + `app/library/[slug]/page.tsx` for usage.

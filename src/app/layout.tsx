@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { PageTransition } from "@/design";
+import { RaiseModalProvider } from "@/components/feed/RaiseModalProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <PageTransition>{children}</PageTransition>
+        <RaiseModalProvider>
+          <PageTransition>{children}</PageTransition>
+        </RaiseModalProvider>
       </body>
     </html>
   );

@@ -556,8 +556,15 @@ export function PageTransition({ children }: { children: ReactNode }) {
     firstPath.current = pathname;
   }
   const animate = pathname !== firstPath.current;
+  // The wrapper is a flex column that fills its parent — so a page's
+  // sticky-footer pattern (main with flex-1 article + Footer) keeps working
+  // through this layer.
+  const base = "flex-1 flex flex-col";
   return (
-    <div key={pathname} className={animate ? "motion-page-enter" : undefined}>
+    <div
+      key={pathname}
+      className={animate ? `${base} motion-page-enter` : base}
+    >
       {children}
     </div>
   );
