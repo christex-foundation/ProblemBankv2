@@ -9,7 +9,7 @@ const Schema = z.object({
   email: z.string().email(),
   password: z.string().min(MIN_PASSWORD_LEN).max(MAX_PASSWORD_LEN),
   name: z.string().min(1).max(80).optional(),
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: Request) {

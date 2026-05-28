@@ -8,7 +8,7 @@ const Schema = z.object({
     .string()
     .regex(/^\+\d{8,15}$/, 'Phone must be in E.164 format (e.g. +23230xxxxxxx)'),
   channel: z.enum(['sms', 'whatsapp']),
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: Request) {

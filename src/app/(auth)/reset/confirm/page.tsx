@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/api-response';
 import { MIN_PASSWORD_LEN } from '@/lib/enums';
 
 function ConfirmInner() {
@@ -27,7 +28,7 @@ function ConfirmInner() {
         body: JSON.stringify({ token, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Reset failed');
+      if (!res.ok) throw new Error(apiErrorMessage(data) ?? 'Reset failed');
       toast.success('Password updated. Sign in.');
       router.push('/signin');
     } catch (err) {

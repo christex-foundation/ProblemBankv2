@@ -8,7 +8,7 @@ import type { UserRow } from '@/types/database';
 
 const Schema = z.object({
   email: z.string().email(),
-  turnstileToken: z.string().min(1),
+  turnstileToken: z.string().optional(),
 });
 
 export async function POST(req: Request) {

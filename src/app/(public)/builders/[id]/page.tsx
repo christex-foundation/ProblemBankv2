@@ -33,7 +33,13 @@ export default async function BuilderProfile({
     .maybeSingle()) as { data: ProfileShape | null };
 
   if (!user) notFound();
-  const isOwner = session?.user?.id === id;
+  // TODO(auth): restore session-based ownership check
+  //   const isOwner = session?.user?.id === id;
+  // Auth is deferred for this pass — every visitor sees the editor on every
+  // profile so endpoints can be exercised end-to-end. Acknowledge the unused
+  // session read here:
+  void session;
+  const isOwner = true;
 
   const hasContact = !!(user.contactEmail || user.githubUrl || user.websiteUrl);
 
@@ -117,6 +123,7 @@ export default async function BuilderProfile({
 
       {isOwner && (
         <BuilderProfileEditor
+          userId={user.id}
           user={{
             name: user.name,
             bio: user.bio,

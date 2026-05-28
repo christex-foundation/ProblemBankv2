@@ -6,6 +6,7 @@ import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
 import TiptapEditor from '@/components/editor/TiptapEditor';
 import { uploadTiptapImages } from '@/lib/cloudinary-client';
+import { apiErrorMessage } from '@/lib/api-response';
 import { SECTORS, URGENCY_LABELS, MAX_TITLE_LEN } from '@/lib/enums';
 
 type Urgency = keyof typeof URGENCY_LABELS;
@@ -30,26 +31,33 @@ export default function SubmissionForm() {
     setSubmitting(true);
     setError(null);
     try {
-      const descHtml = await uploadTiptapImages(description);
-      const solHtml = potentialSolution && potentialSolution !== '<p></p>'
+      const descUp = await uploadTiptapImages(description);
+      const solUp = potentialSolution && potentialSolution !== '<p></p>'
         ? await uploadTiptapImages(potentialSolution)
-        : undefined;
+        : null;
+
+      const totalDropped = descUp.imagesDropped + (solUp?.imagesDropped ?? 0);
+      if (totalDropped > 0) {
+        toast.warning(
+          `Image uploads disabled — ${totalDropped} image${totalDropped === 1 ? '' : 's'} skipped.`,
+        );
+      }
 
       const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          description: descHtml,
-          potentialSolution: solHtml,
+          description: descUp.html,
+          potentialSolution: solUp?.html,
           urgency,
           category,
           turnstileToken,
         }),
       });
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? 'Failed to submit');
+        const data = await res.json().catch(() => ({}));
+        throw new Error(apiErrorMessage(data) ?? 'Failed to submit');
       }
 
       toast.success('Submission published');
@@ -65,7 +73,7 @@ export default function SubmissionForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 max-w-2xl">
+    <form onSubmit={onSubmit} className="space-y-4 max-w-2xl" suppressHydrationWarning>
       <div>
         <label className="block text-sm font-medium">
           Title <span className="text-gray-500">(max {MAX_TITLE_LEN} chars)</span>
@@ -149,6 +157,7 @@ export default function SubmissionForm() {
           submitting
         }
         className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+        suppressHydrationWarning
       >
         {submitting ? 'Submitting…' : 'Submit'}
       </button>

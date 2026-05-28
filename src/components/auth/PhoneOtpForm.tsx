@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/api-response';
 
 export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
   const [phone, setPhone] = useState('+232');
@@ -24,7 +25,7 @@ export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
         body: JSON.stringify({ phone, channel, turnstileToken }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to send code');
+      if (!res.ok) throw new Error(apiErrorMessage(data) ?? 'Failed to send code');
       setSent(true);
       toast.success(`Code sent via ${channel}`);
     } catch (err) {
