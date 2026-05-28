@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-type ActiveKey = 'library' | 'feed' | 'about' | null;
+type ActiveKey = 'library' | 'feed' | null;
 
 /**
  * Slim top nav used by /library, /library/[slug], and /feed. Matches the
@@ -36,13 +36,6 @@ export function LibraryNav({ active = 'library' }: { active?: ActiveKey } = {}) 
             aria-current={active === 'feed' ? 'page' : undefined}
           >
             Feed
-          </Link>
-          <Link
-            href="/about"
-            className={`${linkBase} ${active === 'about' ? activeCls : inactive}`}
-            aria-current={active === 'about' ? 'page' : undefined}
-          >
-            About
           </Link>
           <Link
             href="/signin"
