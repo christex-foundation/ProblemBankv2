@@ -137,16 +137,23 @@ export function Body({
 export function Tagline({
   children,
   align = "right",
+  tone = "onLight",
   className,
 }: {
   children: ReactNode;
   align?: Align;
+  /** `onLight` (default) for paper/background surfaces; `onDark` for use
+   *  inside Sections with `tone="foreground"`. */
+  tone?: "onLight" | "onDark";
   className?: string;
 }) {
+  const toneClass =
+    tone === "onDark" ? "text-background/55" : "text-foreground/55";
   return (
     <p
       className={cx(
-        "font-serif italic text-foreground/55 text-2xl md:text-3xl tracking-[0.02em] leading-[1.4]",
+        "font-serif italic text-2xl md:text-3xl tracking-[0.02em] leading-[1.4]",
+        toneClass,
         ALIGN[align],
         className,
       )}

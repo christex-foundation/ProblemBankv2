@@ -4,6 +4,7 @@ import "./globals.css";
 
 import { PageTransition } from "@/design";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
+import { RaiseModalProvider } from "@/components/feed/RaiseModalProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,7 +27,9 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <SessionProviderWrapper>
-          <PageTransition>{children}</PageTransition>
+          <RaiseModalProvider>
+            <PageTransition>{children}</PageTransition>
+          </RaiseModalProvider>
         </SessionProviderWrapper>
       </body>
     </html>
