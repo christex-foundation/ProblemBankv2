@@ -12,6 +12,9 @@ export default async function ProblemBankNav() {
           Problem Bank
         </Link>
         <div className="flex items-center gap-5 text-sm">
+          <Link href="/library" className="hover:underline">
+            Library
+          </Link>
           <Link href="/feed" className="hover:underline">
             Feed
           </Link>
