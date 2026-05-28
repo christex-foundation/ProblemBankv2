@@ -1,34 +1,23 @@
 import type { MetadataRoute } from 'next';
-import { getSupabase } from '@/lib/supabase';
-import type { LibraryEntryRow } from '@/types/database';
+import { SAMPLE_LIBRARY_ENTRIES } from '@/data/sampleLibraryEntries';
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://build.christex.foundation';
-
-  let entries: Pick<LibraryEntryRow, 'slug' | 'updatedAt'>[] = [];
-  try {
-    const { data } = (await getSupabase()
-      .from('LibraryEntry')
-      .select('slug, updatedAt')
-      .not('publishedAt', 'is', null)) as {
-      data: Pick<LibraryEntryRow, 'slug' | 'updatedAt'>[] | null;
-    };
-    entries = data ?? [];
-  } catch {
-    // DB not reachable — return static-only sitemap.
-  }
+export default function sitemap(): MetadataRoute.Sitemap {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL ?? 'https://build.christex.foundation';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/`, changeFrequency: 'daily', priority: 1 },
-    { url: `${baseUrl}/feed`, changeFrequency: 'hourly', priority: 0.8 },
+    { url: `${baseUrl}/library`, changeFrequency: 'daily', priority: 0.9 },
   ];
 
-  const entryRoutes: MetadataRoute.Sitemap = entries.map((e) => ({
-    url: `${baseUrl}/library/${e.slug}`,
-    lastModified: new Date(e.updatedAt),
-    changeFrequency: 'weekly',
-    priority: 0.9,
-  }));
+  const entryRoutes: MetadataRoute.Sitemap = SAMPLE_LIBRARY_ENTRIES.map(
+    (e) => ({
+      url: `${baseUrl}/library/${e.slug}`,
+      lastModified: new Date(e.publishedAt),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }),
+  );
 
   return [...staticRoutes, ...entryRoutes];
 }

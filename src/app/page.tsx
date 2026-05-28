@@ -17,6 +17,7 @@ import {
   ScrollWordReveal,
   type ScrollWordSegment,
 } from "@/design";
+import { RaiseButton } from "@/components/feed/RaiseButton";
 
 // One representative respondent per problem. Order = scroll order.
 const PROBLEM_DISPLAY: { key: Problem; label: string }[] = [
@@ -93,12 +94,6 @@ export default function LandingPage() {
               Feed
             </Link>
             <Link
-              href="/about"
-              className="text-foreground/55 hover:text-foreground transition-soft"
-            >
-              About
-            </Link>
-            <Link
               href="/signin"
               className="px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft"
             >
@@ -131,9 +126,7 @@ export default function LandingPage() {
           <ButtonLink href="/library" variant="accent">
             Browse the library
           </ButtonLink>
-          <ButtonLink href="/raise" variant="outline">
-            Raise a problem
-          </ButtonLink>
+          <RaiseButton variant="outline">Raise a problem</RaiseButton>
         </div>
       </SynapserHero>
 
@@ -174,12 +167,7 @@ function GetInformedBuildShip() {
           >
             Browse the library
           </Link>
-          <Link
-            href="/raise"
-            className="inline-flex items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.28em] font-semibold hover:bg-background hover:text-foreground transition-soft"
-          >
-            Raise a problem
-          </Link>
+          <RaiseButton variant="outlineInverse">Raise a problem</RaiseButton>
         </Reveal>
       </div>
     </section>
