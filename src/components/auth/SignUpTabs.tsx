@@ -7,13 +7,20 @@ import Link from 'next/link';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
 import PhoneOtpForm from '@/components/auth/PhoneOtpForm';
+import {
+  AuthHeading,
+  AuthField,
+  AuthHelp,
+  MethodTabs,
+  OAuthButtons,
+  type AuthMethod,
+} from '@/components/auth/AuthUI';
+import { Button } from '@/design/primitives';
 import { apiErrorMessage } from '@/lib/api-response';
 import { MIN_PASSWORD_LEN } from '@/lib/enums';
 import type { ConfiguredProviders } from '@/lib/auth-providers';
 
-type Method = 'phone' | 'email' | 'oauth';
-
-function pickInitialMethod(providers: ConfiguredProviders): Method {
+function pickInitialMethod(providers: ConfiguredProviders): AuthMethod {
   if (providers.emailPassword) return 'email';
   if (providers.phone) return 'phone';
   return 'oauth';
@@ -23,81 +30,37 @@ function SignUpInner({ providers }: { providers: ConfiguredProviders }) {
   const params = useSearchParams();
   const router = useRouter();
   const callbackUrl = params.get('callbackUrl') ?? '/';
-  const [method, setMethod] = useState<Method>(pickInitialMethod(providers));
+  const [method, setMethod] = useState<AuthMethod>(pickInitialMethod(providers));
 
   const oauthAvailable = providers.google || providers.github;
 
   return (
-    <main className="max-w-md mx-auto py-12 px-4">
-      <h1 className="text-2xl font-bold">Create an account</h1>
-      <p className="text-sm text-gray-600 mt-1 mb-6">
-        {providers.phone || oauthAvailable
-          ? 'Email is enabled. Phone and OAuth depend on local configuration.'
-          : 'Sign up with email and password.'}
-      </p>
+    <div>
+      <AuthHeading
+        eyebrow="Problem Bank"
+        title="Create an account"
+        subtitle="Join to raise problems, vote, and build in the open."
+      />
 
-      <div className="flex border rounded overflow-hidden mb-6 text-sm">
-        <button
-          type="button"
-          onClick={() => setMethod('email')}
-          className={`flex-1 px-3 py-2 ${method === 'email' ? 'bg-black text-white' : ''}`}
-        >
-          Email
-        </button>
-        {providers.phone && (
-          <button
-            type="button"
-            onClick={() => setMethod('phone')}
-            className={`flex-1 px-3 py-2 border-l ${method === 'phone' ? 'bg-black text-white' : ''}`}
-          >
-            Phone
-          </button>
-        )}
-        {oauthAvailable && (
-          <button
-            type="button"
-            onClick={() => setMethod('oauth')}
-            className={`flex-1 px-3 py-2 border-l ${method === 'oauth' ? 'bg-black text-white' : ''}`}
-          >
-            {providers.google && providers.github
-              ? 'Google · GitHub'
-              : providers.google
-                ? 'Google'
-                : 'GitHub'}
-          </button>
-        )}
-      </div>
+      <MethodTabs method={method} onChange={setMethod} providers={providers} />
 
-      {method === 'email' && <EmailSignupForm callbackUrl={callbackUrl} router={router} />}
-      {method === 'phone' && providers.phone && <PhoneOtpForm callbackUrl={callbackUrl} />}
+      {method === 'email' && (
+        <EmailSignupForm callbackUrl={callbackUrl} router={router} />
+      )}
+      {method === 'phone' && providers.phone && (
+        <PhoneOtpForm callbackUrl={callbackUrl} />
+      )}
       {method === 'oauth' && oauthAvailable && (
-        <div className="space-y-3">
-          {providers.google && (
-            <button
-              onClick={() => signIn('google', { callbackUrl })}
-              className="w-full border rounded px-4 py-3 text-left hover:bg-gray-50"
-            >
-              Continue with Google
-            </button>
-          )}
-          {providers.github && (
-            <button
-              onClick={() => signIn('github', { callbackUrl })}
-              className="w-full border rounded px-4 py-3 text-left hover:bg-gray-50"
-            >
-              Continue with GitHub
-            </button>
-          )}
-        </div>
+        <OAuthButtons providers={providers} callbackUrl={callbackUrl} />
       )}
 
-      <p className="text-xs text-gray-500 text-center mt-6">
+      <p className="mt-8 text-center text-sm text-foreground/55">
         Already have an account?{' '}
-        <Link href="/signin" className="underline">
+        <Link href="/signin" className="link-underline text-foreground">
           Sign in
         </Link>
       </p>
-    </main>
+    </div>
   );
 }
 
@@ -149,63 +112,71 @@ function EmailSignupForm({
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium">Name (optional)</label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
-          maxLength={80}
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border rounded px-3 py-2 mt-1"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium">
-          Password <span className="text-gray-500">(min {MIN_PASSWORD_LEN} chars)</span>
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={MIN_PASSWORD_LEN}
-          className="w-full border rounded px-3 py-2 mt-1"
-        />
-      </div>
+    <form onSubmit={submit} className="flex flex-col gap-5">
+      <AuthField
+        id="name"
+        label="Name"
+        hint="(optional)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        maxLength={80}
+        autoComplete="name"
+      />
+      <AuthField
+        id="email"
+        label="Email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        autoComplete="email"
+      />
+      <AuthField
+        id="password"
+        label="Password"
+        hint={`(min ${MIN_PASSWORD_LEN})`}
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        minLength={MIN_PASSWORD_LEN}
+        autoComplete="new-password"
+      />
       {siteKey ? (
         <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
       ) : (
-        <p className="text-xs text-yellow-700">Bot protection not configured.</p>
+        <AuthHelp>Bot protection not configured.</AuthHelp>
       )}
-      <button
+      <Button
         type="submit"
+        variant="primary"
         disabled={
           busy ||
           !email ||
           password.length < MIN_PASSWORD_LEN ||
           (!turnstileToken && !!siteKey)
         }
-        className="w-full bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+        className="w-full disabled:opacity-50"
       >
         {busy ? 'Creating…' : 'Create account'}
-      </button>
+      </Button>
     </form>
   );
 }
 
-export default function SignUpTabs({ providers }: { providers: ConfiguredProviders }) {
+export default function SignUpTabs({
+  providers,
+}: {
+  providers: ConfiguredProviders;
+}) {
   return (
-    <Suspense fallback={<div className="p-12">Loading…</div>}>
+    <Suspense
+      fallback={
+        <p className="text-[11px] uppercase tracking-[0.22em] text-foreground/45">
+          Loading…
+        </p>
+      }
+    >
       <SignUpInner providers={providers} />
     </Suspense>
   );

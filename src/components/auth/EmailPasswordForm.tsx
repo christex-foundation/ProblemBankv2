@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { Button } from '@/design/primitives';
+import { AuthField } from '@/components/auth/AuthUI';
 
 export default function EmailPasswordForm({ callbackUrl }: { callbackUrl: string }) {
   const [email, setEmail] = useState('');
@@ -33,45 +35,43 @@ export default function EmailPasswordForm({ callbackUrl }: { callbackUrl: string
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3">
+    <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      <AuthField
+        id="email"
+        label="Email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        autoComplete="email"
+      />
       <div>
-        <label className="block text-sm font-medium">Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full border rounded px-3 py-2 mt-1"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium">Password</label>
-        <input
+        <AuthField
+          id="password"
+          label="Password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full border rounded px-3 py-2 mt-1"
+          autoComplete="current-password"
         />
-        <p className="text-xs mt-1">
-          <Link href="/reset" className="underline text-gray-600">
+        <p className="mt-2 text-right">
+          <Link
+            href="/reset"
+            className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/55"
+          >
             Forgot password?
           </Link>
         </p>
       </div>
-      <button
+      <Button
         type="submit"
+        variant="primary"
         disabled={busy || !email || !password}
-        className="w-full bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+        className="w-full disabled:opacity-50"
       >
         {busy ? 'Signing in…' : 'Sign in'}
-      </button>
-      <p className="text-xs text-gray-500 text-center">
-        No account?{' '}
-        <Link href="/signup" className="underline">
-          Create one
-        </Link>
-      </p>
+      </Button>
     </form>
   );
 }
