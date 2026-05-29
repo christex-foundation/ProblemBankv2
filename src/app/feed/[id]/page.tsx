@@ -169,6 +169,8 @@ export default async function FeedEntryPage({
                   <div className="flex flex-wrap items-center gap-6 md:gap-8 border-t border-foreground/15 pt-8">
                     <FeedVoteButton
                       initialCount={entry.voteCount}
+                      initiallyVoted={entry.viewerVoted ?? false}
+                      initialVotedAt={entry.viewerVotedAt ?? null}
                       submissionId={entry.id}
                       signedIn={signedIn}
                     />

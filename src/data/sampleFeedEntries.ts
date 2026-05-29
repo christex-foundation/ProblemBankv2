@@ -21,6 +21,10 @@ export interface SampleFeedEntry {
   authorLocation: string;
   submittedAt: string;
   comments?: SampleFeedComment[];
+  /** True when the currently signed-in viewer has already voted on this submission. */
+  viewerVoted?: boolean;
+  /** ISO timestamp of the viewer's vote, when one exists. Drives the unvote window UI. */
+  viewerVotedAt?: string | null;
 }
 
 export interface SampleFeedComment {

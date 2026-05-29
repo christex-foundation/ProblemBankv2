@@ -67,12 +67,15 @@ export default async function FeedIndexPage({
   const session = await auth();
   const signedIn = !!session?.user;
 
-  const entries = await getFeedEntries({
-    sort,
-    sector: sp.sector,
-    urgency: sp.urgency,
-    status: sp.status,
-  });
+  const entries = await getFeedEntries(
+    {
+      sort,
+      sector: sp.sector,
+      urgency: sp.urgency,
+      status: sp.status,
+    },
+    session?.user?.id,
+  );
 
   const hasFilters = Boolean(sp.sector || sp.urgency || sp.status);
 
@@ -411,6 +414,8 @@ function RankCard({
         </p>
         <FeedVoteButton
           initialCount={entry.voteCount}
+          initiallyVoted={entry.viewerVoted ?? false}
+          initialVotedAt={entry.viewerVotedAt ?? null}
           submissionId={entry.id}
           signedIn={signedIn}
         />

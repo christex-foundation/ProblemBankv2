@@ -148,7 +148,10 @@ export async function getGainingTractionIds(): Promise<Set<string>> {
   return new Set(rows.map((r) => r.submissionId));
 }
 
-export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]> {
+export async function getFeedEntries(
+  filters: FeedFilters,
+  viewerId?: string,
+): Promise<FeedEntry[]> {
   const supabase = getSupabase();
   let query = supabase.from('Submission').select('*, user:User(id, name)');
 
@@ -170,7 +173,40 @@ export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]>
   if (error) throw error;
 
   const rows = (data ?? []) as SubmissionWithAuthor[];
-  return rows.map((row) => mapRowToEntry(row, gainingTraction));
+  const viewerVotes = await loadViewerVotes(
+    supabase,
+    rows.map((r) => r.id),
+    viewerId,
+  );
+
+  return rows.map((row) => {
+    const entry = mapRowToEntry(row, gainingTraction);
+    if (viewerId) {
+      const votedAt = viewerVotes.get(row.id);
+      entry.viewerVoted = !!votedAt;
+      entry.viewerVotedAt = votedAt ?? null;
+    }
+    return entry;
+  });
+}
+
+async function loadViewerVotes(
+  supabase: ReturnType<typeof getSupabase>,
+  submissionIds: string[],
+  viewerId: string | undefined,
+): Promise<Map<string, string>> {
+  if (!viewerId || submissionIds.length === 0) return new Map();
+  const { data, error } = await supabase
+    .from('Vote')
+    .select('submissionId, votedAt')
+    .eq('userId', viewerId)
+    .in('submissionId', submissionIds);
+  if (error) throw error;
+  const map = new Map<string, string>();
+  for (const row of (data ?? []) as { submissionId: string; votedAt: string }[]) {
+    map.set(row.submissionId, row.votedAt);
+  }
+  return map;
 }
 
 export async function getFeedEntryById(
@@ -200,7 +236,26 @@ export async function getFeedEntryById(
     viewerId,
   );
   const comments = shapeComments(rows, upvotes);
-  return mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
+
+  let viewerVote: { votedAt: string } | null = null;
+  if (viewerId) {
+    const { data: voteRow } = (await supabase
+      .from('Vote')
+      .select('votedAt')
+      .eq('userId', viewerId)
+      .eq('submissionId', id)
+      .maybeSingle()) as { data: { votedAt: string } | null };
+    viewerVote = voteRow;
+  }
+
+  const entry = mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
+  if (viewerVote) {
+    entry.viewerVoted = true;
+    entry.viewerVotedAt = viewerVote.votedAt;
+  } else if (viewerId) {
+    entry.viewerVoted = false;
+  }
+  return entry;
 }
 
 export async function getRelatedFeedEntries(
