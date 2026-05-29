@@ -46,6 +46,7 @@ export interface SubmissionRow {
   voteCount: number;
   commentCount: number;
   libraryEntryId: string | null;
+  signsItsWorking: string[];
   createdAt: string;
 }
 
@@ -131,7 +132,7 @@ export interface Database {
         Row: SubmissionRow;
         Insert: WithoutDefaults<
           SubmissionRow,
-          'id' | 'createdAt' | 'status' | 'voteCount' | 'commentCount'
+          'id' | 'createdAt' | 'status' | 'voteCount' | 'commentCount' | 'signsItsWorking'
         >;
         Update: Partial<SubmissionRow>;
         Relationships: [];

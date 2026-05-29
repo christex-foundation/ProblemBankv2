@@ -16,7 +16,7 @@ export interface SampleFeedEntry {
   voteCount: number;
   commentCount: number;
   authorName: string;
-  authorLocation: string;
+  authorLocation?: string;
   submittedAt: string;
   comments?: SampleFeedComment[];
 }

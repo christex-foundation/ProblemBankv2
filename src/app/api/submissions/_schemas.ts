@@ -21,6 +21,7 @@ export const CreateSubmissionSchema = z.object({
   potentialSolution: z.string().optional(),
   urgency: urgencyEnum,
   category: categorySchema,
+  signsItsWorking: z.array(z.string().min(1)).max(20).default([]),
   turnstileToken: z.string().optional(),
 });
 
@@ -56,6 +57,7 @@ export const SubmissionSchema = z.object({
   voteCount: z.number().int(),
   commentCount: z.number().int(),
   libraryEntryId: z.string().uuid().nullable(),
+  signsItsWorking: z.array(z.string()),
   createdAt: z.string(),
   user: SubmissionAuthorSchema.nullable().optional(),
 });
