@@ -5,8 +5,11 @@ import {
   type DisplayStatus,
   type UrgencyKey,
 } from '@/lib/enums';
-import type { SampleFeedEntry } from '@/data/sampleFeedEntries';
-import type { SubmissionRow } from '@/types/database';
+import type {
+  SampleFeedComment,
+  SampleFeedEntry,
+} from '@/data/sampleFeedEntries';
+import type { CommentRow, SubmissionRow } from '@/types/database';
 
 export type FeedEntry = SampleFeedEntry;
 
@@ -26,9 +29,14 @@ type SubmissionWithAuthor = SubmissionRow & {
   user: { id: string; name: string | null } | null;
 };
 
+type CommentWithAuthor = CommentRow & {
+  user: { id: string; name: string | null } | null;
+};
+
 function mapRowToEntry(
   row: SubmissionWithAuthor,
   gainingTraction?: Set<string>,
+  comments?: SampleFeedComment[],
 ): FeedEntry {
   return {
     id: row.id,
@@ -42,7 +50,46 @@ function mapRowToEntry(
     authorName: row.user?.name ?? 'Anonymous',
     authorLocation: DEFAULT_AUTHOR_LOCATION,
     submittedAt: row.createdAt,
+    ...(comments ? { comments } : {}),
   };
+}
+
+function authorName(row: CommentWithAuthor): string {
+  return row.user?.name ?? 'Anonymous';
+}
+
+function shapeComments(rows: CommentWithAuthor[]): SampleFeedComment[] {
+  const repliesByParent = new Map<string, CommentWithAuthor[]>();
+  const topLevel: CommentWithAuthor[] = [];
+
+  for (const row of rows) {
+    if (row.parentCommentId) {
+      const bucket = repliesByParent.get(row.parentCommentId) ?? [];
+      bucket.push(row);
+      repliesByParent.set(row.parentCommentId, bucket);
+    } else {
+      topLevel.push(row);
+    }
+  }
+
+  return topLevel.map((parent) => {
+    const replies = (repliesByParent.get(parent.id) ?? []).map((reply) => ({
+      id: reply.id,
+      authorName: authorName(reply),
+      authorLocation: DEFAULT_AUTHOR_LOCATION,
+      body: reply.content,
+      createdAt: reply.createdAt,
+      replyToName: authorName(parent),
+    }));
+    return {
+      id: parent.id,
+      authorName: authorName(parent),
+      authorLocation: DEFAULT_AUTHOR_LOCATION,
+      body: parent.content,
+      createdAt: parent.createdAt,
+      ...(replies.length > 0 ? { replies } : {}),
+    };
+  });
 }
 
 /**
@@ -95,7 +142,16 @@ export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return mapRowToEntry(data as SubmissionWithAuthor);
+
+  const { data: commentRows, error: commentError } = await supabase
+    .from('Comment')
+    .select('*, user:User(id, name)')
+    .eq('submissionId', id)
+    .order('createdAt', { ascending: true });
+  if (commentError) throw commentError;
+
+  const comments = shapeComments((commentRows ?? []) as CommentWithAuthor[]);
+  return mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
 }
 
 export async function getRelatedFeedEntries(
