@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { MAX_BIO_LEN } from '@/lib/enums';
+import { Button } from '@/design/primitives';
+import { Eyebrow } from '@/design/typography';
 
 interface Props {
   userId: string;
@@ -15,6 +17,11 @@ interface Props {
     websiteUrl: string | null;
   };
 }
+
+const labelCls =
+  'block text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/55';
+const inputCls =
+  'w-full mt-2 bg-transparent border border-foreground/20 px-3 py-2.5 text-foreground placeholder:text-foreground/30 focus:border-foreground/60 focus:outline-none transition-soft';
 
 export default function BuilderProfileEditor({ userId, user }: Props) {
   const router = useRouter();
@@ -56,72 +63,77 @@ export default function BuilderProfileEditor({ userId, user }: Props) {
   }
 
   return (
-    <form onSubmit={save} className="space-y-4 mt-8 border-t pt-6">
-      <h2 className="font-semibold">Edit your profile</h2>
+    <form onSubmit={save} className="flex flex-col gap-6">
+      <Eyebrow tone="muted" size="sm">
+        Edit your profile
+      </Eyebrow>
 
       <div>
-        <label className="block text-sm font-medium">Name</label>
+        <label className={labelCls}>Name</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
+          className={inputCls}
           maxLength={80}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium">
-          Bio <span className="text-gray-500">(max {MAX_BIO_LEN} chars)</span>
+        <label className={labelCls}>
+          Bio <span className="text-foreground/35">(max {MAX_BIO_LEN})</span>
         </label>
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={3}
-          className="w-full border rounded px-3 py-2 mt-1"
+          className={`${inputCls} resize-y`}
           maxLength={MAX_BIO_LEN}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="mt-1 text-[10px] uppercase tracking-[0.22em] num text-foreground/45">
           {bio.length}/{MAX_BIO_LEN}
         </p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Contact email (optional)</label>
+        <label className={labelCls}>Contact email (optional)</label>
         <input
           type="email"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
+          className={inputCls}
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium">GitHub URL (optional)</label>
+        <label className={labelCls}>GitHub URL (optional)</label>
         <input
           value={githubUrl}
           onChange={(e) => setGithubUrl(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
+          className={inputCls}
           placeholder="https://github.com/yourhandle"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Website (optional)</label>
+        <label className={labelCls}>Website (optional)</label>
         <input
           value={websiteUrl}
           onChange={(e) => setWebsiteUrl(e.target.value)}
-          className="w-full border rounded px-3 py-2 mt-1"
+          className={inputCls}
           placeholder="https://example.com"
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
-      >
-        {saving ? 'Saving…' : 'Save profile'}
-      </button>
+      <div>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={saving}
+          className="disabled:opacity-50"
+        >
+          {saving ? 'Saving…' : 'Save profile'}
+        </Button>
+      </div>
     </form>
   );
 }
