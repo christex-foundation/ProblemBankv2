@@ -18,7 +18,7 @@ import { LibraryNav } from '@/components/LibraryNav';
 import { Footer } from '@/components/Footer';
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { CommentComposerStub } from '@/components/feed/CommentComposerStub';
-import { SignInTrigger } from '@/components/feed/SignInPrompt';
+import { CommentActions } from '@/components/feed/CommentActions';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { auth } from '@/lib/auth';
 import type { SampleFeedComment } from '@/data/sampleFeedEntries';
@@ -63,13 +63,14 @@ export default async function FeedEntryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const entry = await getFeedEntryById(id);
+  const session = await auth();
+  const signedIn = !!session?.user;
+  const entry = await getFeedEntryById(id, session?.user?.id);
   if (!entry) notFound();
 
   const related = await getRelatedFeedEntries(entry.id, 3);
-
-  const session = await auth();
-  const signedIn = !!session?.user;
+  const repliesOpen =
+    entry.status === 'submitted' || entry.status === 'gaining_traction';
 
   const sectorTone = sectorBadgeTone(entry.sector);
   const urgency = urgencyBadge(entry.urgency);
@@ -168,6 +169,8 @@ export default async function FeedEntryPage({
                   <div className="flex flex-wrap items-center gap-6 md:gap-8 border-t border-foreground/15 pt-8">
                     <FeedVoteButton
                       initialCount={entry.voteCount}
+                      initiallyVoted={entry.viewerVoted ?? false}
+                      initialVotedAt={entry.viewerVotedAt ?? null}
                       submissionId={entry.id}
                       signedIn={signedIn}
                     />
@@ -216,16 +219,16 @@ export default async function FeedEntryPage({
               <div className="col-span-12 md:col-span-10 flex flex-col gap-6">
                 <CommentComposerStub
                   callbackPath={`/feed/${entry.id}`}
-                  open={
-                    entry.status === 'submitted' ||
-                    entry.status === 'gaining_traction'
-                  }
+                  open={repliesOpen}
                   signedIn={signedIn}
+                  submissionId={entry.id}
                 />
                 <CommentList
                   comments={entry.comments ?? []}
                   callbackPath={`/feed/${entry.id}`}
                   signedIn={signedIn}
+                  submissionId={entry.id}
+                  repliesOpen={repliesOpen}
                 />
               </div>
             </div>
@@ -323,18 +326,22 @@ export default async function FeedEntryPage({
 // ─────────────────────────────────────────────────────────────────────
 
 /**
- * Read-only comment list. Comments are visible to everyone; only posting
- * a reply is gated behind sign-in via `SignInTrigger`. Supports two levels
- * of nested replies.
+ * Comment list. Comments are visible to everyone; upvoting and replying are
+ * gated behind sign-in by `CommentActions`. One level of nested replies —
+ * the API rejects replies to replies.
  */
 function CommentList({
   comments,
   callbackPath,
   signedIn,
+  submissionId,
+  repliesOpen,
 }: {
   comments: SampleFeedComment[];
   callbackPath: string;
   signedIn: boolean;
+  submissionId: string;
+  repliesOpen: boolean;
 }) {
   if (comments.length === 0) return null;
 
@@ -349,6 +356,8 @@ function CommentList({
             comment={c}
             callbackPath={callbackPath}
             signedIn={signedIn}
+            submissionId={submissionId}
+            repliesOpen={repliesOpen}
           />
         </li>
       ))}
@@ -368,11 +377,15 @@ function CommentItem({
   comment,
   callbackPath,
   signedIn,
+  submissionId,
+  repliesOpen,
   depth = 0,
 }: {
   comment: SampleFeedComment;
   callbackPath: string;
   signedIn: boolean;
+  submissionId: string;
+  repliesOpen: boolean;
   depth?: number;
 }) {
   const isReply = depth > 0;
@@ -414,53 +427,17 @@ function CommentItem({
           {comment.replyToName ? ' ' : ''}
           {comment.body}
         </p>
-        <div className="mt-1 flex items-center gap-5 text-[10px] uppercase tracking-[0.22em] font-semibold">
-          {signedIn ? (
-            <button
-              type="button"
-              aria-label={`Upvote ${comment.authorName}'s comment`}
-              className="inline-flex items-baseline gap-1.5 text-foreground/45 hover:text-accent transition-soft"
-            >
-              <span>Upvote</span>
-              {comment.upvoteCount && comment.upvoteCount > 0 ? (
-                <span className="num text-foreground/55">
-                  ({comment.upvoteCount})
-                </span>
-              ) : null}
-            </button>
-          ) : (
-            <SignInTrigger
-              callbackPath={callbackPath}
-              ariaLabel={`Upvote ${comment.authorName}'s comment`}
-              className="inline-flex items-baseline gap-1.5 text-foreground/45 hover:text-accent transition-soft"
-            >
-              <span>Upvote</span>
-              {comment.upvoteCount && comment.upvoteCount > 0 ? (
-                <span className="num text-foreground/55">
-                  ({comment.upvoteCount})
-                </span>
-              ) : null}
-            </SignInTrigger>
-          )}
-          {depth < 2 &&
-            (signedIn ? (
-              <button
-                type="button"
-                aria-label={`Reply to ${comment.authorName}`}
-                className="text-foreground/45 hover:text-accent transition-soft"
-              >
-                Reply
-              </button>
-            ) : (
-              <SignInTrigger
-                callbackPath={callbackPath}
-                ariaLabel={`Reply to ${comment.authorName}`}
-                className="text-foreground/45 hover:text-accent transition-soft"
-              >
-                Reply
-              </SignInTrigger>
-            ))}
-        </div>
+        <CommentActions
+          commentId={comment.id}
+          submissionId={submissionId}
+          authorName={comment.authorName}
+          callbackPath={callbackPath}
+          signedIn={signedIn}
+          canReply={depth < 1}
+          initialUpvoteCount={comment.upvoteCount ?? 0}
+          initialViewerUpvoted={comment.viewerUpvoted ?? false}
+          repliesOpen={repliesOpen}
+        />
         {comment.replies && comment.replies.length > 0 && (
           <ul className="mt-5 pl-2 md:pl-3 border-l border-foreground/15 flex flex-col gap-8">
             {comment.replies.map((r) => (
@@ -469,6 +446,8 @@ function CommentItem({
                   comment={r}
                   callbackPath={callbackPath}
                   signedIn={signedIn}
+                  submissionId={submissionId}
+                  repliesOpen={repliesOpen}
                   depth={depth + 1}
                 />
               </li>

@@ -5,8 +5,11 @@ import {
   type DisplayStatus,
   type UrgencyKey,
 } from '@/lib/enums';
-import type { SampleFeedEntry } from '@/data/sampleFeedEntries';
-import type { SubmissionRow } from '@/types/database';
+import type {
+  SampleFeedComment,
+  SampleFeedEntry,
+} from '@/data/sampleFeedEntries';
+import type { CommentRow, SubmissionRow } from '@/types/database';
 
 export type FeedEntry = SampleFeedEntry;
 
@@ -26,9 +29,21 @@ type SubmissionWithAuthor = SubmissionRow & {
   user: { id: string; name: string | null } | null;
 };
 
+type CommentWithAuthor = CommentRow & {
+  user: { id: string; name: string | null } | null;
+};
+
+interface CommentUpvoteState {
+  /** commentId → total upvote count */
+  counts: Map<string, number>;
+  /** commentIds the current viewer has upvoted */
+  viewerVoted: Set<string>;
+}
+
 function mapRowToEntry(
   row: SubmissionWithAuthor,
   gainingTraction?: Set<string>,
+  comments?: SampleFeedComment[],
 ): FeedEntry {
   return {
     id: row.id,
@@ -42,7 +57,79 @@ function mapRowToEntry(
     authorName: row.user?.name ?? 'Anonymous',
     authorLocation: DEFAULT_AUTHOR_LOCATION,
     submittedAt: row.createdAt,
+    ...(comments ? { comments } : {}),
   };
+}
+
+function authorName(row: CommentWithAuthor): string {
+  return row.user?.name ?? 'Anonymous';
+}
+
+function shapeComment(
+  row: CommentWithAuthor,
+  upvotes: CommentUpvoteState,
+  replyToName?: string,
+): SampleFeedComment {
+  return {
+    id: row.id,
+    authorName: authorName(row),
+    authorLocation: DEFAULT_AUTHOR_LOCATION,
+    body: row.content,
+    createdAt: row.createdAt,
+    upvoteCount: upvotes.counts.get(row.id) ?? 0,
+    viewerUpvoted: upvotes.viewerVoted.has(row.id),
+    ...(replyToName ? { replyToName } : {}),
+  };
+}
+
+function shapeComments(
+  rows: CommentWithAuthor[],
+  upvotes: CommentUpvoteState,
+): SampleFeedComment[] {
+  const repliesByParent = new Map<string, CommentWithAuthor[]>();
+  const topLevel: CommentWithAuthor[] = [];
+
+  for (const row of rows) {
+    if (row.parentCommentId) {
+      const bucket = repliesByParent.get(row.parentCommentId) ?? [];
+      bucket.push(row);
+      repliesByParent.set(row.parentCommentId, bucket);
+    } else {
+      topLevel.push(row);
+    }
+  }
+
+  return topLevel.map((parent) => {
+    const replies = (repliesByParent.get(parent.id) ?? []).map((reply) =>
+      shapeComment(reply, upvotes, authorName(parent)),
+    );
+    const parentShape = shapeComment(parent, upvotes);
+    return replies.length > 0 ? { ...parentShape, replies } : parentShape;
+  });
+}
+
+async function loadCommentUpvotes(
+  supabase: ReturnType<typeof getSupabase>,
+  commentIds: string[],
+  viewerId: string | undefined,
+): Promise<CommentUpvoteState> {
+  if (commentIds.length === 0) {
+    return { counts: new Map(), viewerVoted: new Set() };
+  }
+
+  const { data, error } = await supabase
+    .from('CommentVote')
+    .select('commentId, userId')
+    .in('commentId', commentIds);
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  const viewerVoted = new Set<string>();
+  for (const row of (data ?? []) as { commentId: string; userId: string }[]) {
+    counts.set(row.commentId, (counts.get(row.commentId) ?? 0) + 1);
+    if (viewerId && row.userId === viewerId) viewerVoted.add(row.commentId);
+  }
+  return { counts, viewerVoted };
 }
 
 /**
@@ -61,7 +148,10 @@ export async function getGainingTractionIds(): Promise<Set<string>> {
   return new Set(rows.map((r) => r.submissionId));
 }
 
-export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]> {
+export async function getFeedEntries(
+  filters: FeedFilters,
+  viewerId?: string,
+): Promise<FeedEntry[]> {
   const supabase = getSupabase();
   let query = supabase.from('Submission').select('*, user:User(id, name)');
 
@@ -83,10 +173,46 @@ export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]>
   if (error) throw error;
 
   const rows = (data ?? []) as SubmissionWithAuthor[];
-  return rows.map((row) => mapRowToEntry(row, gainingTraction));
+  const viewerVotes = await loadViewerVotes(
+    supabase,
+    rows.map((r) => r.id),
+    viewerId,
+  );
+
+  return rows.map((row) => {
+    const entry = mapRowToEntry(row, gainingTraction);
+    if (viewerId) {
+      const votedAt = viewerVotes.get(row.id);
+      entry.viewerVoted = !!votedAt;
+      entry.viewerVotedAt = votedAt ?? null;
+    }
+    return entry;
+  });
 }
 
-export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
+async function loadViewerVotes(
+  supabase: ReturnType<typeof getSupabase>,
+  submissionIds: string[],
+  viewerId: string | undefined,
+): Promise<Map<string, string>> {
+  if (!viewerId || submissionIds.length === 0) return new Map();
+  const { data, error } = await supabase
+    .from('Vote')
+    .select('submissionId, votedAt')
+    .eq('userId', viewerId)
+    .in('submissionId', submissionIds);
+  if (error) throw error;
+  const map = new Map<string, string>();
+  for (const row of (data ?? []) as { submissionId: string; votedAt: string }[]) {
+    map.set(row.submissionId, row.votedAt);
+  }
+  return map;
+}
+
+export async function getFeedEntryById(
+  id: string,
+  viewerId?: string,
+): Promise<FeedEntry | null> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('Submission')
@@ -95,7 +221,41 @@ export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  return mapRowToEntry(data as SubmissionWithAuthor);
+
+  const { data: commentRows, error: commentError } = await supabase
+    .from('Comment')
+    .select('*, user:User!Comment_userId_fkey(id, name)')
+    .eq('submissionId', id)
+    .order('createdAt', { ascending: true });
+  if (commentError) throw commentError;
+
+  const rows = (commentRows ?? []) as CommentWithAuthor[];
+  const upvotes = await loadCommentUpvotes(
+    supabase,
+    rows.map((r) => r.id),
+    viewerId,
+  );
+  const comments = shapeComments(rows, upvotes);
+
+  let viewerVote: { votedAt: string } | null = null;
+  if (viewerId) {
+    const { data: voteRow } = (await supabase
+      .from('Vote')
+      .select('votedAt')
+      .eq('userId', viewerId)
+      .eq('submissionId', id)
+      .maybeSingle()) as { data: { votedAt: string } | null };
+    viewerVote = voteRow;
+  }
+
+  const entry = mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
+  if (viewerVote) {
+    entry.viewerVoted = true;
+    entry.viewerVotedAt = viewerVote.votedAt;
+  } else if (viewerId) {
+    entry.viewerVoted = false;
+  }
+  return entry;
 }
 
 export async function getRelatedFeedEntries(

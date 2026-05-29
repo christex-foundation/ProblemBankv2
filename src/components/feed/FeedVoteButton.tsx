@@ -17,11 +17,14 @@ import { UNVOTE_WINDOW_MS } from '@/lib/enums';
 export function FeedVoteButton({
   initialCount,
   initiallyVoted = false,
+  initialVotedAt = null,
   signedIn = false,
   submissionId,
 }: {
   initialCount: number;
   initiallyVoted?: boolean;
+  /** ISO timestamp the viewer voted, when known. Drives the 5-minute unvote window after reload. */
+  initialVotedAt?: string | null;
   signedIn?: boolean;
   /** Used both for the vote API call and the post-sign-in callback URL. */
   submissionId?: string;
@@ -29,7 +32,9 @@ export function FeedVoteButton({
   const router = useRouter();
   const [voted, setVoted] = useState(initiallyVoted);
   const [count, setCount] = useState(initialCount);
-  const [votedAt, setVotedAt] = useState<Date | null>(null);
+  const [votedAt, setVotedAt] = useState<Date | null>(
+    initialVotedAt ? new Date(initialVotedAt) : null,
+  );
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [, startTransition] = useTransition();
@@ -116,16 +121,25 @@ export function FeedVoteButton({
     }
   }
 
+  const locked = voted && !canUnvote;
+
   return (
     <button
       type="button"
       onClick={toggle}
-      disabled={busy}
+      disabled={busy || locked}
       aria-pressed={voted}
-      aria-label={voted ? `Remove vote (${count})` : `Upvote (${count})`}
+      aria-label={
+        locked
+          ? `Already voted (${count}) — vote locked`
+          : voted
+            ? `Remove vote (${count})`
+            : `Upvote (${count})`
+      }
+      title={locked ? 'You voted. Votes are permanent after 5 minutes.' : undefined}
       className={`group/vote w-[88px] md:w-[104px] flex flex-col items-center gap-1 px-3 py-4 border transition-soft cursor-pointer disabled:cursor-wait ${
         voted
-          ? 'bg-accent border-accent text-background'
+          ? `bg-accent border-accent text-background ${locked ? 'disabled:cursor-not-allowed' : ''}`
           : 'bg-paper border-foreground/20 text-foreground hover:border-foreground/60 hover:bg-foreground/[0.03]'
       }`}
     >

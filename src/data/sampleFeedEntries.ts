@@ -21,6 +21,10 @@ export interface SampleFeedEntry {
   authorLocation: string;
   submittedAt: string;
   comments?: SampleFeedComment[];
+  /** True when the currently signed-in viewer has already voted on this submission. */
+  viewerVoted?: boolean;
+  /** ISO timestamp of the viewer's vote, when one exists. Drives the unvote window UI. */
+  viewerVotedAt?: string | null;
 }
 
 export interface SampleFeedComment {
@@ -34,6 +38,8 @@ export interface SampleFeedComment {
   /** Nested replies. Two levels of nesting are supported by the design. */
   replies?: SampleFeedComment[];
   upvoteCount?: number;
+  /** True when the currently signed-in viewer has already upvoted this comment. */
+  viewerUpvoted?: boolean;
 }
 
 /**
