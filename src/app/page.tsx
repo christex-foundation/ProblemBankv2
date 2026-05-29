@@ -93,12 +93,6 @@ export default function LandingPage() {
               Feed
             </Link>
             <Link
-              href="/about"
-              className="text-foreground/55 hover:text-foreground transition-soft"
-            >
-              About
-            </Link>
-            <Link
               href="/signin"
               className="px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft"
             >
