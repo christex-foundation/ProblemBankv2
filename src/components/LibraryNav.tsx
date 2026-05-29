@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { auth, signOut } from '@/lib/auth';
 
-type ActiveKey = 'library' | 'feed' | 'about' | null;
+type ActiveKey = 'library' | 'feed' | null;
 
 export async function LibraryNav({
   active = 'library',
@@ -38,13 +38,6 @@ export async function LibraryNav({
             aria-current={active === 'feed' ? 'page' : undefined}
           >
             Feed
-          </Link>
-          <Link
-            href="/about"
-            className={`${linkBase} ${active === 'about' ? activeCls : inactive}`}
-            aria-current={active === 'about' ? 'page' : undefined}
-          >
-            About
           </Link>
           {user ? (
             <>
