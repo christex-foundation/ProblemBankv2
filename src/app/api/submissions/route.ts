@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
@@ -40,6 +41,7 @@ export async function POST(req: Request) {
       potentialSolution: input.potentialSolution ?? null,
       urgency: input.urgency,
       category: input.category,
+      signsItsWorking: input.signsItsWorking,
     } as never)
     .select('*')) as { data: SubmissionRow[] | null; error: { message: string } | null };
 
@@ -50,6 +52,8 @@ export async function POST(req: Request) {
       error?.message ?? 'Failed to create submission.',
     );
   }
+
+  revalidatePath('/feed');
 
   return apiOk({ submission: data[0] }, { status: 201 });
 }

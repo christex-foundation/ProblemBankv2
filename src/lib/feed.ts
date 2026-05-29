@@ -2,7 +2,48 @@ import { getSupabase } from '@/lib/supabase';
 import {
   GAINING_TRACTION_WINDOW_DAYS,
   GAINING_TRACTION_MIN_DISTINCT_DAYS,
+  type DisplayStatus,
+  type UrgencyKey,
 } from '@/lib/enums';
+import type { SampleFeedEntry } from '@/data/sampleFeedEntries';
+import type { SubmissionRow } from '@/types/database';
+
+export type FeedEntry = SampleFeedEntry;
+
+export type FeedSort = 'votes' | 'recent' | 'urgency';
+export type FeedStatusFilter = Exclude<DisplayStatus, 'gaining_traction'>;
+
+export interface FeedFilters {
+  sort: FeedSort;
+  sector?: string;
+  urgency?: UrgencyKey;
+  status?: FeedStatusFilter;
+}
+
+const DEFAULT_AUTHOR_LOCATION = 'Freetown';
+
+type SubmissionWithAuthor = SubmissionRow & {
+  user: { id: string; name: string | null } | null;
+};
+
+function mapRowToEntry(
+  row: SubmissionWithAuthor,
+  gainingTraction?: Set<string>,
+): FeedEntry {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.description,
+    sector: row.category,
+    urgency: row.urgency,
+    status: gainingTraction?.has(row.id) ? 'gaining_traction' : row.status,
+    voteCount: row.voteCount,
+    commentCount: row.commentCount,
+    authorName: row.user?.name ?? 'Anonymous',
+    authorLocation: DEFAULT_AUTHOR_LOCATION,
+    submittedAt: row.createdAt,
+  };
+}
 
 /**
  * Gaining Traction is computed at query time — never stored. A submission qualifies when
@@ -18,4 +59,57 @@ export async function getGainingTractionIds(): Promise<Set<string>> {
   if (error) throw error;
   const rows = (data ?? []) as { submissionId: string }[];
   return new Set(rows.map((r) => r.submissionId));
+}
+
+export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]> {
+  const supabase = getSupabase();
+  let query = supabase.from('Submission').select('*, user:User(id, name)');
+
+  if (filters.sector) query = query.eq('category', filters.sector);
+  if (filters.urgency) query = query.eq('urgency', filters.urgency);
+  if (filters.status) query = query.eq('status', filters.status);
+
+  query =
+    filters.sort === 'recent'
+      ? query.order('createdAt', { ascending: false })
+      : filters.sort === 'urgency'
+        ? query.order('urgency', { ascending: true }).order('voteCount', { ascending: false })
+        : query.order('voteCount', { ascending: false });
+
+  const [{ data, error }, gainingTraction] = await Promise.all([
+    query,
+    getGainingTractionIds(),
+  ]);
+  if (error) throw error;
+
+  const rows = (data ?? []) as SubmissionWithAuthor[];
+  return rows.map((row) => mapRowToEntry(row, gainingTraction));
+}
+
+export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return mapRowToEntry(data as SubmissionWithAuthor);
+}
+
+export async function getRelatedFeedEntries(
+  currentId: string,
+  limit = 3,
+): Promise<FeedEntry[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .neq('id', currentId)
+    .order('voteCount', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  const rows = (data ?? []) as SubmissionWithAuthor[];
+  return rows.map((row) => mapRowToEntry(row));
 }

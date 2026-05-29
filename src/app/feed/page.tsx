@@ -19,14 +19,13 @@ import { LibraryNav } from '@/components/LibraryNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
 import { Reveal } from '@/design/motion';
-import {
-  SAMPLE_FEED_ENTRIES,
-  type SampleFeedEntry,
-} from '@/data/sampleFeedEntries';
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { RaiseLink } from '@/components/feed/RaiseLink';
 import { auth } from '@/lib/auth';
+import { getFeedEntries, type FeedEntry } from '@/lib/feed';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Community Feed · Problem Bank',
@@ -50,13 +49,6 @@ const SORT_LABELS: Record<SortKey, string> = {
   urgency: 'By urgency',
 };
 
-const URGENCY_RANK: Record<UrgencyKey, number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
 const STATUS_FILTER_KEYS: StatusFilter[] = [
   'submitted',
   'under_review',
@@ -75,30 +67,18 @@ export default async function FeedIndexPage({
   const session = await auth();
   const signedIn = !!session?.user;
 
-  let entries: SampleFeedEntry[] = [...SAMPLE_FEED_ENTRIES];
-  if (sp.sector) entries = entries.filter((e) => e.sector === sp.sector);
-  if (sp.urgency) entries = entries.filter((e) => e.urgency === sp.urgency);
-  if (sp.status) entries = entries.filter((e) => e.status === sp.status);
-
-  entries.sort((a, b) => {
-    if (sort === 'recent') {
-      return (
-        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-      );
-    }
-    if (sort === 'urgency') {
-      const diff = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
-      return diff !== 0 ? diff : b.voteCount - a.voteCount;
-    }
-    return b.voteCount - a.voteCount;
+  const entries = await getFeedEntries({
+    sort,
+    sector: sp.sector,
+    urgency: sp.urgency,
+    status: sp.status,
   });
 
   const hasFilters = Boolean(sp.sector || sp.urgency || sp.status);
 
-  const allEntries = SAMPLE_FEED_ENTRIES;
-  const totalVoices = allEntries.length;
-  const totalSectors = new Set(allEntries.map((e) => e.sector)).size;
-  const totalVotes = allEntries.reduce((acc, e) => acc + e.voteCount, 0);
+  const totalVoices = entries.length;
+  const totalSectors = new Set(entries.map((e) => e.sector)).size;
+  const totalVotes = entries.reduce((acc, e) => acc + e.voteCount, 0);
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
@@ -410,7 +390,7 @@ function RankCard({
   index,
   signedIn,
 }: {
-  entry: SampleFeedEntry;
+  entry: FeedEntry;
   index: number;
   signedIn: boolean;
 }) {

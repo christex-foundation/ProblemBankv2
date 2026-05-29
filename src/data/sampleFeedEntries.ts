@@ -1,9 +1,11 @@
 import type { DisplayStatus, UrgencyKey } from '@/lib/enums';
 
 /**
- * Feed data seam for the design prototype. Mirrors the production Submission
- * shape used by the archived /feed page but trimmed to what the editorial
- * cards render. Swap point for the Supabase-backed reader.
+ * @deprecated Superseded by `getFeedEntries()` / `getFeedEntryById()` in
+ * `src/lib/feed.ts`. Real submissions are now read from Supabase. This file
+ * is kept temporarily so the type alias `FeedEntry = SampleFeedEntry` in
+ * `src/lib/feed.ts` continues to compile; safe to delete once nothing else
+ * imports it.
  */
 export interface SampleFeedEntry {
   id: string;
@@ -34,6 +36,9 @@ export interface SampleFeedComment {
   upvoteCount?: number;
 }
 
+/**
+ * @deprecated No longer rendered. See `SampleFeedEntry`.
+ */
 export const SAMPLE_FEED_ENTRIES: SampleFeedEntry[] = [
   {
     id: 'fd-clinic-stockouts',
