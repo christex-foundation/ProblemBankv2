@@ -5,6 +5,7 @@ import "./globals.css";
 import { PageTransition } from "@/design";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import { RaiseModalProvider } from "@/components/feed/RaiseModalProvider";
+import { auth } from "@/lib/auth";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,16 +19,19 @@ export const metadata: Metadata = {
     "Christex Foundation: a universe of community-named problems in Sierra Leone, drawn from a simulated field survey of 250 respondents across 14 communities.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
+  const signedIn = !!session?.user;
+
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <SessionProviderWrapper>
-          <RaiseModalProvider>
+          <RaiseModalProvider signedIn={signedIn}>
             <PageTransition>{children}</PageTransition>
           </RaiseModalProvider>
         </SessionProviderWrapper>

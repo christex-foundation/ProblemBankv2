@@ -1,18 +1,21 @@
 import { SignInTrigger } from './SignInPrompt';
+import { SignedInComposer } from './SignedInComposer';
 
 /**
- * Read-only comment composer for the design prototype. The whole card is
- * a sign-in trigger; opening it shows the four auth methods supported by
- * the production /signin page. When closed (post-`submitted`), renders a
- * quiet read-only notice.
+ * Comment composer. When signed in, renders an inline textarea + submit.
+ * When signed out, the whole card is a sign-in trigger opening the shared
+ * auth modal. When closed (post-`submitted`), renders a quiet read-only
+ * notice.
  */
 export function CommentComposerStub({
   callbackPath,
   open,
+  signedIn,
 }: {
   callbackPath: string;
   /** When false, render a quiet closed-state notice instead of the composer. */
   open: boolean;
+  signedIn: boolean;
 }) {
   if (!open) {
     return (
@@ -23,6 +26,10 @@ export function CommentComposerStub({
         </p>
       </div>
     );
+  }
+
+  if (signedIn) {
+    return <SignedInComposer />;
   }
 
   return (
