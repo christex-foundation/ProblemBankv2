@@ -32,7 +32,14 @@ interface SearchParams {
   sector?: string;
   urgency?: UrgencyKey;
   origin?: 'research' | 'community';
+  /** Items per page: '6' | '24' | 'all'. Absent/invalid means the default, 12. */
+  perPage?: string;
+  /** 1-based page index. Absent means page 1. */
+  page?: string;
 }
+
+const PER_PAGE_DEFAULT = 12;
+const PER_PAGE_OPTIONS = [6, 24];
 
 export default async function LibraryIndexPage({
   searchParams,
@@ -49,6 +56,30 @@ export default async function LibraryIndexPage({
     : allEntries;
 
   const hasFilters = Boolean(sp.sector || sp.urgency || sp.origin);
+
+  // Pagination — URL-driven and server-rendered, same as the filters.
+  const isAll = sp.perPage === 'all';
+  const perPage = isAll
+    ? Infinity
+    : PER_PAGE_OPTIONS.includes(Number(sp.perPage))
+      ? Number(sp.perPage)
+      : PER_PAGE_DEFAULT;
+  const total = entries.length;
+  const pageCount = isAll ? 1 : Math.max(1, Math.ceil(total / perPage));
+  const page = Math.min(Math.max(1, Number(sp.page) || 1), pageCount);
+  const start = isAll ? 0 : (page - 1) * perPage;
+  const pageEntries = isAll ? entries : entries.slice(start, start + perPage);
+  const shownFrom = total === 0 ? 0 : start + 1;
+  const shownTo = isAll ? total : Math.min(start + perPage, total);
+
+  // Filter and per-page links reset to page 1 (drop ?page); page nav keeps
+  // the active filters and per-page choice.
+  const baseSp: SearchParams = {
+    sector: sp.sector,
+    urgency: sp.urgency,
+    origin: sp.origin,
+    perPage: sp.perPage,
+  };
 
   const totalEntries = allEntries.length;
   const totalSectors = new Set(allEntries.map((e) => e.sector)).size;
@@ -115,24 +146,26 @@ export default async function LibraryIndexPage({
             </div>
           </div>
 
-          {/* Filter — kept inside the hero so the rhythm reads as one block. */}
-          <div className="mt-12 md:mt-16 grid grid-cols-12 gap-6 md:gap-10">
+          {/* Filter — sticky on scroll so it stays reachable while browsing
+             the shelf below; pinned just under the slim top nav. */}
+          <div className="sticky top-[56px] z-20 mt-12 md:mt-16 bg-background/95 backdrop-blur-sm">
+          <div className="grid grid-cols-12 gap-6 md:gap-10 pt-5 md:pt-6">
             <div className="col-span-12 md:col-span-2">
               <Eyebrow tone="muted" size="sm">
                 Filter the shelf
               </Eyebrow>
             </div>
             <div className="col-span-12 md:col-span-10">
-              <div className="grid grid-cols-1 sm:grid-cols-3 items-baseline justify-items-center gap-x-10 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-baseline justify-items-center gap-x-10 gap-y-3">
                 <FilterDropdown
                   label="Sector"
                   active={sp.sector ?? ''}
                   options={[
-                    { value: '', label: 'All', href: href({ ...sp, sector: undefined }) },
+                    { value: '', label: 'All', href: href({ ...baseSp, sector: undefined }) },
                     ...SECTORS.map((s) => ({
                       value: s,
                       label: s,
-                      href: href({ ...sp, sector: s }),
+                      href: href({ ...baseSp, sector: s }),
                     })),
                   ]}
                 />
@@ -140,11 +173,11 @@ export default async function LibraryIndexPage({
                   label="Urgency"
                   active={sp.urgency ?? ''}
                   options={[
-                    { value: '', label: 'Any', href: href({ ...sp, urgency: undefined }) },
+                    { value: '', label: 'Any', href: href({ ...baseSp, urgency: undefined }) },
                     ...(Object.keys(URGENCY_LABELS) as UrgencyKey[]).map((u) => ({
                       value: u,
                       label: URGENCY_LABELS[u],
-                      href: href({ ...sp, urgency: u }),
+                      href: href({ ...baseSp, urgency: u }),
                     })),
                   ]}
                 />
@@ -152,42 +185,68 @@ export default async function LibraryIndexPage({
                   label="Source"
                   active={sp.origin ?? ''}
                   options={[
-                    { value: '', label: 'Any', href: href({ ...sp, origin: undefined }) },
+                    { value: '', label: 'Any', href: href({ ...baseSp, origin: undefined }) },
                     {
                       value: 'research',
                       label: 'Christex research',
-                      href: href({ ...sp, origin: 'research' }),
+                      href: href({ ...baseSp, origin: 'research' }),
                     },
                     {
                       value: 'community',
                       label: 'Community',
-                      href: href({ ...sp, origin: 'community' }),
+                      href: href({ ...baseSp, origin: 'community' }),
                     },
+                  ]}
+                />
+                <FilterDropdown
+                  label="Per page"
+                  active={sp.perPage ?? ''}
+                  options={[
+                    { value: '6', label: '6', href: href({ ...baseSp, perPage: '6' }) },
+                    { value: '', label: '12', href: href({ ...baseSp, perPage: undefined }) },
+                    { value: '24', label: '24', href: href({ ...baseSp, perPage: '24' }) },
+                    { value: 'all', label: 'All', href: href({ ...baseSp, perPage: 'all' }) },
                   ]}
                 />
               </div>
             </div>
           </div>
-
-          <RuleLine tone="strong" className="mt-8 md:mt-10" />
+          <RuleLine tone="strong" className="mt-6 md:mt-8" />
+          </div>
 
           {/* The shelf — kept inside the hero so the cards sit the same
              distance below the rule as the filter sits above it.
              Borders live on each card (not on the grid background) so empty
              cells in the last row stay invisible. */}
           {entries.length > 0 ? (
-            <ul className="mt-8 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-foreground/15">
-              {entries.map((entry, idx) => (
-                <li
-                  key={entry.id}
-                  className="bg-background border-r border-b border-foreground/15"
-                >
-                  <Reveal delay={Math.min(idx * 60, 360)}>
-                    <ShelfCard entry={entry} index={idx + 1} />
-                  </Reveal>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="mt-8 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-foreground/15">
+                {pageEntries.map((entry, idx) => (
+                  <li
+                    key={entry.id}
+                    className="bg-background border-r border-b border-foreground/15"
+                  >
+                    <Reveal delay={Math.min(idx * 60, 360)}>
+                      <ShelfCard entry={entry} index={start + idx + 1} />
+                    </Reveal>
+                  </li>
+                ))}
+              </ul>
+              {pageCount > 1 && (
+                <Pagination
+                  from={shownFrom}
+                  to={shownTo}
+                  total={total}
+                  hasPrev={page > 1}
+                  hasNext={page < pageCount}
+                  prevHref={href({
+                    ...baseSp,
+                    page: page - 1 > 1 ? String(page - 1) : undefined,
+                  })}
+                  nextHref={href({ ...baseSp, page: String(page + 1) })}
+                />
+              )}
+            </>
           ) : (
             <div className="mt-8 md:mt-10">
               <EmptyState hasFilters={hasFilters} />
@@ -249,8 +308,75 @@ function href(next: SearchParams): string {
   if (next.sector) params.set('sector', next.sector);
   if (next.urgency) params.set('urgency', next.urgency);
   if (next.origin) params.set('origin', next.origin);
+  if (next.perPage) params.set('perPage', next.perPage);
+  if (next.page) params.set('page', next.page);
   const q = params.toString();
   return q ? `/library?${q}` : '/library';
+}
+
+/**
+ * Minimal page navigation: a "showing X–Y of N" counter flanked by Prev/Next.
+ * Server-rendered links; disabled ends render as inert text. Uses scroll={false}
+ * so the viewport stays on the shelf when the page changes, matching the filters.
+ */
+function Pagination({
+  from,
+  to,
+  total,
+  hasPrev,
+  hasNext,
+  prevHref,
+  nextHref,
+}: {
+  from: number;
+  to: number;
+  total: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+  prevHref: string;
+  nextHref: string;
+}) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const arrow =
+    'text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft';
+  return (
+    <nav
+      aria-label="Library pagination"
+      className="mt-10 md:mt-12 flex items-center justify-between gap-6"
+    >
+      {hasPrev ? (
+        <Link
+          href={prevHref}
+          scroll={false}
+          className={`${arrow} link-underline text-foreground/70 hover:text-accent`}
+        >
+          ← Prev
+        </Link>
+      ) : (
+        <span className={`${arrow} text-foreground/25`} aria-hidden>
+          ← Prev
+        </span>
+      )}
+
+      <span className="num text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/55">
+        {pad(from)} – {pad(to)} of {pad(total)}
+      </span>
+
+      {hasNext ? (
+        <Link
+          href={nextHref}
+          scroll={false}
+          className={`${arrow} link-underline text-foreground/70 hover:text-accent`}
+        >
+          Next →
+        </Link>
+      ) : (
+        <span className={`${arrow} text-foreground/25`} aria-hidden>
+          Next →
+        </span>
+      )}
+    </nav>
+  );
 }
 
 /**

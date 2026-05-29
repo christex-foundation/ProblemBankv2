@@ -170,8 +170,10 @@ export default async function FeedIndexPage({
               </div>
             </div>
 
-            {/* Filter row — same rhythm as the library hero. */}
-            <div className="mt-12 md:mt-16 grid grid-cols-12 gap-6 md:gap-10">
+            {/* Filter row — sticky on scroll so it stays reachable while
+               browsing the list below; pinned just under the slim top nav. */}
+            <div className="sticky top-[56px] z-20 mt-12 md:mt-16 bg-background/95 backdrop-blur-sm">
+            <div className="grid grid-cols-12 gap-6 md:gap-10 pt-5 md:pt-6">
               <div className="col-span-12 md:col-span-2">
                 <Eyebrow tone="muted" size="sm">
                   Filter the feed
@@ -243,11 +245,22 @@ export default async function FeedIndexPage({
                 </div>
               </div>
             </div>
-
-            <RuleLine tone="strong" className="mt-8 md:mt-10" />
+            <RuleLine tone="strong" className="mt-6 md:mt-8" />
+            </div>
 
             {/* The list — cards stack vertically with hairline dividers; rank
-               lives in a fixed left rail so the eye scans the order quickly. */}
+               lives in a fixed left rail so the eye scans the order quickly.
+
+               No pagination here, by design. The feed is a ranked leaderboard
+               ("what gains traction climbs the shelf"), so position is the
+               information and a continuous scroll reads better than discrete
+               pages. The sticky filter above is the primary way to narrow it.
+               When the feed grows large enough that DOM weight / first render
+               becomes a real cost, reach for "Load more" / infinite scroll
+               (append, keep the ranking continuous) rather than the numbered
+               page model used on /library. A top-N cap with a "showing top N"
+               note is an acceptable interim step. The Library paginates because
+               it's a catalog, not a ranking — different metaphor, different UX. */}
             {entries.length > 0 ? (
               <ul className="mt-8 md:mt-10 border-t border-foreground/15">
                 {entries.map((entry, idx) => (
