@@ -20,6 +20,7 @@ import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { CommentComposerStub } from '@/components/feed/CommentComposerStub';
 import { SignInTrigger } from '@/components/feed/SignInPrompt';
 import { RaiseButton } from '@/components/feed/RaiseButton';
+import { auth } from '@/lib/auth';
 import {
   SAMPLE_FEED_ENTRIES,
   type SampleFeedComment,
@@ -64,6 +65,9 @@ export default async function FeedEntryPage({
   const { id } = await params;
   const entry = SAMPLE_FEED_ENTRIES.find((e) => e.id === id);
   if (!entry) notFound();
+
+  const session = await auth();
+  const signedIn = !!session?.user;
 
   const sectorTone = sectorBadgeTone(entry.sector);
   const urgency = urgencyBadge(entry.urgency);
@@ -163,6 +167,7 @@ export default async function FeedEntryPage({
                     <FeedVoteButton
                       initialCount={entry.voteCount}
                       submissionId={entry.id}
+                      signedIn={signedIn}
                     />
                     <p className="font-serif text-base md:text-lg text-foreground/55 leading-[1.55] max-w-[42ch]">
                       Three votes a week per person decide what climbs.
@@ -211,10 +216,12 @@ export default async function FeedEntryPage({
                     entry.status === 'submitted' ||
                     entry.status === 'gaining_traction'
                   }
+                  signedIn={signedIn}
                 />
                 <CommentList
                   comments={entry.comments ?? []}
                   callbackPath={`/feed/${entry.id}`}
+                  signedIn={signedIn}
                 />
               </div>
             </div>
@@ -319,9 +326,11 @@ export default async function FeedEntryPage({
 function CommentList({
   comments,
   callbackPath,
+  signedIn,
 }: {
   comments: SampleFeedComment[];
   callbackPath: string;
+  signedIn: boolean;
 }) {
   if (comments.length === 0) return null;
 
@@ -332,7 +341,11 @@ function CommentList({
           key={c.id}
           className={`py-8 md:py-9 ${i === 0 ? '' : 'border-t border-foreground/15'}`}
         >
-          <CommentItem comment={c} callbackPath={callbackPath} />
+          <CommentItem
+            comment={c}
+            callbackPath={callbackPath}
+            signedIn={signedIn}
+          />
         </li>
       ))}
     </ul>
@@ -350,10 +363,12 @@ function countComments(comments: SampleFeedComment[]): number {
 function CommentItem({
   comment,
   callbackPath,
+  signedIn,
   depth = 0,
 }: {
   comment: SampleFeedComment;
   callbackPath: string;
+  signedIn: boolean;
   depth?: number;
 }) {
   const isReply = depth > 0;
@@ -396,27 +411,51 @@ function CommentItem({
           {comment.body}
         </p>
         <div className="mt-1 flex items-center gap-5 text-[10px] uppercase tracking-[0.22em] font-semibold">
-          <SignInTrigger
-            callbackPath={callbackPath}
-            ariaLabel={`Upvote ${comment.authorName}'s comment`}
-            className="inline-flex items-baseline gap-1.5 text-foreground/45 hover:text-accent transition-soft"
-          >
-            <span>Upvote</span>
-            {comment.upvoteCount && comment.upvoteCount > 0 ? (
-              <span className="num text-foreground/55">
-                ({comment.upvoteCount})
-              </span>
-            ) : null}
-          </SignInTrigger>
-          {depth < 2 && (
+          {signedIn ? (
+            <button
+              type="button"
+              aria-label={`Upvote ${comment.authorName}'s comment`}
+              className="inline-flex items-baseline gap-1.5 text-foreground/45 hover:text-accent transition-soft"
+            >
+              <span>Upvote</span>
+              {comment.upvoteCount && comment.upvoteCount > 0 ? (
+                <span className="num text-foreground/55">
+                  ({comment.upvoteCount})
+                </span>
+              ) : null}
+            </button>
+          ) : (
             <SignInTrigger
               callbackPath={callbackPath}
-              ariaLabel={`Reply to ${comment.authorName}`}
-              className="text-foreground/45 hover:text-accent transition-soft"
+              ariaLabel={`Upvote ${comment.authorName}'s comment`}
+              className="inline-flex items-baseline gap-1.5 text-foreground/45 hover:text-accent transition-soft"
             >
-              Reply
+              <span>Upvote</span>
+              {comment.upvoteCount && comment.upvoteCount > 0 ? (
+                <span className="num text-foreground/55">
+                  ({comment.upvoteCount})
+                </span>
+              ) : null}
             </SignInTrigger>
           )}
+          {depth < 2 &&
+            (signedIn ? (
+              <button
+                type="button"
+                aria-label={`Reply to ${comment.authorName}`}
+                className="text-foreground/45 hover:text-accent transition-soft"
+              >
+                Reply
+              </button>
+            ) : (
+              <SignInTrigger
+                callbackPath={callbackPath}
+                ariaLabel={`Reply to ${comment.authorName}`}
+                className="text-foreground/45 hover:text-accent transition-soft"
+              >
+                Reply
+              </SignInTrigger>
+            ))}
         </div>
         {comment.replies && comment.replies.length > 0 && (
           <ul className="mt-5 pl-2 md:pl-3 border-l border-foreground/15 flex flex-col gap-8">
@@ -425,6 +464,7 @@ function CommentItem({
                 <CommentItem
                   comment={r}
                   callbackPath={callbackPath}
+                  signedIn={signedIn}
                   depth={depth + 1}
                 />
               </li>

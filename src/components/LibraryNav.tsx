@@ -1,17 +1,19 @@
 import Link from 'next/link';
+import { auth, signOut } from '@/lib/auth';
 
 type ActiveKey = 'library' | 'feed' | 'about' | null;
 
-/**
- * Slim top nav used by /library, /library/[slug], and /feed. Matches the
- * placeholder nav on the landing page so the design system reads as one
- * product across routes. No auth, no bell — those are wired up in the
- * production app's ProblemBankNav. Pass `active` to mark the current route.
- */
-export function LibraryNav({ active = 'library' }: { active?: ActiveKey } = {}) {
+export async function LibraryNav({
+  active = 'library',
+}: { active?: ActiveKey } = {}) {
+  const session = await auth();
+  const user = session?.user;
+
   const linkBase = 'transition-soft';
   const inactive = 'text-foreground/55 hover:text-foreground';
   const activeCls = 'text-foreground font-semibold';
+  const pillCls =
+    'px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft';
 
   return (
     <nav className="sticky top-0 z-30 border-b border-foreground/10 bg-background/80 backdrop-blur-sm">
@@ -44,12 +46,38 @@ export function LibraryNav({ active = 'library' }: { active?: ActiveKey } = {}) 
           >
             About
           </Link>
-          <Link
-            href="/signin"
-            className="px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft"
-          >
-            Sign in
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href={`/builders/${user.id}`}
+                className={`${linkBase} ${inactive}`}
+              >
+                Profile
+              </Link>
+              {user.role === 'admin' && (
+                <Link
+                  href="/admin/dashboard"
+                  className={`${linkBase} ${inactive}`}
+                >
+                  Admin
+                </Link>
+              )}
+              <form
+                action={async () => {
+                  'use server';
+                  await signOut({ redirectTo: '/' });
+                }}
+              >
+                <button type="submit" className={pillCls}>
+                  Sign out
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/signin" className={pillCls}>
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </nav>

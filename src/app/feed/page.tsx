@@ -26,6 +26,7 @@ import {
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { RaiseLink } from '@/components/feed/RaiseLink';
+import { auth } from '@/lib/auth';
 
 export const metadata: Metadata = {
   title: 'Community Feed · Problem Bank',
@@ -71,6 +72,8 @@ export default async function FeedIndexPage({
 }) {
   const sp = await searchParams;
   const sort: SortKey = sp.sort ?? 'votes';
+  const session = await auth();
+  const signedIn = !!session?.user;
 
   let entries: SampleFeedEntry[] = [...SAMPLE_FEED_ENTRIES];
   if (sp.sector) entries = entries.filter((e) => e.sector === sp.sector);
@@ -253,7 +256,11 @@ export default async function FeedIndexPage({
                     className="border-b border-foreground/15 last:border-b-0"
                   >
                     <Reveal delay={Math.min(idx * 60, 360)}>
-                      <RankCard entry={entry} index={idx + 1} />
+                      <RankCard
+                        entry={entry}
+                        index={idx + 1}
+                        signedIn={signedIn}
+                      />
                     </Reveal>
                   </li>
                 ))}
@@ -385,7 +392,15 @@ function StatCell({
  * vote tile so the order reads at a glance; right column carries the
  * meta strip, title, body preview, and footer. Whole card is the link.
  */
-function RankCard({ entry, index }: { entry: SampleFeedEntry; index: number }) {
+function RankCard({
+  entry,
+  index,
+  signedIn,
+}: {
+  entry: SampleFeedEntry;
+  index: number;
+  signedIn: boolean;
+}) {
   const urgencyLabel = URGENCY_LABELS[entry.urgency];
   const statusLabel = STATUS_LABELS[entry.status];
   const isUrgent = entry.urgency === 'critical' || entry.urgency === 'high';
@@ -401,7 +416,11 @@ function RankCard({ entry, index }: { entry: SampleFeedEntry; index: number }) {
         <p className="num text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/35 md:mb-1">
           №&nbsp;{String(index).padStart(2, '0')}
         </p>
-        <FeedVoteButton initialCount={entry.voteCount} submissionId={entry.id} />
+        <FeedVoteButton
+          initialCount={entry.voteCount}
+          submissionId={entry.id}
+          signedIn={signedIn}
+        />
       </div>
 
       {/* Right column: meta + title + body + footer — the whole block links
