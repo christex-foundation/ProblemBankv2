@@ -92,9 +92,6 @@ export default async function LandingPage() {
             <Link href="/feed" className={linkCls}>
               Feed
             </Link>
-            <Link href="/about" className={linkCls}>
-              About
-            </Link>
             {user ? (
               <>
                 <Link href={`/builders/${user.id}`} className={linkCls}>
