@@ -34,6 +34,8 @@ export interface SampleFeedComment {
   /** Nested replies. Two levels of nesting are supported by the design. */
   replies?: SampleFeedComment[];
   upvoteCount?: number;
+  /** True when the currently signed-in viewer has already upvoted this comment. */
+  viewerUpvoted?: boolean;
 }
 
 /**

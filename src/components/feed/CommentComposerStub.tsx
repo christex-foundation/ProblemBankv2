@@ -11,11 +11,13 @@ export function CommentComposerStub({
   callbackPath,
   open,
   signedIn,
+  submissionId,
 }: {
   callbackPath: string;
   /** When false, render a quiet closed-state notice instead of the composer. */
   open: boolean;
   signedIn: boolean;
+  submissionId: string;
 }) {
   if (!open) {
     return (
@@ -29,7 +31,7 @@ export function CommentComposerStub({
   }
 
   if (signedIn) {
-    return <SignedInComposer />;
+    return <SignedInComposer submissionId={submissionId} />;
   }
 
   return (

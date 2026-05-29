@@ -15,7 +15,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('Comment')
-    .select('*, user:User(id, name)')
+    .select('*, user:User!Comment_userId_fkey(id, name)')
     .eq('submissionId', parsedParams.data.id)
     .order('createdAt', { ascending: true });
 
@@ -106,7 +106,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       content: input.content,
       parentCommentId: input.parentCommentId ?? null,
     } as never)
-    .select('*, user:User(id, name)')) as { data: CommentRow[] | null; error: { message: string } | null };
+    .select('*, user:User!Comment_userId_fkey(id, name)')) as { data: CommentRow[] | null; error: { message: string } | null };
 
   if (error || !rows?.[0]) {
     return apiError(

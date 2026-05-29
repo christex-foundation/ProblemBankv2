@@ -33,6 +33,13 @@ type CommentWithAuthor = CommentRow & {
   user: { id: string; name: string | null } | null;
 };
 
+interface CommentUpvoteState {
+  /** commentId → total upvote count */
+  counts: Map<string, number>;
+  /** commentIds the current viewer has upvoted */
+  viewerVoted: Set<string>;
+}
+
 function mapRowToEntry(
   row: SubmissionWithAuthor,
   gainingTraction?: Set<string>,
@@ -58,7 +65,27 @@ function authorName(row: CommentWithAuthor): string {
   return row.user?.name ?? 'Anonymous';
 }
 
-function shapeComments(rows: CommentWithAuthor[]): SampleFeedComment[] {
+function shapeComment(
+  row: CommentWithAuthor,
+  upvotes: CommentUpvoteState,
+  replyToName?: string,
+): SampleFeedComment {
+  return {
+    id: row.id,
+    authorName: authorName(row),
+    authorLocation: DEFAULT_AUTHOR_LOCATION,
+    body: row.content,
+    createdAt: row.createdAt,
+    upvoteCount: upvotes.counts.get(row.id) ?? 0,
+    viewerUpvoted: upvotes.viewerVoted.has(row.id),
+    ...(replyToName ? { replyToName } : {}),
+  };
+}
+
+function shapeComments(
+  rows: CommentWithAuthor[],
+  upvotes: CommentUpvoteState,
+): SampleFeedComment[] {
   const repliesByParent = new Map<string, CommentWithAuthor[]>();
   const topLevel: CommentWithAuthor[] = [];
 
@@ -73,23 +100,36 @@ function shapeComments(rows: CommentWithAuthor[]): SampleFeedComment[] {
   }
 
   return topLevel.map((parent) => {
-    const replies = (repliesByParent.get(parent.id) ?? []).map((reply) => ({
-      id: reply.id,
-      authorName: authorName(reply),
-      authorLocation: DEFAULT_AUTHOR_LOCATION,
-      body: reply.content,
-      createdAt: reply.createdAt,
-      replyToName: authorName(parent),
-    }));
-    return {
-      id: parent.id,
-      authorName: authorName(parent),
-      authorLocation: DEFAULT_AUTHOR_LOCATION,
-      body: parent.content,
-      createdAt: parent.createdAt,
-      ...(replies.length > 0 ? { replies } : {}),
-    };
+    const replies = (repliesByParent.get(parent.id) ?? []).map((reply) =>
+      shapeComment(reply, upvotes, authorName(parent)),
+    );
+    const parentShape = shapeComment(parent, upvotes);
+    return replies.length > 0 ? { ...parentShape, replies } : parentShape;
   });
+}
+
+async function loadCommentUpvotes(
+  supabase: ReturnType<typeof getSupabase>,
+  commentIds: string[],
+  viewerId: string | undefined,
+): Promise<CommentUpvoteState> {
+  if (commentIds.length === 0) {
+    return { counts: new Map(), viewerVoted: new Set() };
+  }
+
+  const { data, error } = await supabase
+    .from('CommentVote')
+    .select('commentId, userId')
+    .in('commentId', commentIds);
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  const viewerVoted = new Set<string>();
+  for (const row of (data ?? []) as { commentId: string; userId: string }[]) {
+    counts.set(row.commentId, (counts.get(row.commentId) ?? 0) + 1);
+    if (viewerId && row.userId === viewerId) viewerVoted.add(row.commentId);
+  }
+  return { counts, viewerVoted };
 }
 
 /**
@@ -133,7 +173,10 @@ export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]>
   return rows.map((row) => mapRowToEntry(row, gainingTraction));
 }
 
-export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
+export async function getFeedEntryById(
+  id: string,
+  viewerId?: string,
+): Promise<FeedEntry | null> {
   const supabase = getSupabase();
   const { data, error } = await supabase
     .from('Submission')
@@ -145,12 +188,18 @@ export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
 
   const { data: commentRows, error: commentError } = await supabase
     .from('Comment')
-    .select('*, user:User(id, name)')
+    .select('*, user:User!Comment_userId_fkey(id, name)')
     .eq('submissionId', id)
     .order('createdAt', { ascending: true });
   if (commentError) throw commentError;
 
-  const comments = shapeComments((commentRows ?? []) as CommentWithAuthor[]);
+  const rows = (commentRows ?? []) as CommentWithAuthor[];
+  const upvotes = await loadCommentUpvotes(
+    supabase,
+    rows.map((r) => r.id),
+    viewerId,
+  );
+  const comments = shapeComments(rows, upvotes);
   return mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
 }
 

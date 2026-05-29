@@ -66,6 +66,12 @@ export interface CommentRow {
   createdAt: string;
 }
 
+export interface CommentVoteRow {
+  commentId: string;
+  userId: string;
+  votedAt: string;
+}
+
 export interface LibraryEntryRow {
   id: string;
   slug: string;
@@ -147,6 +153,12 @@ export interface Database {
         Row: CommentRow;
         Insert: WithoutDefaults<CommentRow, 'id' | 'createdAt' | 'parentCommentId'>;
         Update: Partial<CommentRow>;
+        Relationships: [];
+      };
+      CommentVote: {
+        Row: CommentVoteRow;
+        Insert: WithoutDefaults<CommentVoteRow, 'votedAt'>;
+        Update: Partial<CommentVoteRow>;
         Relationships: [];
       };
       LibraryEntry: {
