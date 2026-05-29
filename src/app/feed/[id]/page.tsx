@@ -21,15 +21,15 @@ import { CommentComposerStub } from '@/components/feed/CommentComposerStub';
 import { SignInTrigger } from '@/components/feed/SignInPrompt';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { auth } from '@/lib/auth';
+import type { SampleFeedComment } from '@/data/sampleFeedEntries';
 import {
-  SAMPLE_FEED_ENTRIES,
-  type SampleFeedComment,
-} from '@/data/sampleFeedEntries';
+  getFeedEntryById,
+  getRelatedFeedEntries,
+  type FeedEntry,
+} from '@/lib/feed';
 import { sectorBadgeTone, urgencyBadge } from '@/lib/library';
 
-export async function generateStaticParams() {
-  return SAMPLE_FEED_ENTRIES.map((e) => ({ id: e.id }));
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
@@ -37,7 +37,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const entry = SAMPLE_FEED_ENTRIES.find((e) => e.id === id);
+  const entry = await getFeedEntryById(id);
   if (!entry) return { title: 'Not found · Problem Bank' };
   const description = preview(entry.body, 160);
   return {
@@ -63,8 +63,10 @@ export default async function FeedEntryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const entry = SAMPLE_FEED_ENTRIES.find((e) => e.id === id);
+  const entry = await getFeedEntryById(id);
   if (!entry) notFound();
+
+  const related = await getRelatedFeedEntries(entry.id, 3);
 
   const session = await auth();
   const signedIn = !!session?.user;
@@ -171,7 +173,7 @@ export default async function FeedEntryPage({
                     />
                     <p className="font-serif text-base md:text-lg text-foreground/55 leading-[1.55] max-w-[42ch]">
                       Three votes a week per person decide what climbs.
-                      Sign in to add yours.
+                      {!signedIn && ' Sign in to add yours.'}
                     </p>
                   </div>
                 </Reveal>
@@ -200,7 +202,9 @@ export default async function FeedEntryPage({
                   <p className="mt-6 text-base md:text-lg max-w-[55ch] leading-[1.6] text-foreground/55">
                     {entry.status === 'submitted' ||
                     entry.status === 'gaining_traction'
-                      ? 'Comments are open while the community is still weighing in. Sign in to join the conversation.'
+                      ? signedIn
+                        ? 'Comments are open while the community is still weighing in.'
+                        : 'Comments are open while the community is still weighing in. Sign in to join the conversation.'
                       : statusCopy.commentsNote}
                   </p>
                 </Reveal>
@@ -294,7 +298,7 @@ export default async function FeedEntryPage({
                 </Reveal>
               </div>
               <Reveal delay={300} className="col-span-12 md:col-span-5">
-                <RelatedFeedNav currentId={entry.id} tone="onDark" />
+                <RelatedFeedNav related={related} tone="onDark" />
               </Reveal>
             </div>
             <Reveal delay={420}>
@@ -508,16 +512,13 @@ function initials(name: string): string {
 }
 
 function RelatedFeedNav({
-  currentId,
+  related,
   tone = 'onLight',
 }: {
-  currentId: string;
+  related: FeedEntry[];
   tone?: 'onLight' | 'onDark';
 }) {
-  const others = [...SAMPLE_FEED_ENTRIES]
-    .filter((e) => e.id !== currentId)
-    .sort((a, b) => b.voteCount - a.voteCount)
-    .slice(0, 3);
+  const others = related;
   const onDark = tone === 'onDark';
   const ruleCls = onDark ? 'border-background/15' : 'border-foreground/15';
   const titleCls = onDark

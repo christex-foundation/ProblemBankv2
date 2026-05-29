@@ -20,6 +20,31 @@ export interface FeedFilters {
   status?: FeedStatusFilter;
 }
 
+const DEFAULT_AUTHOR_LOCATION = 'Freetown';
+
+type SubmissionWithAuthor = SubmissionRow & {
+  user: { id: string; name: string | null } | null;
+};
+
+function mapRowToEntry(
+  row: SubmissionWithAuthor,
+  gainingTraction?: Set<string>,
+): FeedEntry {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.description,
+    sector: row.category,
+    urgency: row.urgency,
+    status: gainingTraction?.has(row.id) ? 'gaining_traction' : row.status,
+    voteCount: row.voteCount,
+    commentCount: row.commentCount,
+    authorName: row.user?.name ?? 'Anonymous',
+    authorLocation: DEFAULT_AUTHOR_LOCATION,
+    submittedAt: row.createdAt,
+  };
+}
+
 /**
  * Gaining Traction is computed at query time — never stored. A submission qualifies when
  * its votes are spread across at least N distinct days inside a rolling M-day window.
@@ -35,10 +60,6 @@ export async function getGainingTractionIds(): Promise<Set<string>> {
   const rows = (data ?? []) as { submissionId: string }[];
   return new Set(rows.map((r) => r.submissionId));
 }
-
-type SubmissionWithAuthor = SubmissionRow & {
-  user: { id: string; name: string | null } | null;
-};
 
 export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]> {
   const supabase = getSupabase();
@@ -62,17 +83,33 @@ export async function getFeedEntries(filters: FeedFilters): Promise<FeedEntry[]>
   if (error) throw error;
 
   const rows = (data ?? []) as SubmissionWithAuthor[];
+  return rows.map((row) => mapRowToEntry(row, gainingTraction));
+}
 
-  return rows.map((row) => ({
-    id: row.id,
-    title: row.title,
-    body: row.description,
-    sector: row.category,
-    urgency: row.urgency,
-    status: gainingTraction.has(row.id) ? 'gaining_traction' : row.status,
-    voteCount: row.voteCount,
-    commentCount: row.commentCount,
-    authorName: row.user?.name ?? 'Anonymous',
-    submittedAt: row.createdAt,
-  }));
+export async function getFeedEntryById(id: string): Promise<FeedEntry | null> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return mapRowToEntry(data as SubmissionWithAuthor);
+}
+
+export async function getRelatedFeedEntries(
+  currentId: string,
+  limit = 3,
+): Promise<FeedEntry[]> {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('Submission')
+    .select('*, user:User(id, name)')
+    .neq('id', currentId)
+    .order('voteCount', { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  const rows = (data ?? []) as SubmissionWithAuthor[];
+  return rows.map((row) => mapRowToEntry(row));
 }

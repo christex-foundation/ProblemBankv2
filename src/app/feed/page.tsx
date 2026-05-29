@@ -19,15 +19,11 @@ import { LibraryNav } from '@/components/LibraryNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
 import { Reveal } from '@/design/motion';
-import {
-  SAMPLE_FEED_ENTRIES,
-  type SampleFeedEntry,
-} from '@/data/sampleFeedEntries';
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { RaiseLink } from '@/components/feed/RaiseLink';
 import { auth } from '@/lib/auth';
-import { getFeedEntries } from '@/lib/feed';
+import { getFeedEntries, type FeedEntry } from '@/lib/feed';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,13 +49,6 @@ const SORT_LABELS: Record<SortKey, string> = {
   urgency: 'By urgency',
 };
 
-const URGENCY_RANK: Record<UrgencyKey, number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  low: 3,
-};
-
 const STATUS_FILTER_KEYS: StatusFilter[] = [
   'submitted',
   'under_review',
@@ -78,43 +67,18 @@ export default async function FeedIndexPage({
   const session = await auth();
   const signedIn = !!session?.user;
 
-  const realEntries = await getFeedEntries({
+  const entries = await getFeedEntries({
     sort,
     sector: sp.sector,
     urgency: sp.urgency,
     status: sp.status,
   });
 
-  let sampleEntries: SampleFeedEntry[] = [...SAMPLE_FEED_ENTRIES];
-  if (sp.sector) sampleEntries = sampleEntries.filter((e) => e.sector === sp.sector);
-  if (sp.urgency) sampleEntries = sampleEntries.filter((e) => e.urgency === sp.urgency);
-  if (sp.status) sampleEntries = sampleEntries.filter((e) => e.status === sp.status);
-
-  sampleEntries.sort((a, b) => {
-    if (sort === 'recent') {
-      return (
-        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-      );
-    }
-    if (sort === 'urgency') {
-      const diff = URGENCY_RANK[a.urgency] - URGENCY_RANK[b.urgency];
-      return diff !== 0 ? diff : b.voteCount - a.voteCount;
-    }
-    return b.voteCount - a.voteCount;
-  });
-
-  const entries: SampleFeedEntry[] = [...realEntries, ...sampleEntries];
-
   const hasFilters = Boolean(sp.sector || sp.urgency || sp.status);
 
-  const totalVoices = realEntries.length + SAMPLE_FEED_ENTRIES.length;
-  const totalSectors = new Set([
-    ...realEntries.map((e) => e.sector),
-    ...SAMPLE_FEED_ENTRIES.map((e) => e.sector),
-  ]).size;
-  const totalVotes =
-    realEntries.reduce((acc, e) => acc + e.voteCount, 0) +
-    SAMPLE_FEED_ENTRIES.reduce((acc, e) => acc + e.voteCount, 0);
+  const totalVoices = entries.length;
+  const totalSectors = new Set(entries.map((e) => e.sector)).size;
+  const totalVotes = entries.reduce((acc, e) => acc + e.voteCount, 0);
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
@@ -413,7 +377,7 @@ function RankCard({
   index,
   signedIn,
 }: {
-  entry: SampleFeedEntry;
+  entry: FeedEntry;
   index: number;
   signedIn: boolean;
 }) {
@@ -504,16 +468,12 @@ function RankCard({
               <span className="text-foreground/55">
                 {entry.authorName}
               </span>
-              {entry.authorLocation && (
-                <>
-                  <span aria-hidden className="text-foreground/20">
-                    ·
-                  </span>
-                  <span className="text-foreground/40">
-                    {entry.authorLocation}
-                  </span>
-                </>
-              )}
+              <span aria-hidden className="text-foreground/20">
+                ·
+              </span>
+              <span className="text-foreground/40">
+                {entry.authorLocation}
+              </span>
             </span>
             <span
               aria-hidden

@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import LegoBuild from "@/components/LegoBuild";
 import SynapserHero from "@/components/SynapserHero";
 import { WorkBeforeWorkVisual } from "@/components/WorkBeforeWorkVisual";
+import { auth, signOut } from "@/lib/auth";
 import {
   ButtonLink,
   GrainOverlay,
@@ -65,12 +66,17 @@ function buildProblemScenes(): ProblemScene[] {
   return scenes;
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
+  const user = session?.user;
+  const linkCls = "text-foreground/55 hover:text-foreground transition-soft";
+  const pillCls =
+    "px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft";
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <GrainOverlay />
 
-      {/* Placeholder top nav */}
       <nav className="absolute top-0 left-0 right-0 z-30 border-b border-foreground/10 bg-background/60 backdrop-blur-sm">
         <div className="px-6 md:px-10 py-4 flex items-center justify-between max-w-[1300px] mx-auto w-full">
           <Link
@@ -80,30 +86,41 @@ export default function LandingPage() {
             Problem Bank
           </Link>
           <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.22em]">
-            <Link
-              href="/library"
-              className="text-foreground/55 hover:text-foreground transition-soft"
-            >
+            <Link href="/library" className={linkCls}>
               Library
             </Link>
-            <Link
-              href="/feed"
-              className="text-foreground/55 hover:text-foreground transition-soft"
-            >
+            <Link href="/feed" className={linkCls}>
               Feed
             </Link>
-            <Link
-              href="/about"
-              className="text-foreground/55 hover:text-foreground transition-soft"
-            >
+            <Link href="/about" className={linkCls}>
               About
             </Link>
-            <Link
-              href="/signin"
-              className="px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft"
-            >
-              Sign in
-            </Link>
+            {user ? (
+              <>
+                <Link href={`/builders/${user.id}`} className={linkCls}>
+                  Profile
+                </Link>
+                {user.role === "admin" && (
+                  <Link href="/admin/dashboard" className={linkCls}>
+                    Admin
+                  </Link>
+                )}
+                <form
+                  action={async () => {
+                    "use server";
+                    await signOut({ redirectTo: "/" });
+                  }}
+                >
+                  <button type="submit" className={pillCls}>
+                    Sign out
+                  </button>
+                </form>
+              </>
+            ) : (
+              <Link href="/signin" className={pillCls}>
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
       </nav>
