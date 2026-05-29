@@ -10,6 +10,7 @@
 export const color = {
   background: "var(--background)",
   paper: "var(--paper)",
+  shelf: "var(--shelf)",
   foreground: "var(--foreground)",
   muted: "var(--muted)",
   rule: "var(--rule)",
@@ -154,7 +155,7 @@ export const border = {
  */
 export const effect = {
   /** Page background hex (mirrors --background in globals.css). */
-  background: "#cecbba",
+  background: "#F8F0E7",
 
   /** Text selection treatment. Mirrors ::selection in globals.css. */
   selection: {

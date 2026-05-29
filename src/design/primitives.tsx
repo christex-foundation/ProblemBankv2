@@ -191,6 +191,138 @@ export function Paper({
   );
 }
 
+/**
+ * Card — interactive editorial tile used in list grids (library entries,
+ * feed cards, builder cards, notification rows). Wrap in a Next Link or
+ * button at the call site; this primitive provides the surface only.
+ *
+ * Spec: design/COMPONENTS.md §3.
+ */
+export function Card({
+  children,
+  interactive = true,
+  className,
+  as: As = "div",
+}: {
+  children: ReactNode;
+  interactive?: boolean;
+  className?: string;
+  as?: ElementType;
+}) {
+  return createElement(
+    As,
+    {
+      className: cx(
+        "block bg-paper border border-foreground/15 p-6 md:p-7 transition-soft",
+        interactive && "hover:border-foreground/40 focus-visible:border-foreground/40",
+        className,
+      ),
+    },
+    children,
+  );
+}
+
+type BadgeVariant = "tag" | "pill" | "solid";
+type BadgeTone =
+  | "default"
+  | "accent"
+  | "muted"
+  | "faint"
+  | "infrastructure"
+  | "social"
+  | "safety";
+
+const BADGE_BASE =
+  "inline-flex items-center text-[10px] uppercase tracking-[0.22em] font-semibold leading-tight";
+
+const BADGE_TONE_TEXT: Record<BadgeTone, string> = {
+  default: "text-foreground",
+  accent: "text-accent",
+  muted: "text-foreground/55",
+  faint: "text-foreground/30",
+  infrastructure: "text-[var(--cat-infrastructure)]",
+  social: "text-[var(--cat-social)]",
+  safety: "text-[var(--cat-safety)]",
+};
+
+const BADGE_TONE_RULE: Record<BadgeTone, string> = {
+  default: "bg-foreground",
+  accent: "bg-accent",
+  muted: "bg-foreground/55",
+  faint: "bg-foreground/30",
+  infrastructure: "bg-[var(--cat-infrastructure)]",
+  social: "bg-[var(--cat-social)]",
+  safety: "bg-[var(--cat-safety)]",
+};
+
+const BADGE_TONE_BORDER: Record<BadgeTone, string> = {
+  default: "border-foreground/40",
+  accent: "border-accent/60",
+  muted: "border-foreground/25",
+  faint: "border-foreground/15",
+  infrastructure: "border-[var(--cat-infrastructure)]/60",
+  social: "border-[var(--cat-social)]/60",
+  safety: "border-[var(--cat-safety)]/60",
+};
+
+/**
+ * Badge / tag — status, urgency, sector chips. Three variants per spec:
+ * - `tag`: 2px left rule + label, no border.
+ * - `pill`: hairline border, square corners, padded.
+ * - `solid`: filled accent only; reserve for critical urgency.
+ *
+ * Spec: design/COMPONENTS.md §4.
+ */
+export function Badge({
+  children,
+  variant = "pill",
+  tone = "default",
+  className,
+}: {
+  children: ReactNode;
+  variant?: BadgeVariant;
+  tone?: BadgeTone;
+  className?: string;
+}) {
+  if (variant === "tag") {
+    return (
+      <span className={cx(BADGE_BASE, BADGE_TONE_TEXT[tone], "gap-2", className)}>
+        <span
+          aria-hidden
+          className={cx("w-[2px] h-3 inline-block", BADGE_TONE_RULE[tone])}
+        />
+        {children}
+      </span>
+    );
+  }
+  if (variant === "solid") {
+    return (
+      <span
+        className={cx(
+          BADGE_BASE,
+          "bg-accent text-background px-2.5 py-1",
+          className,
+        )}
+      >
+        {children}
+      </span>
+    );
+  }
+  return (
+    <span
+      className={cx(
+        BADGE_BASE,
+        "border px-2.5 py-1",
+        BADGE_TONE_TEXT[tone],
+        BADGE_TONE_BORDER[tone],
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 /** Horizontal divider hairline. */
 export function RuleLine({
   tone = "muted",
