@@ -96,6 +96,8 @@ CREATE TRIGGER library_entry_updated_at
 -- ============================================================
 -- SUBMISSIONS
 -- gaining_traction is NEVER stored — computed at query time.
+-- signsItsWorking holds the builder-facing acceptance signals captured
+-- by the "Raise a problem" form (same shape the form produces).
 -- ============================================================
 
 CREATE TABLE "Submission" (
@@ -109,6 +111,7 @@ CREATE TABLE "Submission" (
   "status"            "SubmissionStatus" NOT NULL DEFAULT 'submitted',
   "voteCount"         INTEGER NOT NULL DEFAULT 0,
   "commentCount"      INTEGER NOT NULL DEFAULT 0,
+  "signsItsWorking"   TEXT[] NOT NULL DEFAULT '{}'::text[],
   "libraryEntryId"    TEXT REFERENCES "LibraryEntry"("id") ON DELETE SET NULL,
   "createdAt"         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -137,17 +140,40 @@ CREATE INDEX vote_user_voted_at_idx          ON "Vote" ("userId", "votedAt");
 -- ============================================================
 -- COMMENTS
 -- Open/closed is derived from Submission.status at query time.
+-- parentCommentId NULL = top-level. Depth (2-level cap) is enforced
+-- by the API route handler — Comment is only written via Next.js
+-- using the service role, so no DB trigger is needed.
 -- ============================================================
 
 CREATE TABLE "Comment" (
-  "id"           TEXT PRIMARY KEY DEFAULT (gen_random_uuid())::text,
-  "userId"       TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
-  "submissionId" TEXT NOT NULL REFERENCES "Submission"("id") ON DELETE CASCADE,
-  "content"      TEXT NOT NULL,
-  "createdAt"    TIMESTAMPTZ NOT NULL DEFAULT now()
+  "id"              TEXT PRIMARY KEY DEFAULT (gen_random_uuid())::text,
+  "userId"          TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+  "submissionId"    TEXT NOT NULL REFERENCES "Submission"("id") ON DELETE CASCADE,
+  "parentCommentId" TEXT REFERENCES "Comment"("id") ON DELETE CASCADE,
+  "content"         TEXT NOT NULL,
+  "createdAt"       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX comment_submission_idx ON "Comment" ("submissionId");
+CREATE INDEX comment_parent_idx
+  ON "Comment" ("parentCommentId")
+  WHERE "parentCommentId" IS NOT NULL;
+
+
+-- ============================================================
+-- COMMENT VOTES
+-- One upvote per (user, comment). Counts are derived via aggregate;
+-- nothing is denormalised onto Comment so we never have to backfill.
+-- ============================================================
+
+CREATE TABLE "CommentVote" (
+  "commentId" TEXT NOT NULL REFERENCES "Comment"("id") ON DELETE CASCADE,
+  "userId"    TEXT NOT NULL REFERENCES "User"("id")    ON DELETE CASCADE,
+  "votedAt"   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY ("commentId", "userId")
+);
+
+CREATE INDEX comment_vote_user_idx ON "CommentVote" ("userId");
 
 
 -- ============================================================
@@ -248,6 +274,7 @@ ALTER TABLE "LibraryEntry"  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Submission"    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Vote"          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Comment"       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CommentVote"   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "Document"      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "BuildRegistry" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "BadgePing"     ENABLE ROW LEVEL SECURITY;
