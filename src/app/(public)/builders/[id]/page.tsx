@@ -4,6 +4,16 @@ import { getSupabase } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
 import BuilderProfileEditor from '@/components/builders/BuilderProfileEditor';
 import BuilderRepoActivity from '@/components/library/BuilderRepoActivity';
+import {
+  Section,
+  Container,
+  RuleLine,
+  GrainOverlay,
+  Card,
+} from '@/design/primitives';
+import { Eyebrow, Heading, Body } from '@/design/typography';
+import { LibraryNav } from '@/components/LibraryNav';
+import { Footer } from '@/components/Footer';
 import type { BuildRegistryRow, UserRow } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
@@ -33,106 +43,153 @@ export default async function BuilderProfile({
     .maybeSingle()) as { data: ProfileShape | null };
 
   if (!user) notFound();
-  // TODO(auth): restore session-based ownership check
-  //   const isOwner = session?.user?.id === id;
-  // Auth is deferred for this pass — every visitor sees the editor on every
-  // profile so endpoints can be exercised end-to-end. Acknowledge the unused
-  // session read here:
-  void session;
-  const isOwner = true;
 
-  const hasContact = !!(user.contactEmail || user.githubUrl || user.websiteUrl);
+  // Only the signed-in owner of this profile may edit it.
+  const isOwner = session?.user?.id === id;
+
+  const buildEntries = user.buildEntries ?? [];
+  const hasContact = !!(
+    user.contactEmail ||
+    user.githubUrl ||
+    user.websiteUrl
+  );
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold">{user.name ?? 'Anonymous builder'}</h1>
-      {user.bio && <p className="text-gray-700 mt-2">{user.bio}</p>}
+    <main className="relative bg-background text-foreground min-h-screen flex flex-col">
+      <GrainOverlay />
+      <LibraryNav active={null} />
 
-      {hasContact && (
-        <section className="mt-4">
-          <h2 className="font-semibold">Contact</h2>
-          <ul className="text-sm space-y-1 mt-1">
-            {user.contactEmail && (
-              <li>
-                <a href={`mailto:${user.contactEmail}`} className="underline">
-                  {user.contactEmail}
-                </a>
-              </li>
+      <div className="flex-1 flex flex-col">
+        <Section pad="sm">
+          <Container size="narrow">
+            {/* ─── Hero ─────────────────────────────────────────────── */}
+            <Eyebrow tone="accent" size="sm">
+              Problem Bank
+            </Eyebrow>
+            <Eyebrow tone="muted" size="sm" className="mt-2">
+              Builder profile
+            </Eyebrow>
+            <Heading level={1} size="h2" className="mt-6 max-w-[20ch]">
+              {user.name ?? 'Anonymous builder'}
+            </Heading>
+            {user.bio && (
+              <Body tone="muted" size="lg" className="mt-6 max-w-[60ch]">
+                {user.bio}
+              </Body>
             )}
-            {user.githubUrl && (
-              <li>
-                <a
-                  href={user.githubUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  {user.githubUrl}
-                </a>
-              </li>
-            )}
-            {user.websiteUrl && (
-              <li>
-                <a
-                  href={user.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  {user.websiteUrl}
-                </a>
-              </li>
-            )}
-          </ul>
-        </section>
-      )}
 
-      <section className="mt-8">
-        <h2 className="font-semibold mb-2">Currently Building</h2>
-        {(user.buildEntries ?? []).length === 0 ? (
-          <p className="text-sm text-gray-500">Not registered on any Library entry yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {user.buildEntries.map((b) => (
-              <li key={b.id} className="border rounded p-3">
-                {b.libraryEntry && (
-                  <Link href={`/library/${b.libraryEntry.slug}`} className="font-medium underline">
-                    {b.libraryEntry.title}
-                  </Link>
-                )}
-                {b.repoUrl && (
-                  <>
-                    <p className="text-xs text-gray-600 mt-1 break-all">
+            {/* ─── Contact ──────────────────────────────────────────── */}
+            {hasContact && (
+              <>
+                <RuleLine className="mt-10 md:mt-12" />
+                <Eyebrow tone="muted" size="sm" className="mt-8">
+                  Contact
+                </Eyebrow>
+                <ul className="mt-4 flex flex-col gap-2 text-base">
+                  {user.contactEmail && (
+                    <li>
                       <a
-                        href={b.repoUrl}
+                        href={`mailto:${user.contactEmail}`}
+                        className="link-underline text-foreground/75"
+                      >
+                        {user.contactEmail}
+                      </a>
+                    </li>
+                  )}
+                  {user.githubUrl && (
+                    <li>
+                      <a
+                        href={user.githubUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline"
+                        className="link-underline text-foreground/75 break-all"
                       >
-                        {b.repoUrl}
+                        {user.githubUrl}
                       </a>
-                    </p>
-                    <BuilderRepoActivity repoUrl={b.repoUrl} />
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                    </li>
+                  )}
+                  {user.websiteUrl && (
+                    <li>
+                      <a
+                        href={user.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link-underline text-foreground/75 break-all"
+                      >
+                        {user.websiteUrl}
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </>
+            )}
 
-      {isOwner && (
-        <BuilderProfileEditor
-          userId={user.id}
-          user={{
-            name: user.name,
-            bio: user.bio,
-            contactEmail: user.contactEmail,
-            githubUrl: user.githubUrl,
-            websiteUrl: user.websiteUrl,
-          }}
-        />
-      )}
+            {/* ─── Currently building ───────────────────────────────── */}
+            <RuleLine tone="strong" className="mt-10 md:mt-12" />
+            <Eyebrow tone="muted" size="sm" className="mt-8">
+              Currently building
+            </Eyebrow>
+            {buildEntries.length === 0 ? (
+              <Body tone="faint" className="mt-4">
+                Not registered on any Library entry yet.
+              </Body>
+            ) : (
+              <ul className="mt-5 flex flex-col gap-4">
+                {buildEntries.map((b) => (
+                  <li key={b.id}>
+                    <Card interactive={false}>
+                      {b.libraryEntry && (
+                        <Link
+                          href={`/library/${b.libraryEntry.slug}`}
+                          className="font-semibold text-lg tracking-[-0.01em] hover:text-accent transition-soft"
+                        >
+                          {b.libraryEntry.title}
+                        </Link>
+                      )}
+                      {b.repoUrl && (
+                        <>
+                          <p className="mt-2 text-sm break-all">
+                            <a
+                              href={b.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="link-underline text-foreground/55"
+                            >
+                              {b.repoUrl}
+                            </a>
+                          </p>
+                          <BuilderRepoActivity repoUrl={b.repoUrl} />
+                        </>
+                      )}
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* ─── Editor (owner only) ──────────────────────────────── */}
+            {isOwner && (
+              <>
+                <RuleLine tone="strong" className="mt-10 md:mt-12" />
+                <div className="mt-8">
+                  <BuilderProfileEditor
+                    userId={user.id}
+                    user={{
+                      name: user.name,
+                      bio: user.bio,
+                      contactEmail: user.contactEmail,
+                      githubUrl: user.githubUrl,
+                      websiteUrl: user.websiteUrl,
+                    }}
+                  />
+                </div>
+              </>
+            )}
+          </Container>
+        </Section>
+      </div>
+
+      <Footer />
     </main>
   );
 }
