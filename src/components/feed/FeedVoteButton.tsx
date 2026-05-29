@@ -1,19 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { apiErrorMessage } from '@/lib/api-response';
+import { UNVOTE_WINDOW_MS } from '@/lib/enums';
 
 /**
  * Editorial upvote tile for /feed cards.
  *
- * Voting is sign-in-gated (each signed-in user gets 3 votes per week per
- * spec). The default `signedIn={false}` renders the tile as a Link to
- * /signin that hints "Sign in" on hover; when wired to auth, pass
- * `signedIn` and `initiallyVoted` from the server.
- *
- * Optimistic state is local — a reload resets it. Production wiring should
- * call the vote API and respect the 3/week + 5-min unvote rules from the
- * archived `VoteButton.tsx`.
+ * Sign-in-gated. When `signedIn` is false the tile renders as a Link to
+ * /signin. When signed in, clicks call /api/submissions/{id}/vote, which
+ * enforces the 3-votes-per-week limit and the 5-minute unvote window.
  */
 export function FeedVoteButton({
   initialCount,
@@ -24,11 +23,25 @@ export function FeedVoteButton({
   initialCount: number;
   initiallyVoted?: boolean;
   signedIn?: boolean;
-  /** Used to build the post-sign-in callback URL. */
+  /** Used both for the vote API call and the post-sign-in callback URL. */
   submissionId?: string;
 }) {
+  const router = useRouter();
   const [voted, setVoted] = useState(initiallyVoted);
   const [count, setCount] = useState(initialCount);
+  const [votedAt, setVotedAt] = useState<Date | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [busy, setBusy] = useState(false);
+  const [, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!votedAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [votedAt]);
+
+  const elapsed = votedAt ? now - votedAt.getTime() : 0;
+  const canUnvote = !!votedAt && elapsed < UNVOTE_WINDOW_MS;
 
   if (!signedIn) {
     const callback = submissionId ? `/feed#${submissionId}` : '/feed';
@@ -52,20 +65,65 @@ export function FeedVoteButton({
     );
   }
 
-  function toggle(e: React.MouseEvent) {
+  async function toggle(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    setVoted((v) => !v);
-    setCount((c) => c + (voted ? -1 : 1));
+    if (busy || !submissionId) return;
+
+    const wasVoted = voted;
+    if (wasVoted && !canUnvote) {
+      toast.warning('Vote locked — unvote window passed');
+      return;
+    }
+
+    const prevVotedAt = votedAt;
+    setBusy(true);
+    setVoted(!wasVoted);
+    setCount((c) => c + (wasVoted ? -1 : 1));
+    setVotedAt(wasVoted ? null : new Date());
+
+    try {
+      const res = await fetch(`/api/submissions/${submissionId}/vote`, {
+        method: wasVoted ? 'DELETE' : 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setVoted(wasVoted);
+        setCount((c) => c + (wasVoted ? 1 : -1));
+        setVotedAt(prevVotedAt);
+        const msg = apiErrorMessage(data);
+        if (data.remaining === 0) {
+          toast.warning(msg ?? 'Out of votes this week. Resets Monday.');
+        } else {
+          toast.error(msg ?? 'Vote failed');
+        }
+        return;
+      }
+      setCount(data.voteCount);
+      if (!wasVoted) {
+        const r = data.remaining as number;
+        if (r === 0) toast.warning('Last vote of the week used.');
+        else if (r === 1) toast.info('1 vote left this week.');
+      }
+      startTransition(() => router.refresh());
+    } catch {
+      setVoted(wasVoted);
+      setCount((c) => c + (wasVoted ? 1 : -1));
+      setVotedAt(prevVotedAt);
+      toast.error('Network error');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <button
       type="button"
       onClick={toggle}
+      disabled={busy}
       aria-pressed={voted}
       aria-label={voted ? `Remove vote (${count})` : `Upvote (${count})`}
-      className={`group/vote w-[88px] md:w-[104px] flex flex-col items-center gap-1 px-3 py-4 border transition-soft cursor-pointer ${
+      className={`group/vote w-[88px] md:w-[104px] flex flex-col items-center gap-1 px-3 py-4 border transition-soft cursor-pointer disabled:cursor-wait ${
         voted
           ? 'bg-accent border-accent text-background'
           : 'bg-paper border-foreground/20 text-foreground hover:border-foreground/60 hover:bg-foreground/[0.03]'
