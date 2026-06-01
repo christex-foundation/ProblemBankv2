@@ -16,7 +16,7 @@ import {
   urgencyBadge,
   type LibraryEntry,
 } from '@/lib/library';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
 import { RaiseButton } from '@/components/feed/RaiseButton';
@@ -91,7 +91,7 @@ export default async function LibraryIndexPage({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav />
+      <SiteNav active="library" />
 
       <div className="flex-1 flex flex-col">
 

@@ -14,7 +14,7 @@ import {
 } from '@/design/primitives';
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
 import { Reveal } from '@/design/motion';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { initialsFrom } from '@/lib/initials';
 import { Footer } from '@/components/Footer';
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
@@ -85,7 +85,7 @@ export default async function FeedEntryPage({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav active="feed" />
+      <SiteNav active="feed" />
 
       <article className="flex-1 font-serif">
         {/* ─── Hero ──────────────────────────────────────────────── */}

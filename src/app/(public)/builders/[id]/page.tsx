@@ -12,7 +12,7 @@ import {
   Card,
 } from '@/design/primitives';
 import { Eyebrow, Heading, Body } from '@/design/typography';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import type { BuildRegistryRow, UserRow } from '@/types/database';
 
@@ -57,7 +57,7 @@ export default async function BuilderProfile({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav active={null} />
+      <SiteNav active={null} />
 
       <div className="flex-1 flex flex-col">
         <Section pad="sm">

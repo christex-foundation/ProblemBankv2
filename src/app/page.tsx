@@ -8,8 +8,7 @@ import { Footer } from "@/components/Footer";
 import LegoBuild from "@/components/LegoBuild";
 import SynapserHero from "@/components/SynapserHero";
 import { WorkBeforeWorkVisual } from "@/components/WorkBeforeWorkVisual";
-import { auth } from "@/lib/auth";
-import { UserMenu } from "@/components/UserMenu";
+import { SiteNav } from "@/components/SiteNav";
 import {
   ButtonLink,
   GrainOverlay,
@@ -68,41 +67,11 @@ function buildProblemScenes(): ProblemScene[] {
 }
 
 export default async function LandingPage() {
-  const session = await auth();
-  const user = session?.user;
-  const linkCls = "text-foreground/55 hover:text-foreground transition-soft";
-  const pillCls =
-    "px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft";
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       <GrainOverlay />
 
-      <nav className="absolute top-0 left-0 right-0 z-30 border-b border-foreground/10 bg-background/60 backdrop-blur-sm">
-        <div className="px-6 md:px-10 py-4 flex items-center justify-between max-w-[1300px] mx-auto w-full">
-          <Link
-            href="/"
-            className="text-[11px] uppercase tracking-[0.28em] font-semibold"
-          >
-            Problem Bank
-          </Link>
-          <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.22em]">
-            <Link href="/library" className={linkCls}>
-              Library
-            </Link>
-            <Link href="/feed" className={linkCls}>
-              Feed
-            </Link>
-            {user ? (
-              <UserMenu user={user} />
-            ) : (
-              <Link href="/signin" className={pillCls}>
-                Sign in
-              </Link>
-            )}
-          </div>
-        </div>
-      </nav>
+      <SiteNav variant="overlay" />
 
       {/* Synapser-style physics hero, keeping the BUILD / WHAT MATTERS layout
           as the centered overlay over the animated word field. The floating

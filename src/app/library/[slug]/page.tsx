@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { URGENCY_LABELS } from '@/lib/enums';
 import { LibraryBuilders } from '@/components/library/LibraryBuilders';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { Reveal } from '@/design/motion';
 import {
@@ -68,7 +68,7 @@ export default async function LibraryEntryPage({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav />
+      <SiteNav active="library" />
 
       <article className="flex-1">
         {/* ─── Hero ──────────────────────────────────────────────── */}

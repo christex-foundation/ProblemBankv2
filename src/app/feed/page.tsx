@@ -15,7 +15,7 @@ import {
   GrainOverlay,
 } from '@/design/primitives';
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
 import { Reveal } from '@/design/motion';
@@ -86,7 +86,7 @@ export default async function FeedIndexPage({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav active="feed" />
+      <SiteNav active="feed" />
 
       <div className="flex-1 flex flex-col">
         {/* ─── Hero ──────────────────────────────────────────────────── */}
