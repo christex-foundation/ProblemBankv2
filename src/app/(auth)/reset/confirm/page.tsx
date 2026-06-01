@@ -2,9 +2,12 @@
 
 import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { apiErrorMessage } from '@/lib/api-response';
 import { MIN_PASSWORD_LEN } from '@/lib/enums';
+import { Button } from '@/design/primitives';
+import { AuthHeading, AuthField } from '@/components/auth/AuthUI';
 
 function ConfirmInner() {
   const params = useSearchParams();
@@ -40,54 +43,68 @@ function ConfirmInner() {
 
   if (!token) {
     return (
-      <main className="max-w-md mx-auto py-12 px-4">
-        <p className="text-sm">Reset link is missing a token. Request a new one.</p>
-      </main>
+      <div>
+        <AuthHeading
+          eyebrow="Problem Bank"
+          title="Link incomplete"
+          subtitle="This reset link is missing its token."
+        />
+        <Link
+          href="/reset"
+          className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground"
+        >
+          Request a new link
+        </Link>
+      </div>
     );
   }
 
   return (
-    <main className="max-w-md mx-auto py-12 px-4">
-      <h1 className="text-2xl font-bold mb-6">Choose a new password</h1>
-      <form onSubmit={submit} className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium">
-            New password <span className="text-gray-500">(min {MIN_PASSWORD_LEN})</span>
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={MIN_PASSWORD_LEN}
-            required
-            className="w-full border rounded px-3 py-2 mt-1"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Confirm password</label>
-          <input
-            type="password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2 mt-1"
-          />
-        </div>
-        <button
+    <div>
+      <AuthHeading eyebrow="Problem Bank" title="Choose a new password" />
+      <form onSubmit={submit} className="flex flex-col gap-5">
+        <AuthField
+          id="password"
+          label="New password"
+          hint={`(min ${MIN_PASSWORD_LEN})`}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={MIN_PASSWORD_LEN}
+          required
+          autoComplete="new-password"
+        />
+        <AuthField
+          id="confirm"
+          label="Confirm password"
+          type="password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          required
+          autoComplete="new-password"
+        />
+        <Button
           type="submit"
+          variant="primary"
           disabled={busy || password.length < MIN_PASSWORD_LEN}
-          className="w-full bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+          className="w-full disabled:opacity-50"
         >
           {busy ? 'Updating…' : 'Update password'}
-        </button>
+        </Button>
       </form>
-    </main>
+    </div>
   );
 }
 
 export default function ResetConfirmPage() {
   return (
-    <Suspense fallback={<div className="p-12">Loading…</div>}>
+    <Suspense
+      fallback={
+        <p className="text-[11px] uppercase tracking-[0.22em] text-foreground/45">
+          Loading…
+        </p>
+      }
+    >
       <ConfirmInner />
     </Suspense>
   );

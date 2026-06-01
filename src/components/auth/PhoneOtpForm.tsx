@@ -5,6 +5,8 @@ import { signIn } from 'next-auth/react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
 import { apiErrorMessage } from '@/lib/api-response';
+import { Button } from '@/design/primitives';
+import { AuthField, AuthHelp, authLabelCls } from '@/components/auth/AuthUI';
 
 export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
   const [phone, setPhone] = useState('+232');
@@ -59,38 +61,44 @@ export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
     }
   }
 
+  const radioCls =
+    'flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/75';
+
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-5">
       <div>
-        <label className="block text-sm font-medium">Phone number</label>
-        <input
+        <AuthField
+          id="phone"
+          label="Phone number"
           value={phone}
           onChange={(e) => setPhone(e.target.value.replace(/[^\d+]/g, ''))}
           placeholder="+232..."
           disabled={sent}
-          className="w-full border rounded px-3 py-2 mt-1"
+          inputMode="tel"
         />
-        <p className="text-xs text-gray-500 mt-1">E.164 format (e.g. +23230xxxxxxx).</p>
+        <AuthHelp>E.164 format (e.g. +23230xxxxxxx).</AuthHelp>
       </div>
 
       {!sent ? (
-        <form onSubmit={sendCode} className="space-y-3">
+        <form onSubmit={sendCode} className="flex flex-col gap-5">
           <div>
-            <label className="block text-sm font-medium">Send code via</label>
-            <div className="flex gap-3 mt-1">
-              <label className="text-sm flex items-center gap-1">
+            <span className={authLabelCls}>Send code via</span>
+            <div className="mt-3 flex gap-6">
+              <label className={radioCls}>
                 <input
                   type="radio"
                   checked={channel === 'whatsapp'}
                   onChange={() => setChannel('whatsapp')}
+                  className="accent-[var(--accent)]"
                 />
                 WhatsApp
               </label>
-              <label className="text-sm flex items-center gap-1">
+              <label className={radioCls}>
                 <input
                   type="radio"
                   checked={channel === 'sms'}
                   onChange={() => setChannel('sms')}
+                  className="accent-[var(--accent)]"
                 />
                 SMS
               </label>
@@ -99,42 +107,43 @@ export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
           {siteKey ? (
             <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
           ) : (
-            <p className="text-xs text-yellow-700">Bot protection not configured.</p>
+            <AuthHelp>Bot protection not configured.</AuthHelp>
           )}
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={busy || phone.length < 8 || (!turnstileToken && !!siteKey)}
-            className="w-full bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+            className="w-full disabled:opacity-50"
           >
             {busy ? 'Sending…' : 'Send code'}
-          </button>
+          </Button>
         </form>
       ) : (
-        <form onSubmit={verifyCode} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium">Verification code</label>
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              inputMode="numeric"
-              maxLength={6}
-              className="w-full border rounded px-3 py-2 mt-1 tracking-widest text-center text-lg"
-            />
-          </div>
-          <button
+        <form onSubmit={verifyCode} className="flex flex-col gap-5">
+          <AuthField
+            id="code"
+            label="Verification code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+            inputMode="numeric"
+            maxLength={6}
+            className="w-full mt-2 bg-transparent border border-foreground/15 px-4 py-3 text-center text-2xl tracking-[0.5em] num text-foreground hover:border-foreground/30 focus:border-foreground focus:border-2 focus:outline-none transition-soft"
+          />
+          <Button
             type="submit"
+            variant="primary"
             disabled={busy || code.length < 4}
-            className="w-full bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+            className="w-full disabled:opacity-50"
           >
             {busy ? 'Verifying…' : 'Verify'}
-          </button>
+          </Button>
           <button
             type="button"
             onClick={() => {
               setSent(false);
               setCode('');
             }}
-            className="text-xs text-gray-500 underline"
+            className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/55 self-start"
           >
             Change phone or channel
           </button>
