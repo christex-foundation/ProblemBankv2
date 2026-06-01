@@ -13,18 +13,35 @@ import {
 } from '@/components/auth/AuthUI';
 import type { ConfiguredProviders } from '@/lib/auth-providers';
 
-function pickInitialMethod(providers: ConfiguredProviders): AuthMethod {
-  if (providers.emailPassword) return 'email';
-  if (providers.phone) return 'phone';
-  return 'oauth';
+/** Show every sign-in option regardless of which secrets are configured. */
+const ALL_PROVIDERS: ConfiguredProviders = {
+  google: true,
+  github: true,
+  phone: true,
+  emailPassword: true,
+};
+
+function availableMethods(p: ConfiguredProviders): AuthMethod[] {
+  const list: AuthMethod[] = [];
+  if (p.emailPassword) list.push('email');
+  if (p.phone) list.push('phone');
+  if (p.google || p.github) list.push('oauth');
+  return list;
 }
 
 function SignInInner({ providers }: { providers: ConfiguredProviders }) {
   const params = useSearchParams();
   const callbackUrl = params.get('callbackUrl') ?? '/';
-  const [method, setMethod] = useState<AuthMethod>(pickInitialMethod(providers));
 
-  const oauthAvailable = providers.google || providers.github;
+  // Always surface every sign-in option. Real secrets aren't wired yet, so the
+  // forms won't authenticate, but all methods are shown.
+  const effective = { ...providers, ...ALL_PROVIDERS };
+
+  const [method, setMethod] = useState<AuthMethod>('email');
+  const available = availableMethods(effective);
+  const activeMethod = available.includes(method) ? method : (available[0] ?? 'email');
+
+  const oauthAvailable = effective.google || effective.github;
 
   return (
     <div>
@@ -34,14 +51,14 @@ function SignInInner({ providers }: { providers: ConfiguredProviders }) {
         subtitle="Sign in to vote, comment, and register as a builder."
       />
 
-      <MethodTabs method={method} onChange={setMethod} providers={providers} />
+      <MethodTabs method={activeMethod} onChange={setMethod} providers={effective} />
 
-      {method === 'email' && <EmailPasswordForm callbackUrl={callbackUrl} />}
-      {method === 'phone' && providers.phone && (
+      {activeMethod === 'email' && <EmailPasswordForm callbackUrl={callbackUrl} />}
+      {activeMethod === 'phone' && effective.phone && (
         <PhoneOtpForm callbackUrl={callbackUrl} />
       )}
-      {method === 'oauth' && oauthAvailable && (
-        <OAuthButtons providers={providers} callbackUrl={callbackUrl} />
+      {activeMethod === 'oauth' && oauthAvailable && (
+        <OAuthButtons providers={effective} callbackUrl={callbackUrl} />
       )}
 
       <p className="mt-8 text-center text-sm text-foreground/55">
