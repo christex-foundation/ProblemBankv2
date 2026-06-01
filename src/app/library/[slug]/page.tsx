@@ -2,9 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { URGENCY_LABELS } from '@/lib/enums';
-import DocumentPolaroids from '@/components/library/DocumentPolaroids';
 import { LibraryBuilders } from '@/components/library/LibraryBuilders';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { Reveal } from '@/design/motion';
 import {
@@ -69,7 +68,7 @@ export default async function LibraryEntryPage({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav />
+      <SiteNav active="library" />
 
       <article className="flex-1">
         {/* ─── Hero ──────────────────────────────────────────────── */}
@@ -130,7 +129,7 @@ export default async function LibraryEntryPage({
                         Embed slot
                       </Eyebrow>
                       <p className="mt-3 font-serif text-xl md:text-2xl text-foreground/55 max-w-[44ch] leading-[1.5]">
-                        Each entry carries an admin-created chart or dataset.{' '}
+                        Each entry carries a chart or dataset.{' '}
                         <span className="italic">Slot reserved.</span>
                       </p>
                     </div>
@@ -180,24 +179,9 @@ export default async function LibraryEntryPage({
           />
         </NumberedSection>
 
-        {/* ─── 02 Documents ──────────────────────────────────────── */}
-        <NumberedSection
-          number="02"
-          eyebrow="The kit"
-          sectionClassName="!pt-[3vh] md:!pt-[5vh] !pb-[3vh] md:!pb-[5vh]"
-          headline={
-            entry.documents.length === 6
-              ? 'The full kit. Decision-ready.'
-              : `${entry.documents.length} ${entry.documents.length === 1 ? 'document' : 'documents'}, decision-ready.`
-          }
-          subhead="Tilt one open. Each card opens the source PDF in a new tab."
-        >
-          <DocumentPolaroids documents={entry.documents} />
-        </NumberedSection>
-
-        {/* ─── Proof of Concept — tagline-style transition right under
-            the docs section. Italic-serif lead + accent display, the same
-            pattern as the closing "Different doors. Same standard." beat. */}
+        {/* ─── Proof of Concept — tagline-style transition under the problem
+            section. Italic-serif lead + accent display, the same pattern as
+            the closing "Different doors. Same standard." beat. */}
         {(entry.kitUrl || entry.demoUrl) && (
           <Section pad="sm" className="!pt-0 md:!pt-0">
             <Container size="wide">

@@ -1,13 +1,6 @@
-import type { UrgencyKey, DocTypeKey } from '@/lib/enums';
+import type { UrgencyKey } from '@/lib/enums';
 
 export type Origin = 'research' | 'community';
-
-export interface SampleDocument {
-  id: string;
-  docType: DocTypeKey;
-  fileName: string;
-  cloudinaryUrl: string;
-}
 
 export interface SampleBuilder {
   id: string;
@@ -30,28 +23,9 @@ export interface SampleLibraryEntry {
   publishedAt: string;
   kitUrl: string | null;
   demoUrl: string | null;
-  /** External infographic embed (admin-created data visualization). */
+  /** External infographic embed (data visualization). */
   infographicUrl: string | null;
-  documents: SampleDocument[];
   builders: SampleBuilder[];
-}
-
-const ALL_DOC_TYPES: DocTypeKey[] = [
-  'concept_note',
-  'prd',
-  'technical_design',
-  'user_flows',
-  'roadmap',
-  'pitch_deck',
-];
-
-function fullDocSet(slugStem: string): SampleDocument[] {
-  return ALL_DOC_TYPES.map((t) => ({
-    id: `${slugStem}-${t}`,
-    docType: t,
-    fileName: `${slugStem}-${t}.pdf`,
-    cloudinaryUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf',
-  }));
 }
 
 export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
@@ -78,7 +52,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/cold-chain-starter',
     demoUrl: 'https://cold-chain-demo.vercel.app',
     infographicUrl: null,
-    documents: fullDocSet('cold-chain-bonthe'),
     builders: [
       {
         id: 'b1',
@@ -120,7 +93,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/fertilizer-verify-starter',
     demoUrl: 'https://fertilizer-verify-demo.vercel.app',
     infographicUrl: null,
-    documents: fullDocSet('fertilizer-kambia').slice(0, 5),
     builders: [
       {
         id: 'b3',
@@ -153,7 +125,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: null,
     demoUrl: null,
     infographicUrl: null,
-    documents: fullDocSet('trades-pujehun').slice(0, 4),
     builders: [],
   },
   {
@@ -176,7 +147,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/feeder-roads-starter',
     demoUrl: 'https://feeder-roads-demo.vercel.app',
     infographicUrl: null,
-    documents: fullDocSet('feeder-roads'),
     builders: [
       {
         id: 'b4',
@@ -224,7 +194,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/mm-liquidity-starter',
     demoUrl: null,
     infographicUrl: null,
-    documents: fullDocSet('mm-liquidity'),
     builders: [
       {
         id: 'b7',
@@ -256,7 +225,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/borehole-uptime-starter',
     demoUrl: 'https://borehole-uptime-demo.vercel.app',
     infographicUrl: null,
-    documents: fullDocSet('borehole-uptime'),
     builders: [],
   },
   {
@@ -279,7 +247,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: null,
     demoUrl: null,
     infographicUrl: null,
-    documents: fullDocSet('off-grid-study').slice(0, 3),
     builders: [
       {
         id: 'b8',
@@ -310,7 +277,6 @@ export const SAMPLE_LIBRARY_ENTRIES: SampleLibraryEntry[] = [
     kitUrl: 'https://github.com/christex-foundation/solar-accounting-starter',
     demoUrl: null,
     infographicUrl: null,
-    documents: fullDocSet('solar-accounting').slice(0, 5),
     builders: [
       {
         id: 'b9',

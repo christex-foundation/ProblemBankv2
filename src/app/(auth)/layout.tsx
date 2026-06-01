@@ -1,5 +1,5 @@
 import { GrainOverlay, Section } from '@/design/primitives';
-import { LibraryNav } from '@/components/LibraryNav';
+import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 
 /**
@@ -15,7 +15,7 @@ export default function AuthLayout({
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
       <GrainOverlay />
-      <LibraryNav active={null} />
+      <SiteNav active={null} />
 
       <div className="flex-1 flex flex-col">
         <Section pad="sm">

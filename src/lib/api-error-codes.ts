@@ -25,7 +25,6 @@ export const API_ERROR_CODES = {
   // Domain-specific
   already_registered: 'already_registered',
   comment_closed: 'comment_closed',
-  not_admin: 'not_admin',
   not_owner: 'not_owner',
   duplicate_slug: 'duplicate_slug',
   invalid_github_url: 'invalid_github_url',

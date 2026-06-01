@@ -36,16 +36,6 @@ export const STATUS_LABELS = {
 } as const;
 export type DisplayStatus = keyof typeof STATUS_LABELS;
 
-export const DOC_TYPES = [
-  { key: 'concept_note', label: 'Concept Note' },
-  { key: 'prd', label: 'PRD' },
-  { key: 'technical_design', label: 'Technical Design' },
-  { key: 'user_flows', label: 'User Flows and Wireframes' },
-  { key: 'roadmap', label: 'Roadmap' },
-  { key: 'pitch_deck', label: 'Pitch Deck' },
-] as const;
-export type DocTypeKey = (typeof DOC_TYPES)[number]['key'];
-
 // Voting rules — see Tech Design §6.2
 export const MAX_VOTES_PER_WEEK = 3;
 export const UNVOTE_WINDOW_MS = 5 * 60 * 1000;

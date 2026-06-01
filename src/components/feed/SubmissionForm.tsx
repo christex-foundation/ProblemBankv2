@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { toast } from 'sonner';
 import TiptapEditor from '@/components/editor/TiptapEditor';
-import { uploadTiptapImages } from '@/lib/cloudinary-client';
 import { apiErrorMessage } from '@/lib/api-response';
 import { SECTORS, URGENCY_LABELS, MAX_TITLE_LEN } from '@/lib/enums';
 
@@ -31,25 +30,18 @@ export default function SubmissionForm() {
     setSubmitting(true);
     setError(null);
     try {
-      const descUp = await uploadTiptapImages(description);
-      const solUp = potentialSolution && potentialSolution !== '<p></p>'
-        ? await uploadTiptapImages(potentialSolution)
-        : null;
-
-      const totalDropped = descUp.imagesDropped + (solUp?.imagesDropped ?? 0);
-      if (totalDropped > 0) {
-        toast.warning(
-          `Image uploads disabled — ${totalDropped} image${totalDropped === 1 ? '' : 's'} skipped.`,
-        );
-      }
+      const solution =
+        potentialSolution && potentialSolution !== '<p></p>'
+          ? potentialSolution
+          : undefined;
 
       const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: title.trim(),
-          description: descUp.html,
-          potentialSolution: solUp?.html,
+          description,
+          potentialSolution: solution,
           urgency,
           category,
           turnstileToken,
