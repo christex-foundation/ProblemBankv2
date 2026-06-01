@@ -22,7 +22,6 @@ export async function GET() {
     ['SUPABASE_URL', 'SUPABASE_URL'],
     ['SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY'],
     ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'NEXT_PUBLIC_TURNSTILE_SITE_KEY'],
-    ['CLOUDINARY_API_KEY', 'CLOUDINARY_API_KEY'],
   ];
   for (const [label, name] of envChecks) {
     checks[`env_${label}`] = { ok: !!process.env[name] };

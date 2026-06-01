@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 // The slug is the LibraryEntry.slug — kebab-case, lowercase, numbers and dashes.
-// Match the same shape the admin route accepts when creating an entry.
 export const BadgeParamsSchema = z.object({
   slug: z
     .string()

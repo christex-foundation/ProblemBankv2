@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { URGENCY_LABELS } from '@/lib/enums';
-import DocumentPolaroids from '@/components/library/DocumentPolaroids';
 import { LibraryBuilders } from '@/components/library/LibraryBuilders';
 import { LibraryNav } from '@/components/LibraryNav';
 import { Footer } from '@/components/Footer';
@@ -130,7 +129,7 @@ export default async function LibraryEntryPage({
                         Embed slot
                       </Eyebrow>
                       <p className="mt-3 font-serif text-xl md:text-2xl text-foreground/55 max-w-[44ch] leading-[1.5]">
-                        Each entry carries an admin-created chart or dataset.{' '}
+                        Each entry carries a chart or dataset.{' '}
                         <span className="italic">Slot reserved.</span>
                       </p>
                     </div>
@@ -178,21 +177,6 @@ export default async function LibraryEntryPage({
             className="font-serif text-xl md:text-2xl leading-[1.6] text-foreground/90 [&_p]:my-5 [&_a]:underline [&_strong]:font-semibold"
             dangerouslySetInnerHTML={{ __html: entry.problemStatement }}
           />
-        </NumberedSection>
-
-        {/* ─── 02 Documents ──────────────────────────────────────── */}
-        <NumberedSection
-          number="02"
-          eyebrow="The kit"
-          sectionClassName="!pt-[3vh] md:!pt-[5vh] !pb-[3vh] md:!pb-[5vh]"
-          headline={
-            entry.documents.length === 6
-              ? 'The full kit. Decision-ready.'
-              : `${entry.documents.length} ${entry.documents.length === 1 ? 'document' : 'documents'}, decision-ready.`
-          }
-          subhead="Tilt one open. Each card opens the source PDF in a new tab."
-        >
-          <DocumentPolaroids documents={entry.documents} />
         </NumberedSection>
 
         {/* ─── Proof of Concept — tagline-style transition right under

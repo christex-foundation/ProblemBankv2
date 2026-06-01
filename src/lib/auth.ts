@@ -37,17 +37,14 @@ function clearOtpFailures(phone: string) {
   otpAttempts.delete(phone);
 }
 
-// Augment NextAuth types so session.user.id and session.user.role are typed.
+// Augment NextAuth types so session.user.id is typed.
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string;
-      role: 'user' | 'admin';
     } & DefaultSession['user'];
   }
 }
-
-type UserRole = 'user' | 'admin';
 
 async function findUserByPhone(phone: string): Promise<UserRow | null> {
   const supabase = getSupabase();
@@ -58,12 +55,6 @@ async function findUserByPhone(phone: string): Promise<UserRow | null> {
 async function findUserByEmail(email: string): Promise<UserRow | null> {
   const supabase = getSupabase();
   const { data } = await supabase.from('User').select('*').eq('email', email).maybeSingle();
-  return (data as UserRow | null) ?? null;
-}
-
-async function findUserById(id: string): Promise<UserRow | null> {
-  const supabase = getSupabase();
-  const { data } = await supabase.from('User').select('*').eq('id', id).maybeSingle();
   return (data as UserRow | null) ?? null;
 }
 
@@ -187,16 +178,12 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id;
-        const dbUser = await findUserById(user.id);
-        (token as { role?: UserRole }).role = (dbUser?.role as UserRole) ?? 'user';
       }
       return token;
     },
     async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;
-        const role = (token as { role?: UserRole }).role;
-        session.user.role = role ?? 'user';
       }
       return session;
     },

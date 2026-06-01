@@ -2,10 +2,8 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import { useEffect } from 'react';
-import { stashPendingFile } from '@/lib/cloudinary-client';
 
 interface Props {
   value: string;
@@ -17,7 +15,6 @@ export default function TiptapEditor({ value, onChange, placeholder }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({ inline: false, allowBase64: false }),
       Link.configure({ openOnClick: false, autolink: true }),
     ],
     content: value,
@@ -40,21 +37,6 @@ export default function TiptapEditor({ value, onChange, placeholder }: Props) {
       editor.commands.setContent(value, false);
     }
   }, [value, editor]);
-
-  const insertImage = () => {
-    if (!editor) return;
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = () => {
-      const file = input.files?.[0];
-      if (!file) return;
-      const blobUrl = URL.createObjectURL(file);
-      stashPendingFile(blobUrl, file);
-      editor.chain().focus().setImage({ src: blobUrl, alt: file.name }).run();
-    };
-    input.click();
-  };
 
   const setLink = () => {
     if (!editor) return;
@@ -98,9 +80,6 @@ export default function TiptapEditor({ value, onChange, placeholder }: Props) {
         </button>
         <button type="button" onClick={setLink} className="px-2 py-1 rounded">
           Link
-        </button>
-        <button type="button" onClick={insertImage} className="px-2 py-1 rounded">
-          Image
         </button>
       </div>
       <EditorContent editor={editor} />

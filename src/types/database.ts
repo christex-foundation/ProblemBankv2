@@ -2,7 +2,6 @@
 // When using @supabase/supabase-js with a typed Database, the JS client returns
 // these shapes verbatim — no camelCase remapping needed.
 
-export type UserRole = 'user' | 'admin';
 export type SubmissionStatus =
   | 'submitted'
   | 'under_review'
@@ -10,14 +9,6 @@ export type SubmissionStatus =
   | 'not_viable'
   | 'live';
 export type Urgency = 'critical' | 'high' | 'medium' | 'low';
-export type DocType =
-  | 'concept_note'
-  | 'prd'
-  | 'technical_design'
-  | 'user_flows'
-  | 'roadmap'
-  | 'pitch_deck';
-export type NotificationType = 'status_change' | 'new_comment';
 
 export interface UserRow {
   id: string;
@@ -29,7 +20,6 @@ export interface UserRow {
   githubUrl: string | null;
   contactEmail: string | null;
   websiteUrl: string | null;
-  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,15 +79,6 @@ export interface LibraryEntryRow {
   updatedAt: string;
 }
 
-export interface DocumentRow {
-  id: string;
-  libraryEntryId: string;
-  docType: DocType;
-  cloudinaryUrl: string;
-  fileName: string;
-  uploadedAt: string;
-}
-
 export interface BuildRegistryRow {
   id: string;
   userId: string;
@@ -112,17 +93,6 @@ export interface BadgePingRow {
   pingedAt: string;
 }
 
-export interface NotificationRow {
-  id: string;
-  userId: string;
-  type: NotificationType;
-  title: string;
-  body: string;
-  link: string | null;
-  read: boolean;
-  createdAt: string;
-}
-
 type WithoutDefaults<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export interface Database {
@@ -130,7 +100,7 @@ export interface Database {
     Tables: {
       User: {
         Row: UserRow;
-        Insert: WithoutDefaults<UserRow, 'id' | 'createdAt' | 'updatedAt' | 'role'>;
+        Insert: WithoutDefaults<UserRow, 'id' | 'createdAt' | 'updatedAt'>;
         Update: Partial<UserRow>;
         Relationships: [];
       };
@@ -170,12 +140,6 @@ export interface Database {
         Update: Partial<LibraryEntryRow>;
         Relationships: [];
       };
-      Document: {
-        Row: DocumentRow;
-        Insert: WithoutDefaults<DocumentRow, 'id' | 'uploadedAt'>;
-        Update: Partial<DocumentRow>;
-        Relationships: [];
-      };
       BuildRegistry: {
         Row: BuildRegistryRow;
         Insert: WithoutDefaults<BuildRegistryRow, 'id' | 'registeredAt'>;
@@ -186,12 +150,6 @@ export interface Database {
         Row: BadgePingRow;
         Insert: WithoutDefaults<BadgePingRow, 'id' | 'pingedAt'>;
         Update: Partial<BadgePingRow>;
-        Relationships: [];
-      };
-      Notification: {
-        Row: NotificationRow;
-        Insert: WithoutDefaults<NotificationRow, 'id' | 'createdAt' | 'read'>;
-        Update: Partial<NotificationRow>;
         Relationships: [];
       };
     };
@@ -205,11 +163,8 @@ export interface Database {
       };
     };
     Enums: {
-      UserRole: UserRole;
       SubmissionStatus: SubmissionStatus;
       Urgency: Urgency;
-      DocType: DocType;
-      NotificationType: NotificationType;
     };
     CompositeTypes: {
       [_ in never]: never;

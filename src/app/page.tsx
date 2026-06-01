@@ -8,7 +8,8 @@ import { Footer } from "@/components/Footer";
 import LegoBuild from "@/components/LegoBuild";
 import SynapserHero from "@/components/SynapserHero";
 import { WorkBeforeWorkVisual } from "@/components/WorkBeforeWorkVisual";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { UserMenu } from "@/components/UserMenu";
 import {
   ButtonLink,
   GrainOverlay,
@@ -93,26 +94,7 @@ export default async function LandingPage() {
               Feed
             </Link>
             {user ? (
-              <>
-                <Link href={`/builders/${user.id}`} className={linkCls}>
-                  Profile
-                </Link>
-                {user.role === "admin" && (
-                  <Link href="/admin/dashboard" className={linkCls}>
-                    Admin
-                  </Link>
-                )}
-                <form
-                  action={async () => {
-                    "use server";
-                    await signOut({ redirectTo: "/" });
-                  }}
-                >
-                  <button type="submit" className={pillCls}>
-                    Sign out
-                  </button>
-                </form>
-              </>
+              <UserMenu user={user} />
             ) : (
               <Link href="/signin" className={pillCls}>
                 Sign in

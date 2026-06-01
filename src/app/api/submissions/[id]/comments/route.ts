@@ -1,7 +1,6 @@
 import { auth } from '@/lib/auth';
 import { getSupabase } from '@/lib/supabase';
 import { verifyTurnstile } from '@/lib/turnstile';
-import { notifyNewComment } from '@/lib/notifications';
 import { apiError, apiOk, parseOrError } from '@/lib/api-response';
 import { API_ERROR_CODES } from '@/lib/api-error-codes';
 import type { CommentRow, SubmissionRow } from '@/types/database';
@@ -120,10 +119,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .from('Submission')
     .update({ commentCount: (submission.commentCount ?? 0) + 1 } as never)
     .eq('id', submissionId);
-
-  // Replies don't need bespoke notification: the parent commenter is already
-  // among the "prior commenters" notifyNewComment pings.
-  notifyNewComment(submissionId, session.user.id).catch(() => {});
 
   return apiOk({ comment: rows[0] }, { status: 201 });
 }
