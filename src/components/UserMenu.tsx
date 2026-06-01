@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
+import { initialsFrom } from '@/lib/initials';
 
 type MenuUser = {
   id: string;
@@ -10,30 +11,35 @@ type MenuUser = {
   email?: string | null;
 };
 
-/** Up to two initials from a name, falling back to the email's first letter. */
-function initialsFrom(name?: string | null, email?: string | null): string {
-  const source = (name ?? '').trim();
-  if (source) {
-    const parts = source.split(/\s+/);
-    const first = parts[0]?.[0] ?? '';
-    const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : '';
-    return (first + last).toUpperCase();
-  }
-  const handle = (email ?? '').trim();
-  return handle ? handle[0].toUpperCase() : '?';
-}
-
 const itemCls =
   'block w-full text-left px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-foreground/70 hover:bg-foreground hover:text-background transition-soft';
 
 /**
  * Signed-in account control: an initials avatar that reveals a menu
  * (Profile, Sign out). Opens on tap/click (works on touch) and on hover
- * (desktop); closes on outside click or Escape. Shared by every nav.
+ * (desktop); a short close delay keeps the menu reachable across the gap, and
+ * outside-click or Escape closes it. Shared by every nav.
  */
 export function UserMenu({ user }: { user: MenuUser }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function cancelClose() {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }
+  function openNow() {
+    cancelClose();
+    setOpen(true);
+  }
+  // Delay close so moving the cursor from avatar into the menu doesn't dismiss it.
+  function scheduleClose() {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setOpen(false), 150);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -51,19 +57,22 @@ export function UserMenu({ user }: { user: MenuUser }) {
     };
   }, [open]);
 
+  // Clear any pending timer on unmount.
+  useEffect(() => cancelClose, []);
+
   return (
     <div
       ref={ref}
       className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={openNow}
+      onMouseLeave={scheduleClose}
     >
       <button
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Account menu${user.name ? ` for ${user.name}` : ''}`}
-        onClick={() => setOpen((o) => !o)}
+        onClick={openNow}
         className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-background text-[11px] font-semibold normal-case tracking-normal hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground transition-soft"
       >
         {initialsFrom(user.name, user.email)}
@@ -71,10 +80,7 @@ export function UserMenu({ user }: { user: MenuUser }) {
 
       {open && (
         /* pt-2 (not mt-2) keeps the avatar-to-menu gap inside the hover area. */
-        <div
-          role="menu"
-          className="absolute right-0 top-full pt-2 w-48 z-40"
-        >
+        <div role="menu" className="absolute right-0 top-full pt-2 w-48 z-40">
           <div className="border border-foreground/15 bg-background shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
             <div className="px-3 py-2.5 border-b border-foreground/10">
               <div className="text-[11px] font-semibold text-foreground truncate normal-case tracking-normal">
@@ -98,7 +104,7 @@ export function UserMenu({ user }: { user: MenuUser }) {
             <button
               type="button"
               role="menuitem"
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => signOut({ redirectTo: '/' })}
               className={itemCls}
             >
               Sign out

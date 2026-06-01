@@ -15,6 +15,7 @@ import {
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
 import { Reveal } from '@/design/motion';
 import { LibraryNav } from '@/components/LibraryNav';
+import { initialsFrom } from '@/lib/initials';
 import { Footer } from '@/components/Footer';
 import { FeedVoteButton } from '@/components/feed/FeedVoteButton';
 import { CommentComposerStub } from '@/components/feed/CommentComposerStub';
@@ -473,21 +474,9 @@ function Avatar({
       aria-hidden
       className={`shrink-0 inline-flex ${dim} items-center justify-center rounded-full border border-foreground/15 bg-paper ${fontSize} uppercase tracking-[0.08em] font-semibold text-foreground/65`}
     >
-      {initials(name)}
+      {initialsFrom(name)}
     </span>
   );
-}
-
-/** Strip honorifics, then keep up to two first letters of remaining words. */
-function initials(name: string): string {
-  return name
-    .replace(/^(Dr|Mr|Mrs|Ms|Nurse|Prof)\.?\s+/i, '')
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 }
 
 function RelatedFeedNav({

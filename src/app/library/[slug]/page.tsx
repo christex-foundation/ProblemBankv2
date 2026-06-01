@@ -179,9 +179,9 @@ export default async function LibraryEntryPage({
           />
         </NumberedSection>
 
-        {/* ─── Proof of Concept — tagline-style transition right under
-            the docs section. Italic-serif lead + accent display, the same
-            pattern as the closing "Different doors. Same standard." beat. */}
+        {/* ─── Proof of Concept — tagline-style transition under the problem
+            section. Italic-serif lead + accent display, the same pattern as
+            the closing "Different doors. Same standard." beat. */}
         {(entry.kitUrl || entry.demoUrl) && (
           <Section pad="sm" className="!pt-0 md:!pt-0">
             <Container size="wide">
