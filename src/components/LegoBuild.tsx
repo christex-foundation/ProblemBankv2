@@ -100,7 +100,7 @@ export default function LegoBuild() {
       ref={ref}
       className="w-full max-w-[1100px] mx-auto flex flex-col items-stretch"
     >
-      <div className="grid grid-cols-2 gap-6 md:gap-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-16">
         <InputColumn
           title="Community Feed"
           subtitle="raised by communities"
@@ -142,8 +142,10 @@ function InputColumn({
   passed: (t: number) => boolean;
   align: "start" | "end";
 }) {
-  const itemsAlign = align === "end" ? "items-end" : "items-start";
-  const textAlign = align === "end" ? "text-right" : "text-left";
+  const itemsAlign =
+    align === "end" ? "items-center sm:items-end" : "items-center sm:items-start";
+  const textAlign =
+    align === "end" ? "text-center sm:text-right" : "text-center sm:text-left";
   return (
     <div className={`flex flex-col ${itemsAlign} gap-5 h-full`}>
       <div className={textAlign}>
@@ -203,7 +205,8 @@ function BrickEl({
     <div
       className="relative"
       style={{
-        width: brick.width,
+        width: "100%",
+        maxWidth: brick.width,
         transform: visible ? "translateY(0)" : "translateY(-44px)",
         opacity: visible ? 1 : 0,
         transition:
