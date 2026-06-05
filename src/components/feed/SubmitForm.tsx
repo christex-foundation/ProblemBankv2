@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import {
   SECTORS,
   URGENCY_LABELS,
@@ -11,6 +10,7 @@ import {
 } from '@/lib/enums';
 import { submitProblem, type SubmitAccount } from '@/lib/submit';
 import { Eyebrow, Lede } from '@/design/typography';
+import { Button, ButtonLink, Input, Select, Textarea } from '@/design/primitives';
 
 type Props = {
   signedIn?: boolean;
@@ -146,19 +146,17 @@ export default function SubmitForm({ signedIn = false }: Props) {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/feed"
-            className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold bg-foreground text-background transition-soft hover:bg-accent w-full sm:w-[240px]"
-          >
+          <ButtonLink href="/feed" variant="primary" className="w-full sm:w-[240px]">
             View on the feed
-          </Link>
-          <button
+          </ButtonLink>
+          <Button
             type="button"
+            variant="outline"
             onClick={reset}
-            className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold border border-foreground text-foreground transition-soft hover:bg-foreground hover:text-background w-full sm:w-[240px]"
+            className="w-full sm:w-[240px]"
           >
             Raise another
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -168,12 +166,11 @@ export default function SubmitForm({ signedIn = false }: Props) {
     <form onSubmit={onSubmit} className="space-y-8 max-w-[680px]">
       {/* SHORT TITLE */}
       <FieldShell label="Short title" required>
-        <input
+        <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={MAX_TITLE_LEN}
           placeholder="e.g. Public accountability for reps"
-          className="w-full bg-paper border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft"
         />
         <div className="flex items-center justify-between mt-2">
           <Helper>Shown on pipeline cards. Keep it concise.</Helper>
@@ -189,23 +186,21 @@ export default function SubmitForm({ signedIn = false }: Props) {
 
       {/* WHAT'S THE PROBLEM? */}
       <FieldShell label="What's the problem?" required>
-        <textarea
+        <Textarea
           value={problem}
           onChange={(e) => setProblem(e.target.value)}
           rows={4}
           placeholder="e.g. There's no easy way to know if a politician actually showed up to parliament."
-          className="w-full bg-paper border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft resize-y leading-[1.55]"
         />
       </FieldShell>
 
       {/* WHAT COULD THE TOOL DO? */}
       <FieldShell label="What could the tool do?" required>
-        <textarea
+        <Textarea
           value={toolIdea}
           onChange={(e) => setToolIdea(e.target.value)}
           rows={4}
           placeholder="e.g. A searchable database of rep attendance, pulled from the official record."
-          className="w-full bg-paper border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft resize-y leading-[1.55]"
         />
       </FieldShell>
 
@@ -221,7 +216,8 @@ export default function SubmitForm({ signedIn = false }: Props) {
               <span aria-hidden className="text-foreground/35 text-sm shrink-0">
                 {String(i + 1).padStart(2, '0')}
               </span>
-              <input
+              <Input
+                size="sm"
                 value={c}
                 onChange={(e) => {
                   const next = [...criteria];
@@ -229,7 +225,7 @@ export default function SubmitForm({ signedIn = false }: Props) {
                   setCriteria(next);
                 }}
                 placeholder={`Sign ${i + 1}`}
-                className="flex-1 bg-paper border border-foreground/15 px-3 py-2 text-sm text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft"
+                className="flex-1"
               />
               <button
                 type="button"
@@ -247,7 +243,7 @@ export default function SubmitForm({ signedIn = false }: Props) {
         <button
           type="button"
           onClick={() => setCriteria([...criteria, ''])}
-          className="mt-3 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.28em] font-semibold text-foreground/55 hover:text-accent transition-soft"
+          className="mt-3 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/55 hover:text-accent transition-soft"
         >
           <span aria-hidden>+</span> Add a sign
         </button>
@@ -260,30 +256,28 @@ export default function SubmitForm({ signedIn = false }: Props) {
         </Eyebrow>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <FieldShell label="Sector" required compact>
-            <select
+            <Select
               value={sector}
               onChange={(e) => setSector(e.target.value as Sector)}
-              className="w-full bg-paper border border-foreground/15 px-4 py-3 text-base text-foreground focus:outline-none focus:border-foreground/40 transition-soft"
             >
               {SECTORS.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
               ))}
-            </select>
+            </Select>
           </FieldShell>
           <FieldShell label="Urgency" required compact>
-            <select
+            <Select
               value={urgency}
               onChange={(e) => setUrgency(e.target.value as UrgencyKey)}
-              className="w-full bg-paper border border-foreground/15 px-4 py-3 text-base text-foreground focus:outline-none focus:border-foreground/40 transition-soft"
             >
               {(Object.keys(URGENCY_LABELS) as UrgencyKey[]).map((k) => (
                 <option key={k} value={k}>
                   {URGENCY_LABELS[k]}
                 </option>
               ))}
-            </select>
+            </Select>
           </FieldShell>
         </div>
       </div>
@@ -330,13 +324,14 @@ export default function SubmitForm({ signedIn = false }: Props) {
         )}
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={!canSubmit}
-            className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold bg-foreground text-background transition-soft hover:bg-accent disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-[280px]"
+            className="w-full sm:w-[280px] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting ? 'Submitting…' : submitLabel(signedIn, accountMethod)}
-          </button>
+          </Button>
         </div>
       </div>
     </form>
@@ -486,7 +481,7 @@ function AccountBlock(props: {
                   </span>
                   <span
                     aria-hidden
-                    className={`text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft ${
+                    className={`text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft ${
                       active ? 'text-accent' : 'text-foreground/30'
                     }`}
                   >
@@ -502,13 +497,12 @@ function AccountBlock(props: {
            inline UI: clicking Submit hands off to the provider's own sign-in. */}
         {method === 'email' && (
           <div className="mt-6 space-y-3 border-t border-foreground/10 pt-6">
-            <input
+            <Input
               type="email"
               value={props.email}
               onChange={(e) => props.setEmail(e.target.value)}
               placeholder="you@example.com"
               autoComplete="email"
-              className="w-full bg-background border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft"
             />
             <p className="text-xs text-foreground/55 leading-[1.5]">
               We email you a link. Your card publishes when you click it.
@@ -518,13 +512,12 @@ function AccountBlock(props: {
 
         {method === 'phone' && (
           <div className="mt-6 space-y-3 border-t border-foreground/10 pt-6">
-            <input
+            <Input
               type="tel"
               value={props.phone}
               onChange={(e) => props.setPhone(e.target.value)}
               placeholder="+232 7X XXX XXX"
               autoComplete="tel"
-              className="w-full bg-background border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/35 focus:outline-none focus:border-foreground/40 transition-soft"
             />
             <div className="flex gap-2">
               {(['whatsapp', 'sms'] as const).map((c) => (

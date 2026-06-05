@@ -295,7 +295,7 @@ export default async function FeedEntryPage({
                   </RaiseButton>
                   <Link
                     href="/feed"
-                    className="inline-flex min-w-[220px] items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft hover:bg-background hover:text-foreground"
+                    className="inline-flex min-w-[220px] items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft hover:bg-background hover:text-foreground"
                   >
                     Back to the feed
                   </Link>
@@ -515,7 +515,7 @@ function RelatedFeedNav({
               <span className={titleCls}>{e.title}</span>
               <span
                 aria-hidden
-                className={`text-[11px] uppercase tracking-[0.28em] font-semibold ${arrowCls}`}
+                className={`text-[11px] uppercase tracking-[0.22em] font-semibold ${arrowCls}`}
               >
                 →
               </span>

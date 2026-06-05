@@ -3,6 +3,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { signIn } from 'next-auth/react';
 import { Eyebrow, Heading, Body } from '@/design/typography';
+import { Input } from '@/design/primitives';
 import type { ConfiguredProviders } from '@/lib/auth-providers';
 
 /**
@@ -13,10 +14,6 @@ import type { ConfiguredProviders } from '@/lib/auth-providers';
  */
 
 export type AuthMethod = 'phone' | 'email' | 'oauth';
-
-/** Input spec — design/COMPONENTS.md §2. Reused by every auth field. */
-export const authInputCls =
-  'w-full mt-2 bg-transparent border border-foreground/15 px-4 py-3 text-base text-foreground placeholder:text-foreground/30 hover:border-foreground/30 focus:border-foreground focus:border-2 focus:outline-none transition-soft';
 
 export const authLabelCls =
   'block text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/55';
@@ -58,7 +55,7 @@ export function AuthField({
   id: string;
   label: string;
   hint?: ReactNode;
-} & InputHTMLAttributes<HTMLInputElement>) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>) {
   return (
     <div>
       <label htmlFor={id} className={authLabelCls}>
@@ -69,7 +66,7 @@ export function AuthField({
           </span>
         )}
       </label>
-      <input id={id} className={authInputCls} {...rest} />
+      <Input id={id} className="mt-2" {...rest} />
     </div>
   );
 }

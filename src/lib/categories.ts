@@ -1,3 +1,4 @@
+import { accentHex, categoryHex } from "@/design/tokens";
 import type { Problem } from "./types";
 
 export type Category =
@@ -7,10 +8,10 @@ export type Category =
   | "Safety";
 
 export const CATEGORY_COLOR: Record<Category, string> = {
-  Economy: "#c8442a",
-  Infrastructure: "#2f5e3e",
-  "Social services": "#3b5b9a",
-  Safety: "#8a6d3b",
+  Economy: categoryHex.economy,
+  Infrastructure: categoryHex.infrastructure,
+  "Social services": categoryHex.social,
+  Safety: categoryHex.safety,
 };
 
 export const PROBLEM_CATEGORY: Record<Problem, Category> = {
@@ -37,7 +38,7 @@ export const CATEGORIES: Category[] = [
 // page so each scrolly scene's dots paint in their problem's own hue.
 export const PROBLEM_COLOR: Record<Problem, string> = {
   "Water or sanitation problems": "#0c4a6e", // very dark cyan (water)
-  Unemployment: "#c8442a", // terracotta (project accent)
+  Unemployment: accentHex, // terracotta (project accent)
   "Poor education": "#d4a017", // mustard / gold
   "Poor healthcare": "#b73d5b", // rose
   Poverty: "#6b4423", // umber

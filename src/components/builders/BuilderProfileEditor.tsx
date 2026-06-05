@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { MAX_BIO_LEN } from '@/lib/enums';
-import { Button } from '@/design/primitives';
+import { Button, Input, Textarea } from '@/design/primitives';
 import { Eyebrow } from '@/design/typography';
 
 interface Props {
@@ -20,8 +20,6 @@ interface Props {
 
 const labelCls =
   'block text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/55';
-const inputCls =
-  'w-full mt-2 bg-transparent border border-foreground/20 px-3 py-2.5 text-foreground placeholder:text-foreground/30 focus:border-foreground/60 focus:outline-none transition-soft';
 
 export default function BuilderProfileEditor({ userId, user }: Props) {
   const router = useRouter();
@@ -69,57 +67,67 @@ export default function BuilderProfileEditor({ userId, user }: Props) {
       </Eyebrow>
 
       <div>
-        <label className={labelCls}>Name</label>
-        <input
+        <label htmlFor="profile-name" className={labelCls}>Name</label>
+        <Input
+          id="profile-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className={inputCls}
+          className="mt-2"
           maxLength={80}
         />
       </div>
 
       <div>
-        <label className={labelCls}>
+        <label htmlFor="profile-bio" className={labelCls}>
           Bio <span className="text-foreground/35">(max {MAX_BIO_LEN})</span>
         </label>
-        <textarea
+        <Textarea
+          id="profile-bio"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           rows={3}
-          className={`${inputCls} resize-y`}
+          className="mt-2"
           maxLength={MAX_BIO_LEN}
+          aria-describedby="profile-bio-count"
         />
-        <p className="mt-1 text-[10px] uppercase tracking-[0.22em] num text-foreground/45">
+        <p
+          id="profile-bio-count"
+          aria-live="polite"
+          className="mt-1 text-[10px] uppercase tracking-[0.22em] num text-foreground/45"
+        >
           {bio.length}/{MAX_BIO_LEN}
         </p>
       </div>
 
       <div>
-        <label className={labelCls}>Contact email (optional)</label>
-        <input
+        <label htmlFor="profile-contact-email" className={labelCls}>Contact email (optional)</label>
+        <Input
+          id="profile-contact-email"
           type="email"
           value={contactEmail}
           onChange={(e) => setContactEmail(e.target.value)}
-          className={inputCls}
+          className="mt-2"
         />
       </div>
 
       <div>
-        <label className={labelCls}>GitHub URL (optional)</label>
-        <input
+        <label htmlFor="profile-github" className={labelCls}>GitHub URL (optional)</label>
+        <Input
+          id="profile-github"
           value={githubUrl}
           onChange={(e) => setGithubUrl(e.target.value)}
-          className={inputCls}
+          className="mt-2"
           placeholder="https://github.com/yourhandle"
         />
       </div>
 
       <div>
-        <label className={labelCls}>Website (optional)</label>
-        <input
+        <label htmlFor="profile-website" className={labelCls}>Website (optional)</label>
+        <Input
+          id="profile-website"
           value={websiteUrl}
           onChange={(e) => setWebsiteUrl(e.target.value)}
-          className={inputCls}
+          className="mt-2"
           placeholder="https://example.com"
         />
       </div>

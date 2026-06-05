@@ -23,7 +23,11 @@ import {
 import { SAMPLE_LIBRARY_ENTRIES } from '@/data/sampleLibraryEntries';
 
 export async function generateStaticParams() {
-  return SAMPLE_LIBRARY_ENTRIES.map((e) => ({ slug: e.slug }));
+  // community-needs-assessment has its own bespoke route at
+  // /library/community-needs-assessment, so it must not also be generated here.
+  return SAMPLE_LIBRARY_ENTRIES.filter(
+    (e) => e.slug !== 'community-needs-assessment',
+  ).map((e) => ({ slug: e.slug }));
 }
 
 export async function generateMetadata({
@@ -214,7 +218,7 @@ export default async function LibraryEntryPage({
                         href={entry.demoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold border border-foreground text-foreground transition-soft hover:bg-foreground hover:text-background"
+                        className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.22em] font-semibold border border-foreground text-foreground transition-soft hover:bg-foreground hover:text-background"
                       >
                         Live demo
                       </a>
@@ -224,7 +228,7 @@ export default async function LibraryEntryPage({
                         href={entry.kitUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold bg-foreground text-background transition-soft hover:bg-accent hover:text-background"
+                        className="inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.22em] font-semibold bg-foreground text-background transition-soft hover:bg-accent hover:text-background"
                       >
                         Starter kit on GitHub
                       </a>
@@ -448,7 +452,7 @@ function RelatedNav({
               <span className={titleCls}>{e.title}</span>
               <span
                 aria-hidden
-                className={`text-[11px] uppercase tracking-[0.28em] font-semibold ${arrowCls}`}
+                className={`text-[11px] uppercase tracking-[0.22em] font-semibold ${arrowCls}`}
               >
                 →
               </span>

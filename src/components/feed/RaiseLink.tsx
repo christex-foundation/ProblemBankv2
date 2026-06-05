@@ -21,7 +21,7 @@ export function RaiseLink({
       type="button"
       onClick={openRaiseModal}
       className={[
-        'link-underline text-[11px] uppercase tracking-[0.28em] font-semibold text-accent',
+        'link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-accent',
         className,
       ]
         .filter(Boolean)

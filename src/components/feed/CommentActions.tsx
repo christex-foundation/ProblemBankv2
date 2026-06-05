@@ -194,7 +194,7 @@ function ReplyComposer({
         className="w-full resize-y bg-transparent text-[15px] md:text-base text-foreground placeholder:text-foreground/40 leading-[1.55] focus:outline-none"
       />
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[10px] text-foreground/40 num">
+        <span aria-live="polite" className="text-[10px] text-foreground/40 num">
           {text.length}/{MAX_COMMENT_LEN}
         </span>
         <div className="flex items-center gap-3">

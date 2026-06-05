@@ -19,14 +19,21 @@ type RevealDistance = "whisper" | "soft";
 
 /**
  * Fades + lifts children into place when they enter the viewport. Fires
- * once. Server-rendered HTML ships with data-reveal="out", so the initial
- * paint already matches the off state; no flash.
+ * once by default. Server-rendered HTML ships with data-reveal="out", so the
+ * initial paint already matches the off state; no flash.
+ *
+ * Pass `once={false}` for a reversible reveal: it animates in on entry and
+ * animates back out when scrolled out of view, replaying each time the
+ * element re-enters. The out direction transitions too (scoped via
+ * data-reveal-repeat in globals.css), so the effect reads as a settle both
+ * ways rather than a snap.
  */
 export function Reveal({
   children,
   as: As = "div",
   delay = 0,
   distance = "whisper",
+  once = true,
   threshold = motion.reveal.threshold,
   rootMargin = motion.reveal.rootMargin,
   className,
@@ -36,6 +43,8 @@ export function Reveal({
   as?: ElementType;
   delay?: number;
   distance?: RevealDistance;
+  /** When false, the reveal reverses on scroll-out and replays on re-entry. */
+  once?: boolean;
   threshold?: number;
   rootMargin?: string;
   className?: string;
@@ -54,10 +63,14 @@ export function Reveal({
     const obs = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setSeen(true);
-            obs.disconnect();
-            return;
+          if (once) {
+            if (entry.isIntersecting) {
+              setSeen(true);
+              obs.disconnect();
+              return;
+            }
+          } else {
+            setSeen(entry.isIntersecting);
           }
         }
       },
@@ -65,7 +78,7 @@ export function Reveal({
     );
     obs.observe(node);
     return () => obs.disconnect();
-  }, [threshold, rootMargin]);
+  }, [once, threshold, rootMargin]);
 
   const mergedStyle: CSSProperties = {
     ...style,
@@ -80,6 +93,7 @@ export function Reveal({
       ref,
       "data-reveal": seen ? "in" : "out",
       "data-reveal-distance": distance,
+      "data-reveal-repeat": once ? undefined : "",
       className,
       style: mergedStyle,
     },
@@ -297,7 +311,8 @@ export function useScrollProgress(
  */
 export type ScrollWordSegment =
   | string
-  | { text: string; strong?: boolean; accent?: boolean };
+  | { text: string; strong?: boolean; accent?: boolean }
+  | { br: true };
 
 export function ScrollWordReveal({
   segments,
@@ -317,9 +332,13 @@ export function ScrollWordReveal({
   const selfProgress = useScrollProgress(ref, { anchor: "enter-from-bottom" });
   const progress = externalProgress ?? selfProgress;
 
-  type Word = { word: string; strong: boolean; accent: boolean; spaceAfter: boolean };
+  type Word = { word: string; strong: boolean; accent: boolean; spaceAfter: boolean; br?: boolean };
   const words: Word[] = [];
   for (const seg of segments) {
+    if (typeof seg !== "string" && "br" in seg) {
+      words.push({ word: "", strong: false, accent: false, spaceAfter: false, br: true });
+      continue;
+    }
     const text = typeof seg === "string" ? seg : seg.text;
     const strong = typeof seg !== "string" && !!seg.strong;
     const accent = typeof seg !== "string" && !!seg.accent;
@@ -356,6 +375,7 @@ export function ScrollWordReveal({
       style: { ["--p" as string]: localProgress.toFixed(4) } as CSSProperties,
     },
     words.map((w, i) => {
+      if (w.br) return createElement("br", { key: i });
       const t = (i / lastIdx) * tScale;
       const wordClass = [
         w.strong ? "text-foreground font-semibold" : null,
@@ -397,8 +417,13 @@ export function ScrollWipeReveal({
   progress: externalProgress,
   range = [0, 1],
   direction = "right",
+  trigger = "scroll",
+  once = true,
+  threshold = motion.reveal.threshold,
+  rootMargin = motion.reveal.rootMargin,
   as: As = "div",
   className,
+  style,
 }: {
   children: ReactNode;
   /** Override the self-tracked progress so multiple wipes can share a value. */
@@ -406,15 +431,68 @@ export function ScrollWipeReveal({
   range?: [number, number];
   /** "right" wipes from left to right (default). "left" wipes from right to left. */
   direction?: "right" | "left";
+  /**
+   * "scroll" (default): the wipe is driven continuously by scroll progress.
+   * "inView": the wipe plays once, via CSS transition, when the element
+   * crosses the observer line — use with a centered rootMargin to make the
+   * draw fire at the middle of the viewport rather than the bottom edge.
+   */
+  trigger?: "scroll" | "inView";
+  /** inView only: when false, the wipe reverses on scroll-out and replays. */
+  once?: boolean;
+  /** inView only: IntersectionObserver threshold. */
+  threshold?: number;
+  /** inView only: IntersectionObserver rootMargin. */
+  rootMargin?: string;
   as?: ElementType;
   className?: string;
+  style?: CSSProperties;
 }) {
   const ref = useRef<HTMLElement>(null);
-  const selfProgress = useScrollProgress(ref, { anchor: "enter-from-bottom" });
-  const progress = externalProgress ?? selfProgress;
+  const isScroll = trigger === "scroll";
+  const selfProgress = useScrollProgress(ref, {
+    anchor: "enter-from-bottom",
+    // In inView mode the scroll value is unused; skip the work by pinning it.
+    scrollSpan: isScroll ? 1 : 1,
+  });
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    if (isScroll) return;
+    const node = ref.current;
+    if (!node) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (once) {
+            if (entry.isIntersecting) {
+              setInView(true);
+              obs.disconnect();
+              return;
+            }
+          } else {
+            setInView(entry.isIntersecting);
+          }
+        }
+      },
+      { threshold, rootMargin },
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [isScroll, once, threshold, rootMargin]);
+
   const [start, end] = range;
   const span = Math.max(0.0001, end - start);
-  const local = Math.max(0, Math.min(1, (progress - start) / span));
+  const local = isScroll
+    ? Math.max(0, Math.min(1, ((externalProgress ?? selfProgress) - start) / span))
+    : inView
+      ? 1
+      : 0;
+
   return createElement(
     As,
     {
@@ -422,7 +500,8 @@ export function ScrollWipeReveal({
       className,
       "data-scroll-wipe": "",
       "data-wipe-direction": direction,
-      style: { ["--p" as string]: local.toFixed(4) } as CSSProperties,
+      "data-wipe-trigger": isScroll ? undefined : "inView",
+      style: { ...style, ["--p" as string]: local.toFixed(4) } as CSSProperties,
     },
     children,
   );

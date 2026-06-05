@@ -21,6 +21,8 @@ import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
 import { RaiseButton } from '@/components/feed/RaiseButton';
 import { Reveal } from '@/design/motion';
+import { CommunityProblemMatrix } from '@/components/reports/CommunityProblemMatrix';
+import { report as communityNeedsReport } from '@/data/reports/community-needs-assessment';
 
 export const metadata: Metadata = {
   title: 'Library · Problem Bank',
@@ -220,11 +222,11 @@ export default async function LibraryIndexPage({
              cells in the last row stay invisible. */}
           {entries.length > 0 ? (
             <>
-              <ul className="mt-8 md:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-foreground/15">
+              <ul className="mt-8 md:mt-10 grid grid-cols-1">
                 {pageEntries.map((entry, idx) => (
                   <li
                     key={entry.id}
-                    className="bg-background border-r border-b border-foreground/15"
+                    className="bg-background border-b border-foreground/15"
                   >
                     <Reveal delay={Math.min(idx * 60, 360)}>
                       <ShelfCard entry={entry} index={start + idx + 1} />
@@ -438,92 +440,95 @@ function StatCell({
 }
 
 /**
- * Uniform card for an entry on the shelf. Inspired by build.christex.foundation's
- * Featured Ideas grid: top sector pill, centered display title, a per-entry
- * constellation mark (our visual signature), Summary: eyebrow + brief, footer
- * meta. Square corners, paper surface, editorial typography.
+ * Horizontal shelf card. Left (the clickable link): serial, display title,
+ * the summary stacked directly beneath it (matched width), then footer meta
+ * (sector, urgency, builders, origin). Right: the problem-bubble viz for
+ * entries that carry one, kept a sibling of the link so bubble interactions
+ * don't fight the card's navigation. Stacks vertically on small screens.
  */
 function ShelfCard({ entry, index }: { entry: LibraryEntry; index: number }) {
   const urgency = urgencyBadge(entry.urgency);
-  const preview = problemStatementPreview(entry.problemStatement, 280);
+  const preview = problemStatementPreview(entry.problemStatement, 320);
   const builders = entry.builders.length;
   const originLabel =
     entry.origin === 'community' ? 'Community' : 'Christex research';
+  // Only the community survey carries a problem-bubble figure today.
+  const bubbles =
+    entry.slug === 'community-needs-assessment'
+      ? communityNeedsReport.communityProblems
+      : null;
 
   return (
-    <article className="group h-full">
+    <article className="group h-full flex flex-col md:flex-row">
+      {/* Left column — the link. Title, summary beneath it, then footer meta. */}
       <Link
         href={`/library/${entry.slug}`}
-        className="flex flex-col h-full p-7 md:p-8 transition-soft hover:bg-foreground/[0.03] focus-visible:outline-none"
+        className="flex flex-1 flex-col p-7 md:p-10 transition-soft hover:bg-foreground/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
       >
-        {/* Top strip: serial + sector pill. Pill stays single-line and
-           truncates with an ellipsis if the sector name is too long. */}
-        <div className="flex items-center justify-between gap-3 mb-7">
-          <span className="num text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/35 flex-shrink-0">
-            №&nbsp;{String(index).padStart(2, '0')}
-          </span>
-          <span
-            title={entry.sector}
-            className="min-w-0 truncate border border-foreground/25 px-3 py-1 text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/75 group-hover:border-foreground/60 transition-soft"
-          >
-            {entry.sector}
-          </span>
-        </div>
+        <span className="num text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/35 mb-5">
+          №&nbsp;{String(index).padStart(2, '0')}
+        </span>
 
-        {/* Title — clamped to 3 lines; reserves 3-line height so the summary
-           below always starts at the same Y across cards regardless of how
-           many lines this particular title uses. */}
-        <h3 className="text-center font-black tracking-[-0.025em] text-2xl md:text-3xl leading-[1.1] group-hover:text-accent transition-soft max-w-[16ch] mx-auto mb-8 line-clamp-3 min-h-[calc(3*1.1em)]">
+        <h3 className="font-black tracking-[-0.025em] text-3xl md:text-4xl leading-[1.05] group-hover:text-accent transition-soft">
           {entry.title}
         </h3>
 
-        {/* Summary */}
-        <div className="flex-1">
+        {/* Summary, under the title, same width as the title. */}
+        <div className="mt-6">
           <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-foreground/45 mb-3">
             Summary:
           </p>
-          <p className="font-serif text-base md:text-[17px] leading-[1.55] text-foreground/75 line-clamp-5 min-h-[calc(5*1.55em)]">
+          <p className="font-serif text-base md:text-[17px] leading-[1.55] text-foreground/75 line-clamp-2">
             {preview}
           </p>
         </div>
 
-        {/* Origin sits above the footer rule, right-aligned. Accent when
-           community-originated so it reads as a distinct provenance signal. */}
-        <p
-          className={`mt-8 mb-3 text-right text-[10px] uppercase tracking-[0.22em] font-semibold ${
-            entry.origin === 'community' ? 'text-accent' : 'text-foreground/45'
-          }`}
-        >
-          {originLabel}
-        </p>
-
         {/* Footer meta */}
-        <div className="pt-5 border-t border-foreground/15 flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-semibold">
-          <span className="flex items-center gap-3">
-            <span
-              className={
-                urgency.tone === 'accent'
-                  ? 'text-accent'
-                  : 'text-foreground/55'
-              }
-            >
-              {URGENCY_LABELS[entry.urgency]}
-            </span>
-            <span aria-hidden className="text-foreground/20">
-              ·
-            </span>
-            <span className="text-foreground/55 num">
-              {builders} {builders === 1 ? 'builder' : 'builders'}
-            </span>
+        <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] uppercase tracking-[0.22em] font-semibold">
+          <span
+            title={entry.sector}
+            className="min-w-0 truncate border border-foreground/25 px-3 py-1 text-foreground/75 group-hover:border-foreground/60 transition-soft"
+          >
+            {entry.sector}
+          </span>
+          <span aria-hidden className="text-foreground/20">
+            ·
           </span>
           <span
-            aria-hidden
-            className="text-foreground/40 group-hover:text-accent group-hover:translate-x-1 transition-all duration-200"
+            className={
+              urgency.tone === 'accent' ? 'text-accent' : 'text-foreground/55'
+            }
           >
-            →
+            {URGENCY_LABELS[entry.urgency]}
+          </span>
+          <span aria-hidden className="text-foreground/20">
+            ·
+          </span>
+          <span className="text-foreground/55 num">
+            {builders} {builders === 1 ? 'builder' : 'builders'}
+          </span>
+          <span
+            className={`ml-auto ${
+              entry.origin === 'community' ? 'text-accent' : 'text-foreground/45'
+            }`}
+          >
+            {originLabel}
           </span>
         </div>
       </Link>
+
+      {/* Right column — the problem-bubble figure, a sibling of the link so its
+         own hover/click interactions stay independent of card navigation. */}
+      {bubbles && (
+        <div className="md:w-1/2 md:flex-shrink-0 p-5 md:p-6">
+          <CommunityProblemMatrix
+            bare
+            sizeScale={1.4}
+            categories={bubbles.categories}
+            series={bubbles.series}
+          />
+        </div>
+      )}
     </article>
   );
 }
@@ -547,14 +552,14 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
           {hasFilters && (
             <Link
               href="/library"
-              className="link-underline text-[11px] uppercase tracking-[0.28em] font-semibold"
+              className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold"
             >
               Clear filters
             </Link>
           )}
           <Link
             href="/feed"
-            className="link-underline text-[11px] uppercase tracking-[0.28em] font-semibold text-accent"
+            className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-accent"
           >
             Visit the feed
           </Link>

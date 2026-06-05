@@ -6,7 +6,7 @@ import { useRaiseModal } from './RaiseModalProvider';
 type Variant = 'primary' | 'accent' | 'outline' | 'outlineInverse' | 'ghost';
 
 const BASE =
-  'inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft';
+  'inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft';
 
 const VARIANT: Record<Variant, string> = {
   primary: 'bg-foreground text-background hover:bg-accent hover:text-background',

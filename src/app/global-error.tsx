@@ -19,15 +19,15 @@ export default function GlobalError({
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>
           Something went wrong
         </h1>
-        <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+        <p style={{ color: '#6e6a62', marginBottom: '1.5rem' }}>
           {error.message || 'Unexpected error'}
         </p>
         <button
           type="button"
           onClick={reset}
           style={{
-            background: 'black',
-            color: 'white',
+            background: '#0e0e0d',
+            color: '#f8f0e7',
             border: 0,
             padding: '0.5rem 1rem',
             borderRadius: '0.375rem',

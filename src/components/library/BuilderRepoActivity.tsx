@@ -21,12 +21,12 @@ export default function BuilderRepoActivity({ repoUrl }: { repoUrl: string }) {
   }, [repoUrl]);
 
   if (lastPushed === undefined) {
-    return <p className="text-xs text-gray-400 mt-1">Checking activity…</p>;
+    return <p className="text-xs text-foreground/45 mt-1">Checking activity…</p>;
   }
   if (!lastPushed) return null; // Silently hide for private/invalid/404 repos.
 
   return (
-    <p className="text-xs text-gray-600 mt-1">
+    <p className="text-xs text-foreground/55 mt-1">
       Last push: {new Date(lastPushed).toLocaleDateString()}
     </p>
   );

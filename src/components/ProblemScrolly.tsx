@@ -95,7 +95,7 @@ export function ProblemScrolly({ scenes, universe, labels }: Props) {
               className="bg-background text-foreground px-5 py-5 text-center w-full max-w-[420px] pointer-events-auto transition-opacity duration-500"
               style={{ opacity: i === activeIndex ? 1 : 0.35 }}
             >
-              <div className="inline-block px-2 py-0.5 bg-accent text-background text-[9px] uppercase tracking-[0.26em] font-semibold mb-3">
+              <div className="inline-block px-2 py-0.5 bg-accent text-background text-[9px] uppercase tracking-[0.22em] font-semibold mb-3">
                 {s.problem}
               </div>
               <blockquote className="font-serif text-base md:text-lg leading-[1.4]">

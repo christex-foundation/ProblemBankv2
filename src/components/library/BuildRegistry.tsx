@@ -31,7 +31,7 @@ const INPUT_CLASS =
   'w-full px-4 py-3 text-base bg-paper border border-foreground/15 hover:border-foreground/30 focus:border-foreground focus:border-2 focus:outline-none transition-soft';
 
 const SECONDARY_BTN =
-  'inline-flex items-center justify-center px-6 py-3 text-[11px] uppercase tracking-[0.28em] font-semibold border border-foreground text-foreground transition-soft hover:bg-foreground hover:text-background disabled:opacity-50 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center px-6 py-3 text-[11px] uppercase tracking-[0.22em] font-semibold border border-foreground text-foreground transition-soft hover:bg-foreground hover:text-background disabled:opacity-50 disabled:cursor-not-allowed';
 
 export default function BuildRegistry({
   entryId,

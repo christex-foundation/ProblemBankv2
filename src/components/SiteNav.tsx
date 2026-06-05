@@ -37,7 +37,7 @@ export async function SiteNav({
       <div className="px-6 md:px-10 py-4 flex items-center justify-between max-w-[1300px] mx-auto w-full">
         <Link
           href="/"
-          className="text-[11px] uppercase tracking-[0.28em] font-semibold"
+          className="text-[11px] uppercase tracking-[0.22em] font-semibold"
         >
           Problem Bank
         </Link>

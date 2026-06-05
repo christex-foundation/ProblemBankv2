@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { Modal } from '@/design/Modal';
 
 /**
  * Wraps any inline trigger so clicking it opens the shared sign-in modal.
@@ -53,34 +54,15 @@ export function SignInModal({
 }) {
   const callbackUrl = `/signin?callbackUrl=${encodeURIComponent(callbackPath)}`;
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [onClose]);
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="signin-modal-title"
-      className="fixed inset-0 z-[80] flex items-center justify-center px-5 py-10"
+    <Modal
+      onClose={onClose}
+      labelledBy="signin-modal-title"
+      closeAriaLabel="Close sign-in"
+      containerClassName="fixed inset-0 z-[80] flex items-center justify-center px-5 py-10"
+      overlayClassName="absolute inset-0 bg-foreground/40 backdrop-blur-sm cursor-default"
+      className="relative z-10 w-full max-w-md max-h-[calc(100vh-5rem)] overflow-y-auto bg-paper border border-foreground/20 rounded-2xl shadow-xl flex flex-col"
     >
-      <button
-        type="button"
-        aria-label="Close sign-in"
-        onClick={onClose}
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm cursor-default"
-      />
-
-      <div className="relative z-10 w-full max-w-md bg-paper border border-foreground/20 rounded-2xl shadow-xl flex flex-col">
         <div className="flex items-start justify-between gap-4 px-7 pt-7">
           <div>
             <p className="text-[10px] uppercase tracking-[0.22em] font-semibold text-accent">
@@ -126,8 +108,7 @@ export function SignInModal({
             Create an account
           </Link>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -158,7 +139,7 @@ function SignInOption({
         </span>
         <span
           aria-hidden
-          className="text-[11px] uppercase tracking-[0.28em] font-semibold text-foreground/30 group-hover:text-accent group-hover:translate-x-1 transition-all duration-200"
+          className="text-[11px] uppercase tracking-[0.22em] font-semibold text-foreground/30 group-hover:text-accent group-hover:translate-x-1 transition-all duration-200"
         >
           →
         </span>

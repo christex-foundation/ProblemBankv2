@@ -121,7 +121,7 @@ export default function LegoBuild() {
 
       <div className="flex flex-col items-center -mt-1">
         <BrickStack bricks={MERGED_BRICKS} passed={passed} />
-        <div className="mt-6 text-[11px] uppercase tracking-[0.34em] text-foreground/55 font-semibold">
+        <div className="mt-6 text-[11px] uppercase tracking-[0.22em] text-foreground/55 font-semibold">
           One Library entry
         </div>
       </div>
@@ -147,7 +147,7 @@ function InputColumn({
   return (
     <div className={`flex flex-col ${itemsAlign} gap-5 h-full`}>
       <div className={textAlign}>
-        <div className="text-[10px] uppercase tracking-[0.32em] text-accent font-semibold">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-accent font-semibold">
           {title}
         </div>
         <div className="mt-1 text-[12px] font-serif italic text-foreground/55">
