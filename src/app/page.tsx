@@ -133,18 +133,12 @@ function GetInformedBuildShip() {
         </Reveal>
 
         <Reveal delay={180} className="mt-10 md:mt-14 flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/library"
-            className="inline-flex items-center justify-center px-8 py-4 bg-background text-foreground text-[11px] uppercase tracking-[0.22em] font-semibold hover:bg-accent hover:text-background transition-soft"
-          >
+          <ButtonLink href="/library" variant="inverse">
             Browse the library
-          </Link>
-          <Link
-            href="/raise"
-            className="inline-flex items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.22em] font-semibold hover:bg-background hover:text-foreground transition-soft"
-          >
+          </ButtonLink>
+          <ButtonLink href="/raise" variant="outlineInverse">
             Raise a problem
-          </Link>
+          </ButtonLink>
         </Reveal>
       </div>
     </section>
