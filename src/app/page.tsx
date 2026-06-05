@@ -77,7 +77,7 @@ export default async function LandingPage() {
           as the centered overlay over the animated word field. The floating
           words are the actual Problem Bank problem labels. */}
       <SynapserHero words={PROBLEM_LABELS}>
-        <div className="text-[11px] uppercase tracking-[0.32em] text-accent mb-2 font-semibold">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-accent mb-2 font-semibold">
           Christex Foundation &middot; Problem Bank
         </div>
 
@@ -133,18 +133,12 @@ function GetInformedBuildShip() {
         </Reveal>
 
         <Reveal delay={180} className="mt-10 md:mt-14 flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/library"
-            className="inline-flex items-center justify-center px-8 py-4 bg-background text-foreground text-[11px] uppercase tracking-[0.28em] font-semibold hover:bg-accent hover:text-background transition-soft"
-          >
+          <ButtonLink href="/library" variant="inverse">
             Browse the library
-          </Link>
-          <Link
-            href="/raise"
-            className="inline-flex items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.28em] font-semibold hover:bg-background hover:text-foreground transition-soft"
-          >
+          </ButtonLink>
+          <ButtonLink href="/raise" variant="outlineInverse">
             Raise a problem
-          </Link>
+          </ButtonLink>
         </Reveal>
       </div>
     </section>
@@ -318,7 +312,7 @@ function EachEntryArrives() {
           </p>
         </Reveal>
 
-        <Reveal delay={180} className="mt-12 md:mt-16 text-[11px] uppercase tracking-[0.32em] text-foreground/45 font-semibold">
+        <Reveal delay={180} className="mt-12 md:mt-16 text-[11px] uppercase tracking-[0.22em] text-foreground/45 font-semibold">
           What a kit can include.
         </Reveal>
 
@@ -602,10 +596,10 @@ function PaperIcon({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 h-full min-h-[120px] md:min-h-[140px] text-center">
-      <span className="text-[10px] md:text-[11px] uppercase tracking-[0.32em] text-accent font-semibold num">
+      <span className="text-[10px] md:text-[11px] uppercase tracking-[0.22em] text-accent font-semibold num">
         {String(index + 1).padStart(2, "0")}
       </span>
-      <span className="text-base md:text-lg uppercase tracking-[0.18em] font-semibold text-foreground leading-tight">
+      <span className="text-base md:text-lg uppercase tracking-[0.22em] font-semibold text-foreground leading-tight">
         {label}
       </span>
       <p className="mt-1 font-serif text-sm md:text-[15px] text-foreground/65 leading-[1.45] max-w-[28ch]">
@@ -624,7 +618,7 @@ function PortfolioAtAGlance() {
   return (
     <section className="relative px-6 md:px-10 pt-[6vh] md:pt-[10vh] pb-[14vh] md:pb-[18vh]">
       <div className="max-w-[1200px] mx-auto border-l-2 border-accent pl-8 md:pl-12">
-        <div className="text-[11px] uppercase tracking-[0.32em] text-foreground/45 mb-6 font-semibold">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-foreground/45 mb-6 font-semibold">
           The portfolio, at a glance
         </div>
         <h2 className="text-[clamp(2rem,4.2vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.015em]">
@@ -661,7 +655,7 @@ function Stat({
       >
         {value}
       </span>
-      <span className="text-[10px] uppercase tracking-[0.24em] text-foreground/55">
+      <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/55">
         {label}
       </span>
     </div>

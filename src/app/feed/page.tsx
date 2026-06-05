@@ -145,7 +145,7 @@ export default async function FeedIndexPage({
                   </RaiseButton>
                   <Link
                     href="/library"
-                    className="inline-flex w-full sm:w-[280px] items-center justify-center px-8 py-4 border border-foreground text-foreground text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft hover:bg-foreground hover:text-background"
+                    className="inline-flex w-full sm:w-[280px] items-center justify-center px-8 py-4 border border-foreground text-foreground text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft hover:bg-foreground hover:text-background"
                   >
                     Browse the library
                   </Link>
@@ -295,7 +295,7 @@ export default async function FeedIndexPage({
                 </RaiseButton>
                 <Link
                   href="/library"
-                  className="inline-flex w-full sm:w-[280px] items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft hover:bg-background hover:text-foreground"
+                  className="inline-flex w-full sm:w-[280px] items-center justify-center px-8 py-4 border border-background text-background text-[11px] uppercase tracking-[0.22em] font-semibold transition-soft hover:bg-background hover:text-foreground"
                 >
                   Browse the library
                 </Link>
@@ -425,7 +425,7 @@ function RankCard({
          through to the detail page. */}
       <Link
         href={`/feed/${entry.id}`}
-        className="col-span-12 md:col-span-10 flex flex-col gap-5 focus-visible:outline-none"
+        className="col-span-12 md:col-span-10 flex flex-col gap-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
       >
           {/* Top meta strip — urgency + sector + status */}
           <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase tracking-[0.22em] font-semibold">
@@ -524,7 +524,7 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
           {hasFilters && (
             <Link
               href="/feed"
-              className="link-underline text-[11px] uppercase tracking-[0.28em] font-semibold"
+              className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold"
             >
               Clear filters
             </Link>

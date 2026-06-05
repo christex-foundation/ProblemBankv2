@@ -54,7 +54,7 @@ export function SignedInComposer({ submissionId }: { submissionId: string }) {
         className="w-full resize-y bg-transparent text-base md:text-lg text-foreground placeholder:text-foreground/40 leading-[1.55] focus:outline-none"
       />
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[10px] text-foreground/40 num">
+        <span aria-live="polite" className="text-[10px] text-foreground/40 num">
           {text.length}/{MAX_COMMENT_LEN}
         </span>
         <button

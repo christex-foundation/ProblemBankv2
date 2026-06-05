@@ -15,6 +15,14 @@ export const color = {
   muted: "var(--muted)",
   rule: "var(--rule)",
   accent: "var(--accent)",
+  /** Warm off-white for text/icons on dark surfaces (mirrors --background). */
+  onDark: "var(--on-dark)",
+  /** Dark canvas surfaces used by the Matrix views. */
+  surface: {
+    dark: "var(--surface-dark)",
+    darkRaised: "var(--surface-dark-raised)",
+    darkSunken: "var(--surface-dark-sunken)",
+  },
   category: {
     economy: "var(--cat-economy)",
     infrastructure: "var(--cat-infrastructure)",
@@ -22,6 +30,25 @@ export const color = {
     safety: "var(--cat-safety)",
   },
 } as const;
+
+/**
+ * Raw category hex values. The CSS custom properties (--cat-*) are the
+ * canonical theme tokens, but SVG fills, canvas, and other build-time
+ * contexts need a literal. This is the single source for those literals;
+ * keep it in sync with --cat-* in globals.css.
+ */
+export const categoryHex = {
+  economy: "#c8442a",
+  infrastructure: "#2f5e3e",
+  social: "#3b5b9a",
+  safety: "#8a6d3b",
+} as const;
+
+/** Accent terracotta as a build-time literal (mirrors --accent). */
+export const accentHex = "#c8442a";
+
+/** Foreground ink as a build-time literal (mirrors --foreground). */
+export const foregroundHex = "#0e0e0d";
 
 /**
  * Text emphasis ramp. Use as `text-foreground/55` style or via the
@@ -44,6 +71,7 @@ export const type = {
   family: {
     sans: "var(--font-inter), system-ui, sans-serif",
     serif: 'ui-serif, Georgia, "Times New Roman", serif',
+    mono: 'var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
   },
   size: {
     micro: 10,
@@ -64,7 +92,8 @@ export const type = {
     normal: "0",
     wide: "0.02em",
     label: "0.18em",
-    eyebrow: "0.28em",
+    /** Canonical all-caps eyebrow/label tracking used across the UI. */
+    eyebrow: "0.22em",
     eyebrowLoose: "0.32em",
   },
   leading: {
@@ -145,6 +174,30 @@ export const border = {
   rule: "1px solid var(--foreground)",
   hairline: "1px solid color-mix(in srgb, var(--foreground) 15%, transparent)",
   card: "1px solid color-mix(in srgb, var(--foreground) 15%, transparent)",
+} as const;
+
+/**
+ * Corner radii. The editorial system is square by default; radius is reserved
+ * for control affordances (toggles, tooltips) and pills/avatars. Values match
+ * the Tailwind v4 radius scale so the `rounded-*` utilities resolve the same.
+ */
+export const radius = {
+  none: "0",
+  sm: "0.25rem", // 4px — small control affordances, viz tiles
+  md: "0.375rem", // 6px — toggles, tooltips, popovers
+  lg: "0.5rem",
+  xl: "0.75rem",
+  full: "9999px", // pills, avatars
+} as const;
+
+/**
+ * Elevation. `card` is the standard floating-panel shadow (menus, popovers);
+ * `sm` is the hairline lift on resting cards. Mirrors --shadow-* in
+ * globals.css so the `shadow-*` utilities resolve the same.
+ */
+export const shadow = {
+  sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+  card: "0 8px 24px rgba(0, 0, 0, 0.08)",
 } as const;
 
 /**

@@ -35,7 +35,7 @@ export function Eyebrow({
   const sizeClass =
     size === "sm"
       ? "text-[10px] tracking-[0.22em]"
-      : "text-[11px] tracking-[0.32em]";
+      : "text-[11px] tracking-[0.22em]";
   const toneClass = {
     accent: "text-accent",
     foreground: "text-foreground",

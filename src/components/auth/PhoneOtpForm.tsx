@@ -81,8 +81,8 @@ export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
 
       {!sent ? (
         <form onSubmit={sendCode} className="flex flex-col gap-5">
-          <div>
-            <span className={authLabelCls}>Send code via</span>
+          <fieldset className="border-0 p-0 m-0">
+            <legend className={authLabelCls}>Send code via</legend>
             <div className="mt-3 flex gap-6">
               <label className={radioCls}>
                 <input
@@ -103,7 +103,7 @@ export default function PhoneOtpForm({ callbackUrl }: { callbackUrl: string }) {
                 SMS
               </label>
             </div>
-          </div>
+          </fieldset>
           {siteKey ? (
             <Turnstile siteKey={siteKey} onSuccess={setTurnstileToken} />
           ) : (

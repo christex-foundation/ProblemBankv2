@@ -19,6 +19,11 @@ interface Props {
 const W = 1400;
 const H = 900;
 
+// Independent sector palette for the constellation viz. This is intentionally
+// NOT the survey category palette (categoryHex / --cat-*): "sector" here is a
+// different taxonomy (Health, Education, Finance…). Some hues coincide with the
+// brand category colours but carry a different meaning, so they are declared
+// standalone rather than referencing the category tokens.
 const SECTOR_COLOR: Record<string, string> = {
   Health: "#c8442a",
   Education: "#3b5b9a",
@@ -152,6 +157,15 @@ export function LibraryConstellation({ entries, className }: Props) {
           })}
         </g>
       </svg>
+
+      {/* Text-equivalent of the constellation for screen readers. */}
+      <ul className="sr-only">
+        {entries.map((e) => (
+          <li key={e.id}>
+            {e.title} — {e.sector}, {e.urgency} urgency, {e.builders} builders
+          </li>
+        ))}
+      </ul>
 
       {hovered && (
         <div

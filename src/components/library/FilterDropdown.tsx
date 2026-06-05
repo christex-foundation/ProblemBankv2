@@ -55,7 +55,7 @@ export function FilterDropdown({ label, active, options }: Props) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-baseline gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold py-2 transition-soft hover:text-accent focus-visible:outline-none focus-visible:text-accent"
+        className="flex items-baseline gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold py-2 transition-soft hover:text-accent focus-visible:outline-none focus-visible:text-accent focus-visible:underline underline-offset-4"
       >
         <span className="text-foreground/45">{label}</span>
         <span className={isFiltered ? 'text-accent' : 'text-foreground'}>

@@ -12,7 +12,7 @@ type MenuUser = {
 };
 
 const itemCls =
-  'block w-full text-left px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-foreground/70 hover:bg-foreground hover:text-background transition-soft';
+  'block w-full text-left px-3 py-2 text-[10px] uppercase tracking-[0.22em] text-foreground/70 hover:bg-foreground hover:text-background transition-soft';
 
 /**
  * Signed-in account control: an initials avatar that reveals a menu
@@ -81,7 +81,7 @@ export function UserMenu({ user }: { user: MenuUser }) {
       {open && (
         /* pt-2 (not mt-2) keeps the avatar-to-menu gap inside the hover area. */
         <div role="menu" className="absolute right-0 top-full pt-2 w-48 z-40">
-          <div className="border border-foreground/15 bg-background shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+          <div className="border border-foreground/15 bg-background shadow-card">
             <div className="px-3 py-2.5 border-b border-foreground/10">
               <div className="text-[11px] font-semibold text-foreground truncate normal-case tracking-normal">
                 {user.name ?? 'Your account'}

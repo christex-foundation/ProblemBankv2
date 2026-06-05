@@ -114,10 +114,23 @@ export function Stack({
 
 /* ─── Button ──────────────────────────────────────────────────────────── */
 
-type ButtonVariant = "primary" | "accent" | "outline" | "ghost";
+type ButtonVariant =
+  | "primary"
+  | "accent"
+  | "outline"
+  | "ghost"
+  | "inverse"
+  | "outlineInverse";
+type ButtonSize = "sm" | "md" | "lg";
 
 const BUTTON_BASE =
-  "inline-flex items-center justify-center px-8 py-4 text-[11px] uppercase tracking-[0.28em] font-semibold transition-soft";
+  "inline-flex items-center justify-center uppercase tracking-[0.22em] font-semibold transition-soft";
+
+const BUTTON_SIZE: Record<ButtonSize, string> = {
+  sm: "px-3 py-2 text-[11px]",
+  md: "px-8 py-4 text-[11px]",
+  lg: "px-10 py-5 text-[11px]",
+};
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary:
@@ -128,18 +141,25 @@ const BUTTON_VARIANT: Record<ButtonVariant, string> = {
     "border border-foreground text-foreground hover:bg-foreground hover:text-background",
   ghost:
     "text-foreground hover:text-accent",
+  // On-dark / over-imagery variants. `inverse` is the filled light button used
+  // on dark sections; `outlineInverse` its hairline counterpart.
+  inverse:
+    "bg-background text-foreground hover:bg-accent hover:text-background",
+  outlineInverse:
+    "border border-background text-background hover:bg-background hover:text-foreground",
 };
 
 /** Anchor-style button. Use ButtonLink for Next routes. */
 export function Button({
   children,
   variant = "primary",
+  size = "md",
   className,
   ...rest
-}: { variant?: ButtonVariant } & ComponentProps<"button">) {
+}: { variant?: ButtonVariant; size?: ButtonSize } & ComponentProps<"button">) {
   return (
     <button
-      className={cx(BUTTON_BASE, BUTTON_VARIANT[variant], className)}
+      className={cx(BUTTON_BASE, BUTTON_SIZE[size], BUTTON_VARIANT[variant], className)}
       {...rest}
     >
       {children}
@@ -151,16 +171,91 @@ export function Button({
 export function ButtonLink({
   children,
   variant = "primary",
+  size = "md",
   className,
   ...rest
-}: { variant?: ButtonVariant } & ComponentProps<typeof Link>) {
+}: { variant?: ButtonVariant; size?: ButtonSize } & ComponentProps<typeof Link>) {
   return (
     <Link
-      className={cx(BUTTON_BASE, BUTTON_VARIANT[variant], className)}
+      className={cx(BUTTON_BASE, BUTTON_SIZE[size], BUTTON_VARIANT[variant], className)}
       {...rest}
     >
       {children}
     </Link>
+  );
+}
+
+/* ─── Form controls ───────────────────────────────────────────────────────
+ * Single source for text inputs, textareas, and selects so every form shares
+ * the same surface, border, focus, and placeholder treatment. Spec: derived
+ * from the auth form baseline.
+ */
+
+type FieldSize = "sm" | "md";
+
+const FIELD_BASE =
+  "w-full bg-transparent border text-foreground placeholder:text-foreground/30 hover:border-foreground/30 focus:border-foreground focus:border-2 focus:outline-none transition-soft";
+
+const FIELD_SIZE: Record<FieldSize, string> = {
+  sm: "px-3 py-2 text-sm",
+  md: "px-4 py-3 text-base",
+};
+
+function fieldBorder(error?: boolean): string {
+  return error ? "border-accent/60" : "border-foreground/15";
+}
+
+/** Single-line text input. */
+export function Input({
+  error,
+  size = "md",
+  className,
+  ...rest
+}: { error?: boolean; size?: FieldSize } & Omit<ComponentProps<"input">, "size">) {
+  return (
+    <input
+      className={cx(FIELD_BASE, FIELD_SIZE[size], fieldBorder(error), className)}
+      {...rest}
+    />
+  );
+}
+
+/** Multi-line text input. */
+export function Textarea({
+  error,
+  size = "md",
+  className,
+  ...rest
+}: { error?: boolean; size?: FieldSize } & ComponentProps<"textarea">) {
+  return (
+    <textarea
+      className={cx(
+        FIELD_BASE,
+        FIELD_SIZE[size],
+        "resize-y leading-[1.55]",
+        fieldBorder(error),
+        className,
+      )}
+      {...rest}
+    />
+  );
+}
+
+/** Native select styled to match Input. */
+export function Select({
+  error,
+  size = "md",
+  className,
+  children,
+  ...rest
+}: { error?: boolean; size?: FieldSize } & Omit<ComponentProps<"select">, "size">) {
+  return (
+    <select
+      className={cx(FIELD_BASE, FIELD_SIZE[size], fieldBorder(error), className)}
+      {...rest}
+    >
+      {children}
+    </select>
   );
 }
 
@@ -219,6 +314,50 @@ export function Card({
       ),
     },
     children,
+  );
+}
+
+/* ─── Avatar ──────────────────────────────────────────────────────────── */
+
+type AvatarSize = "sm" | "md";
+
+const AVATAR_SIZE: Record<AvatarSize, string> = {
+  sm: "w-8 h-8 text-[10px]",
+  md: "w-10 h-10 text-[11px]",
+};
+
+/**
+ * Initials avatar. Decorative by default (`aria-hidden`) since the person's
+ * name is rendered as adjacent text at every call site. `tone="accent"` fills
+ * with the accent; default is the paper + hairline treatment.
+ */
+export function Avatar({
+  initials,
+  size = "md",
+  tone = "paper",
+  className,
+}: {
+  initials: string;
+  size?: AvatarSize;
+  tone?: "paper" | "accent";
+  className?: string;
+}) {
+  const toneClass =
+    tone === "accent"
+      ? "bg-accent text-background"
+      : "bg-paper border border-foreground/15 text-foreground";
+  return (
+    <span
+      aria-hidden
+      className={cx(
+        "inline-flex items-center justify-center rounded-full font-semibold shrink-0 normal-case tracking-normal",
+        AVATAR_SIZE[size],
+        toneClass,
+        className,
+      )}
+    >
+      {initials}
+    </span>
   );
 }
 

@@ -100,7 +100,7 @@ export default function LegoBuild() {
       ref={ref}
       className="w-full max-w-[1100px] mx-auto flex flex-col items-stretch"
     >
-      <div className="grid grid-cols-2 gap-6 md:gap-16">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-16">
         <InputColumn
           title="Community Feed"
           subtitle="raised by communities"
@@ -121,7 +121,7 @@ export default function LegoBuild() {
 
       <div className="flex flex-col items-center -mt-1">
         <BrickStack bricks={MERGED_BRICKS} passed={passed} />
-        <div className="mt-6 text-[11px] uppercase tracking-[0.34em] text-foreground/55 font-semibold">
+        <div className="mt-6 text-[11px] uppercase tracking-[0.22em] text-foreground/55 font-semibold">
           One Library entry
         </div>
       </div>
@@ -142,12 +142,14 @@ function InputColumn({
   passed: (t: number) => boolean;
   align: "start" | "end";
 }) {
-  const itemsAlign = align === "end" ? "items-end" : "items-start";
-  const textAlign = align === "end" ? "text-right" : "text-left";
+  const itemsAlign =
+    align === "end" ? "items-center sm:items-end" : "items-center sm:items-start";
+  const textAlign =
+    align === "end" ? "text-center sm:text-right" : "text-center sm:text-left";
   return (
     <div className={`flex flex-col ${itemsAlign} gap-5 h-full`}>
       <div className={textAlign}>
-        <div className="text-[10px] uppercase tracking-[0.32em] text-accent font-semibold">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-accent font-semibold">
           {title}
         </div>
         <div className="mt-1 text-[12px] font-serif italic text-foreground/55">
@@ -203,7 +205,8 @@ function BrickEl({
     <div
       className="relative"
       style={{
-        width: brick.width,
+        width: "100%",
+        maxWidth: brick.width,
         transform: visible ? "translateY(0)" : "translateY(-44px)",
         opacity: visible ? 1 : 0,
         transition:

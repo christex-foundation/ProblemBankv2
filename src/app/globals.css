@@ -17,6 +17,13 @@
   --cat-social: #3b5b9a;
   --cat-safety: #8a6d3b;
 
+  /* Dark canvas surfaces (Matrix views). */
+  --surface-dark: #0a0a0a;
+  --surface-dark-raised: #1a1a1a;
+  --surface-dark-sunken: #111111;
+  /* Warm off-white for text/icons on dark surfaces (mirrors --background). */
+  --on-dark: #f8f0e7;
+
   /* Motion (mirrors motion in src/design/tokens.ts). */
   --motion-duration-fast: 180ms;
   --motion-duration-base: 260ms;
@@ -37,7 +44,15 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-rule: var(--rule);
+  --color-on-dark: var(--on-dark);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-dark-raised: var(--surface-dark-raised);
+  --color-surface-dark-sunken: var(--surface-dark-sunken);
   --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Elevation tokens (mirror shadow in src/design/tokens.ts). */
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
 
   --animate-marquee-vertical: marquee-vertical 150s linear infinite;
 
@@ -143,6 +158,14 @@ body {
 [data-reveal-distance="soft"][data-reveal="out"] {
   transform: translate3d(0, var(--motion-distance-soft), 0);
 }
+/* Reversible reveal (once={false}): animate the out direction too, so the
+   element settles back rather than snapping when scrolled out of view. */
+[data-reveal-repeat][data-reveal="out"] {
+  transition:
+    opacity var(--motion-duration-slow) var(--motion-ease-standard),
+    transform var(--motion-duration-slow) var(--motion-ease-standard);
+  transition-delay: var(--reveal-delay, 0ms);
+}
 
 /* TextReveal: opacity + small letter-spacing settle for headings. */
 [data-text-reveal="out"] {
@@ -209,6 +232,14 @@ body {
   clip-path: inset(0 0 0 calc((1 - var(--p)) * 100%));
   -webkit-clip-path: inset(0 0 0 calc((1 - var(--p)) * 100%));
 }
+/* inView trigger: the wipe is toggled 0<->1, so transition the clip so it
+   draws smoothly when it crosses the (centered) observer line. */
+[data-scroll-wipe][data-wipe-trigger="inView"] {
+  transition:
+    clip-path var(--motion-duration-slow) var(--motion-ease-standard),
+    -webkit-clip-path var(--motion-duration-slow) var(--motion-ease-standard);
+  transition-delay: var(--reveal-delay, 0ms);
+}
 
 /* ScrollSlideReveal: horizontal translate + fade driven by --p. */
 [data-scroll-slide] {
@@ -268,6 +299,53 @@ body {
   background-size: 100% 1px;
 }
 
+/* Wave drift: ambient horizontal ripple. Pair on two stacked tiles (each
+ * width 50% of a 200%-wide track) so translating -50% loops seamlessly. */
+@keyframes wave-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+@keyframes wave-drift-rev {
+  from { transform: translate3d(-50%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+/* Water sweep: a coral highlight band drifts across text clipped to the
+ * gradient, so a ripple of colour runs through the headline letters. */
+@keyframes water-sweep {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.water-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--foreground) 0%,
+    var(--foreground) 38%,
+    var(--accent) 50%,
+    var(--foreground) 62%,
+    var(--foreground) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: water-sweep 6s linear infinite;
+}
+
+/* Liquid-fill gauge: a wave tile (80px wide) drifts one wavelength so the
+ * clipped water surface ripples. */
+@keyframes liquid-wave {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-80px); }
+}
+.liquid-wave { animation: liquid-wave 2.8s linear infinite; }
+.liquid-wave-slow { animation: liquid-wave 4.4s linear infinite; }
+
+.wave-drift { animation: wave-drift 16s linear infinite; }
+.wave-drift-slow { animation: wave-drift 26s linear infinite; }
+.wave-drift-rev { animation: wave-drift-rev 20s linear infinite; }
+.wave-drift-rev-slow { animation: wave-drift-rev 34s linear infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal="out"],
   [data-reveal="in"],
@@ -287,6 +365,14 @@ body {
   [data-scroll-wipe] { clip-path: none; -webkit-clip-path: none; transition: none; }
   [data-scroll-slide] { transform: none; opacity: 1; }
   [data-mount-slide] { animation: none; transform: none; opacity: 1; }
+  .wave-drift, .wave-drift-slow,
+  .wave-drift-rev, .wave-drift-rev-slow,
+  .liquid-wave, .liquid-wave-slow { animation: none; }
+  .water-text {
+    animation: none;
+    color: var(--foreground);
+    -webkit-text-fill-color: var(--foreground);
+  }
 }
 
 

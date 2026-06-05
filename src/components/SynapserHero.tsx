@@ -599,7 +599,7 @@ export default function SynapserHero({
 
       <div
         ref={captionRef}
-        className="absolute bottom-8 left-0 right-0 z-20 text-center text-[10px] sm:text-xs uppercase tracking-[0.32em] pointer-events-none"
+        className="absolute bottom-8 left-0 right-0 z-20 text-center text-[10px] sm:text-xs uppercase tracking-[0.22em] pointer-events-none"
         style={{ opacity: 0, transition: "opacity 900ms ease-out" }}
       >
         {caption}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { categoryHex } from "@/design/tokens";
 import type { Universe as U, UniverseNode } from "@/lib/universe";
 
 interface MapUniverseProps {
@@ -51,14 +52,14 @@ function colorForTheme(
   //   Safety    = "#8a6d3b"  (brown)
   switch (color.toLowerCase()) {
     case "#1c1b18":
-      return "rgba(255,255,255,0.45)"; // non-acute → light grey, still recedes
-    case "#c8442a":
+      return "rgba(248,240,231,0.45)"; // non-acute → light grey, still recedes
+    case categoryHex.economy:
       return "#ff7a5c";
-    case "#2f5e3e":
+    case categoryHex.infrastructure:
       return "#6dbb86";
-    case "#3b5b9a":
+    case categoryHex.social:
       return "#7da3e8";
-    case "#8a6d3b":
+    case categoryHex.safety:
       return "#d6b075";
     default:
       // Unknown colour — leave it, but boost saturation for acute dots.
@@ -84,18 +85,18 @@ const THEMES = {
     tooltipBadgeBorder: "border-foreground",
   },
   dark: {
-    wrapperBg: "bg-[#0a0a0a]",
-    bgFill: "#0a0a0a",
-    edgeStroke: "rgba(255,255,255,0.25)",
-    labelFill: "rgba(255,255,255,0.78)",
-    labelOutline: "#0a0a0a",
-    dotHoverStroke: "rgba(255,255,255,0.95)",
-    tooltipCard: "bg-[#1a1a1a] border border-white/15 text-white",
-    tooltipText: "text-white",
-    tooltipMuted: "text-white/55",
-    tooltipDivider: "border-white/10",
-    tooltipItalic: "text-white/85",
-    tooltipBadgeBorder: "border-white",
+    wrapperBg: "bg-surface-dark",
+    bgFill: "var(--surface-dark)",
+    edgeStroke: "rgba(248,240,231,0.25)",
+    labelFill: "rgba(248,240,231,0.78)",
+    labelOutline: "var(--surface-dark)",
+    dotHoverStroke: "rgba(248,240,231,0.95)",
+    tooltipCard: "bg-surface-dark-raised border border-on-dark/15 text-on-dark",
+    tooltipText: "text-on-dark",
+    tooltipMuted: "text-on-dark/55",
+    tooltipDivider: "border-on-dark/10",
+    tooltipItalic: "text-on-dark/85",
+    tooltipBadgeBorder: "border-on-dark",
   },
 } as const;
 
@@ -316,7 +317,7 @@ export function MapUniverse({
               fill={tc.labelFill}
               fontSize={12}
               fontWeight={600}
-              className="uppercase tracking-[0.18em]"
+              className="uppercase tracking-[0.22em]"
             >
               {l.name}
             </text>
@@ -360,7 +361,7 @@ function Tooltip({
       >
         {node.kind === "respondent" ? (
           <>
-            <div className={`text-[10px] uppercase tracking-[0.18em] ${tc.tooltipMuted}`}>
+            <div className={`text-[10px] uppercase tracking-[0.22em] ${tc.tooltipMuted}`}>
               Respondent · {node.respondentId}
             </div>
             <div className="mt-1 font-medium">{node.community}</div>
@@ -368,14 +369,14 @@ function Tooltip({
               {node.ageBand} · {node.gender || "—"}
             </div>
             <div className={`mt-2 pt-2 border-t ${tc.tooltipDivider}`}>
-              <div className={`text-[10px] uppercase tracking-[0.18em] ${tc.tooltipMuted}`}>
+              <div className={`text-[10px] uppercase tracking-[0.22em] ${tc.tooltipMuted}`}>
                 Top priority
               </div>
               <div className="font-medium">{node.topPriorityText}</div>
             </div>
             {node.whyUrgent && (
               <div className={`mt-2 pt-2 border-t ${tc.tooltipDivider} max-w-[280px]`}>
-                <div className={`text-[10px] uppercase tracking-[0.18em] ${tc.tooltipMuted}`}>
+                <div className={`text-[10px] uppercase tracking-[0.22em] ${tc.tooltipMuted}`}>
                   In their words
                 </div>
                 <div className={`mt-1 italic ${tc.tooltipItalic} leading-snug whitespace-normal`}>
@@ -386,7 +387,7 @@ function Tooltip({
           </>
         ) : (
           <>
-            <div className={`text-[10px] uppercase tracking-[0.18em] ${tc.tooltipMuted}`}>
+            <div className={`text-[10px] uppercase tracking-[0.22em] ${tc.tooltipMuted}`}>
               Mention · {node.respondentId}
             </div>
             <div className="mt-1 font-medium">{node.problem}</div>
