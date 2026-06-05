@@ -475,7 +475,7 @@ export default function CommunityNeedsAssessmentPage() {
                 />
               }
               caption={
-                <Caption className="mx-auto max-w-none whitespace-nowrap">
+                <Caption className="mx-auto max-w-none md:whitespace-nowrap">
                   Figure 1 — problems named and support requested as polar-area blooms, four
                   communities (n=476).
                 </Caption>
@@ -948,7 +948,7 @@ export default function CommunityNeedsAssessmentPage() {
                 </div>
               }
               caption={
-                <Caption className="mx-auto max-w-none whitespace-nowrap">
+                <Caption className="mx-auto max-w-none md:whitespace-nowrap">
                   Figure 6 — barriers to using a new service, mentions across responses (n=476).
                 </Caption>
               }
@@ -1009,7 +1009,7 @@ export default function CommunityNeedsAssessmentPage() {
                 </div>
               }
               caption={
-                <Caption className="mx-auto max-w-none whitespace-nowrap">
+                <Caption className="mx-auto max-w-none md:whitespace-nowrap">
                   Figure 7 — preferred way to be reached, four communities (n=476).
                 </Caption>
               }
