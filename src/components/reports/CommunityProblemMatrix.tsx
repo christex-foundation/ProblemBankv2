@@ -385,6 +385,10 @@ export function CommunityProblemMatrix(props: CommunityProblemMatrixProps) {
                     onMouseLeave={() =>
                       setHoverId((cur) => (cur === b.id ? null : cur))
                     }
+                    onFocus={() => setHoverId(b.id)}
+                    onBlur={() =>
+                      setHoverId((cur) => (cur === b.id ? null : cur))
+                    }
                     onClick={() => {
                       // Overview bubbles drill into the per-community detail;
                       // detail bubbles are terminal (no further flow). Bare mode
@@ -397,6 +401,28 @@ export function CommunityProblemMatrix(props: CommunityProblemMatrixProps) {
                         }
                       }
                     }}
+                    onKeyDown={(e) => {
+                      if (
+                        (e.key === "Enter" || e.key === " ") &&
+                        !bare &&
+                        !isDetail
+                      ) {
+                        e.preventDefault();
+                        const ci = props.categories.indexOf(b.id);
+                        if (ci >= 0) {
+                          setHoverId(null);
+                          setSelected(ci);
+                        }
+                      }
+                    }}
+                    tabIndex={bare || isDetail ? undefined : 0}
+                    role={bare || isDetail ? undefined : "button"}
+                    aria-label={
+                      bare || isDetail
+                        ? undefined
+                        : `${b.label}: ${b.count} (${b.pct}%). View by ${entity.singular}.`
+                    }
+                    className="focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                     style={{
                       cursor: bare || isDetail ? "default" : "pointer",
                       transition:
@@ -466,6 +492,14 @@ export function CommunityProblemMatrix(props: CommunityProblemMatrixProps) {
             );
           })}
         </svg>
+        {/* Text-equivalent of the bubble chart for screen readers. */}
+        <ul className="sr-only">
+          {bubbles.map((b) => (
+            <li key={b.id}>
+              {b.label}: {b.count} ({b.pct}%)
+            </li>
+          ))}
+        </ul>
       </div>
 
       {/* Footer total — mirrors the matrix grand-total line. */}

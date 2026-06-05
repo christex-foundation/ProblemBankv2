@@ -217,7 +217,7 @@ export function MatrixDetail({
 
       {/* Legend explaining the amber acute signal — investor-facing.
           "Acute" can sound clinical, so we say it plain. */}
-      <div className="absolute top-32 md:top-36 left-6 md:left-10 z-10 max-w-[280px] border-l border-on-dark/15 pl-4">
+      <div className="hidden md:block absolute top-32 md:top-36 left-6 md:left-10 z-10 max-w-[280px] border-l border-on-dark/15 pl-4">
         <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-on-dark/55">
           <span
             aria-hidden
@@ -341,13 +341,32 @@ export function MatrixDetail({
                     onMouseLeave={() =>
                       setHoverId((cur) => (cur === b.id ? null : cur))
                     }
+                    onFocus={() => setHoverId(b.id)}
+                    onBlur={() =>
+                      setHoverId((cur) => (cur === b.id ? null : cur))
+                    }
                     onClick={() =>
                       router.push(
                         `/matrix/${slugifyProblem(problem)}/${slugify(b.id)}`,
                       )
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        router.push(
+                          `/matrix/${slugifyProblem(problem)}/${slugify(b.id)}`,
+                        );
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${b.label}: ${b.count} respondents${
+                      b.acute > 0 ? `, ${b.acute} acute` : ""
+                    }. View details.`}
+                    className="focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     style={{
                       cursor: "pointer",
+                      outlineColor: "var(--on-dark)",
                       transition:
                         "stroke 240ms ease, fill 240ms ease, stroke-width 240ms ease",
                     }}
@@ -403,6 +422,15 @@ export function MatrixDetail({
             );
           })}
         </svg>
+        {/* Text-equivalent of the bubble chart for screen readers. */}
+        <ul className="sr-only">
+          {bubbles.map((b) => (
+            <li key={b.id}>
+              {b.label}: {b.count} respondents
+              {b.acute > 0 ? `, ${b.acute} acute` : ""}
+            </li>
+          ))}
+        </ul>
       </div>
 
       {initial.length === 0 && (
@@ -411,7 +439,7 @@ export function MatrixDetail({
         </div>
       )}
 
-      <footer className="absolute bottom-4 left-6 md:left-10 right-6 md:right-10 text-[10px] uppercase tracking-[0.22em] text-on-dark/35 flex justify-between">
+      <footer className="absolute bottom-4 left-6 md:left-10 right-6 md:right-10 text-[10px] uppercase tracking-[0.22em] text-on-dark/35 hidden md:flex justify-between">
         <span>Christex Foundation · Problem Bank</span>
         <span>{problem}</span>
       </footer>

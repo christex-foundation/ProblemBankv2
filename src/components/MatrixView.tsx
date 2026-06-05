@@ -257,8 +257,8 @@ export function MatrixView({ universe, mapUniverse }: MatrixViewProps) {
           </FilterGroupRow>
           {dimension === "problem" && viewMode === "matrix" && (
             <>
-              <span className="h-4 w-px bg-on-dark/15" aria-hidden />
-              <div className="flex items-center gap-2">
+              <span className="hidden md:inline-block h-4 w-px bg-on-dark/15" aria-hidden />
+              <div className="hidden md:flex items-center gap-2">
                 <span
                   aria-hidden
                   className="inline-block w-2.5 h-2.5 rounded-full"
@@ -308,6 +308,12 @@ export function MatrixView({ universe, mapUniverse }: MatrixViewProps) {
               dimension === "problem"
                 ? CATEGORY_COLOR[b.category]
                 : "rgba(248,240,231,0.5)";
+            const go = () =>
+              router.push(
+                dimension === "problem"
+                  ? `/matrix/${slugifyProblem(b.id)}`
+                  : `/matrix/community/${slugifyProblem(b.id)}`,
+              );
             return (
               <g
                 key={b.id}
@@ -395,16 +401,28 @@ export function MatrixView({ universe, mapUniverse }: MatrixViewProps) {
                     onMouseLeave={() =>
                       setHoverId((cur) => (cur === b.id ? null : cur))
                     }
-                    onClick={() => {
-                      if (dimension === "problem") {
-                        router.push(`/matrix/${slugifyProblem(b.id)}`);
-                      } else {
-                        // Community dimension → community overview page.
-                        router.push(`/matrix/community/${slugifyProblem(b.id)}`);
+                    onFocus={() => setHoverId(b.id)}
+                    onBlur={() =>
+                      setHoverId((cur) => (cur === b.id ? null : cur))
+                    }
+                    onClick={go}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        go();
                       }
                     }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${b.label}: ${b.count} respondents${
+                      dimension === "problem" && b.acute > 0
+                        ? `, ${b.acute} acute`
+                        : ""
+                    }. View details.`}
+                    className="focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                     style={{
                       cursor: "pointer",
+                      outlineColor: "var(--on-dark)",
                       transition:
                         "stroke 240ms ease, fill 240ms ease, stroke-width 240ms ease",
                     }}
@@ -472,6 +490,17 @@ export function MatrixView({ universe, mapUniverse }: MatrixViewProps) {
             );
           })}
         </svg>
+        {/* Text-equivalent of the bubble chart for screen readers. */}
+        <ul className="sr-only">
+          {bubbles.map((b) => (
+            <li key={b.id}>
+              {b.label}: {b.count} respondents
+              {dimension === "problem" && b.acute > 0
+                ? `, ${b.acute} acute`
+                : ""}
+            </li>
+          ))}
+        </ul>
         {hovered && hoverDetail && hoverDetail.length > 0 && (
           <HoverCard
             bubble={hovered}

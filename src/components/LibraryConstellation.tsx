@@ -158,6 +158,15 @@ export function LibraryConstellation({ entries, className }: Props) {
         </g>
       </svg>
 
+      {/* Text-equivalent of the constellation for screen readers. */}
+      <ul className="sr-only">
+        {entries.map((e) => (
+          <li key={e.id}>
+            {e.title} — {e.sector}, {e.urgency} urgency, {e.builders} builders
+          </li>
+        ))}
+      </ul>
+
       {hovered && (
         <div
           className="pointer-events-none absolute z-10"

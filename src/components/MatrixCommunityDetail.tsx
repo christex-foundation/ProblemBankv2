@@ -985,9 +985,23 @@ function DemoBubble({
           strokeWidth={selected || hovered ? 1.6 : 0.8}
           onMouseEnter={onEnter}
           onMouseLeave={onLeave}
+          onFocus={onEnter}
+          onBlur={onLeave}
           onClick={onClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick();
+            }
+          }}
+          tabIndex={0}
+          role="button"
+          aria-pressed={selected}
+          aria-label={`${b.label}: ${b.count} (${sharePct}%). Toggle filter.`}
+          className="focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
             cursor: "pointer",
+            outlineColor: "var(--on-dark)",
             transition:
               "stroke 240ms ease, fill 240ms ease, stroke-width 240ms ease",
           }}
