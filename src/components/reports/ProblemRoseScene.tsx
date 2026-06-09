@@ -20,6 +20,7 @@ export function ProblemRoseScene({
   unit = '%',
   topClassName = 'mt-16 md:mt-24',
   roseGapClassName = 'mt-6 md:-mt-44',
+  roseMaxClassName = 'max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,80vh)]',
   captionGapClassName = '-mt-48',
   stickyTopClassName = 'top-30',
 }: {
@@ -41,6 +42,11 @@ export function ProblemRoseScene({
    * and the rose. More-negative pulls the rose up closer to the headline
    * (default 'mt-6 md:-mt-44'). */
   roseGapClassName?: string;
+  /** Max-width utility on the rose wrapper; the rose is square so this also
+   * sets its height. Capped by viewport height so the pinned composition
+   * stays on screen. Override to grow/shrink a specific scene's bloom
+   * (default 'max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,80vh)]'). */
+  roseMaxClassName?: string;
   /** Margin utility on the caption wrapper; controls how far the caption
    * tucks up under the rose. Less-negative drops it down, away from the
    * petals/labels (default '-mt-48'). */
@@ -98,7 +104,7 @@ export function ProblemRoseScene({
               shorter laptop screens don't clip the rose or hide the caption;
               it scales the rose up automatically on taller monitors. */}
           <div
-            className={`${roseGapClassName} w-full max-w-[min(1300px,62vh)] ${
+            className={`${roseGapClassName} w-full ${roseMaxClassName} ${
               mirror ? "mr-auto" : "ml-auto"
             }`}
           >
