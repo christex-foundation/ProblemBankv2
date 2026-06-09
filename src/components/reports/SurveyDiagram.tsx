@@ -214,9 +214,12 @@ export function SurveyDiagram({
 
   return (
     <div ref={ref}>
-      {/* ── Desktop: scatter on the grid, choreographed by scroll ──── */}
+      {/* ── Desktop: scatter on the grid, choreographed by scroll ────
+          Only at lg+, where the 16:10 box is tall enough to hold the
+          fixed-size cards without colliding. At md the box is too short and
+          the community/Valid cards overlap, so we fall back to the stack. */}
       <div
-        className="hidden md:block"
+        className="hidden lg:block"
         style={{ opacity: 1 - exit, transform: `translateY(${-exit * 26}px)` }}
       >
         <div className="relative aspect-[16/10] w-full">
@@ -392,8 +395,8 @@ export function SurveyDiagram({
         )}
       </div>
 
-      {/* ── Mobile: stacked fallback ─────────────────────────────── */}
-      <div className="md:hidden">
+      {/* ── Mobile + tablet: stacked fallback (below lg) ─────────── */}
+      <div className="lg:hidden">
         <h3 className="text-center font-black leading-[0.95] tracking-[-0.03em] text-3xl">
           About this survey.
         </h3>

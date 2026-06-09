@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { auth } from '@/lib/auth';
-import { UserMenu } from '@/components/UserMenu';
 
 type ActiveKey = 'library' | 'feed' | null;
 type Variant = 'sticky' | 'overlay';
@@ -13,22 +11,21 @@ const wrapperByVariant: Record<Variant, string> = {
 };
 
 /**
- * Shared top nav: brand, Library/Feed links, and the signed-in account menu
- * (or a Sign in pill). Used by every page so the nav can't drift. Pass
- * `active` to mark the current tab and `variant` to pick sticky vs overlay.
+ * Shared top nav: brand and the Library link. Used by every page so the nav
+ * can't drift. Pass `active` to mark the current tab and `variant` to pick
+ * sticky vs overlay.
+ *
+ * NOTE: the Feed link and the signed-in account menu / Sign in pill are
+ * intentionally hidden from the UI for this milestone. The /feed and /signin
+ * routes still work via direct URL; only the nav entry points are removed.
  */
 export async function SiteNav({
   active = null,
   variant = 'sticky',
 }: { active?: ActiveKey; variant?: Variant } = {}) {
-  const session = await auth();
-  const user = session?.user;
-
   const linkBase = 'transition-soft';
   const inactive = 'text-foreground/55 hover:text-foreground';
   const activeCls = 'text-foreground font-semibold';
-  const pillCls =
-    'px-3 py-1.5 border border-foreground font-semibold hover:bg-foreground hover:text-background transition-soft';
 
   return (
     <nav
@@ -49,20 +46,6 @@ export async function SiteNav({
           >
             Library
           </Link>
-          <Link
-            href="/feed"
-            className={`${linkBase} ${active === 'feed' ? activeCls : inactive}`}
-            aria-current={active === 'feed' ? 'page' : undefined}
-          >
-            Feed
-          </Link>
-          {user ? (
-            <UserMenu user={user} />
-          ) : (
-            <Link href="/signin" className={pillCls}>
-              Sign in
-            </Link>
-          )}
         </div>
       </div>
     </nav>

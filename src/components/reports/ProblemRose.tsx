@@ -59,6 +59,21 @@ function useScrollProgress<T extends Element>() {
   return { ref, progress };
 }
 
+/** True on phone-width viewports, so the bloom can size its labels up where
+ * the SVG renders small enough that the desktop label size is unreadable. */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof matchMedia === "undefined") return;
+    const mq = matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const on = () => setIsMobile(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return isMobile;
+}
+
 function petalPath(cx: number, cy: number, a0: number, a1: number, r: number, sweep = 1) {
   const x0 = cx + Math.cos(a0) * r;
   const y0 = cy + Math.sin(a0) * r;
@@ -111,6 +126,13 @@ export function ProblemRose({
   const ref = internal.ref;
   const progress = externalProgress ?? internal.progress;
 
+  // The SVG scales to its container, so on phones the rose renders at roughly
+  // half size and the desktop label size becomes unreadable. Size labels up
+  // there; line spacing is derived from the font so the block stays tidy.
+  const isMobile = useIsMobile();
+  const labelFont = isMobile ? 18 : 8;
+  const lineGap = labelFont * 1.25;
+
   const W = 620;
   const cx = W / 2;
   const cy = W / 2;
@@ -137,7 +159,7 @@ export function ProblemRose({
   return (
     <div ref={ref} className={className}>
       <svg
-        viewBox={`0 0 ${W} ${W}`}
+        viewBox={isMobile ? `-110 -40 ${W + 220} ${W + 80}` : `0 0 ${W} ${W}`}
         className="w-full h-auto block select-none overflow-visible"
         role="img"
         aria-label={`Problems named, as a polar-area bloom. Highest: ${petals
@@ -149,14 +171,17 @@ export function ProblemRose({
       >
         {petals.map((p, i) => {
           // sit the label just past each petal's own tip, not on a shared ring
-          const lr = p.r + 20;
+          const lr = p.r + labelFont + 12;
           const lx = cx + Math.cos(p.aMid) * lr;
           const ly = cy + Math.sin(p.aMid) * lr;
           const anchor =
             Math.cos(p.aMid) > 0.25 ? "start" : Math.cos(p.aMid) < -0.25 ? "end" : "middle";
           const lines = twoLines(p.label);
           // nudge label block vertically so it sits centered on its anchor point
-          const ty = ly - (lines.length === 2 ? 6 : 0) - (Math.sin(p.aMid) < -0.6 ? 8 : 0);
+          const ty =
+            ly -
+            (lines.length === 2 ? labelFont * 0.75 : 0) -
+            (Math.sin(p.aMid) < -0.6 ? labelFont : 0);
           // petal i owns the scroll window [i/n, (i+1)/n]; t is its local 0→1
           const t = Math.min(1, Math.max(0, progress * n - i));
           const eased = 1 - Math.pow(1 - t, 2); // easeOut
@@ -177,27 +202,27 @@ export function ProblemRose({
                   y={ty}
                   textAnchor={anchor}
                   className="fill-foreground"
-                  style={{ fontSize: 8, fontWeight: 600 }}
+                  style={{ fontSize: labelFont, fontWeight: 600 }}
                 >
                   {lines[0]}
                 </text>
                 {lines[1] && (
                   <text
                     x={lx}
-                    y={ty + 10}
+                    y={ty + lineGap}
                     textAnchor={anchor}
                     className="fill-foreground"
-                    style={{ fontSize: 8, fontWeight: 600 }}
+                    style={{ fontSize: labelFont, fontWeight: 600 }}
                   >
                     {lines[1]}
                   </text>
                 )}
                 <text
                   x={lx}
-                  y={ty + (lines[1] ? 20 : 11)}
+                  y={ty + (lines[1] ? lineGap * 2 : lineGap)}
                   textAnchor={anchor}
                   fill={ACCENT}
-                  style={{ fontSize: 8, fontWeight: 800 }}
+                  style={{ fontSize: labelFont, fontWeight: 800 }}
                 >
                   {p.value}
                   {unit}

@@ -7,9 +7,8 @@ import {
   Stack,
   RuleLine,
   GrainOverlay,
-  ButtonLink,
 } from '@/design/primitives';
-import { Eyebrow, Lede, Tagline } from '@/design/typography';
+import { Eyebrow, Lede } from '@/design/typography';
 import {
   getLibraryEntries,
   problemStatementPreview,
@@ -19,7 +18,6 @@ import {
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
-import { RaiseButton } from '@/components/feed/RaiseButton';
 import { Reveal } from '@/design/motion';
 import { CommunityProblemMatrix } from '@/components/reports/CommunityProblemMatrix';
 import { report as communityNeedsReport } from '@/data/reports/community-needs-assessment';
@@ -158,7 +156,7 @@ export default async function LibraryIndexPage({
               </Eyebrow>
             </div>
             <div className="col-span-12 md:col-span-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-baseline justify-items-center gap-x-10 gap-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-baseline justify-items-center gap-x-6 lg:gap-x-10 gap-y-3">
                 <FilterDropdown
                   label="Sector"
                   active={sp.sector ?? ''}
@@ -258,41 +256,9 @@ export default async function LibraryIndexPage({
       </Section>
 
       {/* ─── Closer ─────────────────────────────────────────────────── */}
-      <Section pad="md" tone="foreground">
-        <Container size="wide">
-          <div className="grid grid-cols-12 gap-6 md:gap-10 items-end">
-            <div className="col-span-12 md:col-span-7">
-              <Eyebrow tone="accent" size="sm">
-                Don&rsquo;t see your problem?
-              </Eyebrow>
-              <h2 className="mt-4 font-black tracking-[-0.03em] leading-[0.95] text-[clamp(2.5rem,7vw,5rem)] text-background">
-                Raise it on the <span className="text-accent">feed.</span>
-              </h2>
-              <p className="mt-8 max-w-[55ch] text-base md:text-lg text-background/55 leading-[1.6]">
-                The community feed is the other door into the Library.
-                Problems raised there are voted on, researched, and shipped
-                into these shelves on the same standard as the rest.
-              </p>
-            </div>
-            <div className="col-span-12 md:col-span-5 flex flex-col sm:flex-row md:flex-col gap-4 md:items-end">
-              <ButtonLink
-                href="/feed"
-                variant="accent"
-                className="min-w-[220px] hover:!bg-background hover:!text-foreground"
-              >
-                Visit the feed
-              </ButtonLink>
-              <RaiseButton variant="outlineInverse" className="min-w-[220px]">
-                Raise a problem
-              </RaiseButton>
-            </div>
-          </div>
-          <Tagline tone="onDark" align="right" className="mt-20 md:mt-28">
-            Different doors. Same{' '}
-            <span className="text-accent font-bold not-italic">standard.</span>
-          </Tagline>
-        </Container>
-      </Section>
+      {/* The feed-themed closer ("Raise it on the feed", Visit the feed /
+          Raise a problem) is hidden for this milestone while the feed and
+          sign-in flows are off the UI. The /feed route still works directly. */}
 
       </div>
 
@@ -546,24 +512,19 @@ function EmptyState({ hasFilters }: { hasFilters: boolean }) {
         <p className="max-w-[40ch] text-base text-foreground/55 leading-[1.6]">
           {hasFilters
             ? 'Try a different sector, urgency, or source, or clear the filters.'
-            : 'The first Library entry will appear here once Christex publishes it. In the meantime, the feed is open for the community to raise problems.'}
+            : 'The first Library entry will appear here once Christex publishes it.'}
         </p>
-        <div className="flex flex-wrap gap-3 justify-center mt-4">
-          {hasFilters && (
+        {/* "Visit the feed" link hidden for this milestone. */}
+        {hasFilters && (
+          <div className="flex flex-wrap gap-3 justify-center mt-4">
             <Link
               href="/library"
               className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold"
             >
               Clear filters
             </Link>
-          )}
-          <Link
-            href="/feed"
-            className="link-underline text-[11px] uppercase tracking-[0.22em] font-semibold text-accent"
-          >
-            Visit the feed
-          </Link>
-        </div>
+          </div>
+        )}
       </Stack>
     </div>
   );

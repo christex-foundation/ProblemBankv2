@@ -13,9 +13,6 @@ export default function NotFound() {
         <ButtonLink href="/" variant="primary" size="sm">
           Problem Bank home
         </ButtonLink>
-        <ButtonLink href="/feed" variant="outline" size="sm">
-          Community feed
-        </ButtonLink>
       </div>
     </main>
   );

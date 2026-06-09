@@ -163,7 +163,7 @@ export default async function FeedIndexPage({
                 </Eyebrow>
               </div>
               <div className="col-span-12 md:col-span-10">
-                <div className="grid grid-cols-2 sm:grid-cols-4 items-baseline justify-items-center gap-x-8 gap-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 items-baseline justify-items-center gap-x-4 sm:gap-x-8 gap-y-3">
                   <FilterDropdown
                     label="Sort"
                     active={sort === 'votes' ? '' : sort}
@@ -368,9 +368,9 @@ function StatCell({
   accent?: boolean;
 }) {
   return (
-    <div className="border-l first:border-l-0 border-foreground/15 px-4 py-6 md:px-6 md:py-8 flex flex-col gap-2">
+    <div className="border-l first:border-l-0 border-foreground/15 px-3 py-5 sm:px-4 sm:py-6 md:px-6 md:py-8 flex flex-col gap-2">
       <span
-        className={`num text-4xl md:text-6xl font-semibold tracking-[-0.025em] leading-none ${
+        className={`num text-3xl sm:text-4xl md:text-6xl font-semibold tracking-[-0.025em] leading-none ${
           accent ? 'text-accent' : 'text-foreground'
         }`}
       >

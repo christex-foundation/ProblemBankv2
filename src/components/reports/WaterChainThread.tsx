@@ -109,7 +109,7 @@ function Chain({
     const H = horizontal ? 340 : 110 + (n - 1) * 132;
     const pts = labels.map((l, i) => {
       const f = n > 1 ? i / (n - 1) : 0;
-      const x = horizontal ? lerp(110, W - 110, f) : i % 2 === 0 ? 116 : 150;
+      const x = horizontal ? lerp(110, W - 110, f) : i % 2 === 0 ? 48 : 80;
       const y = horizontal ? (i % 2 === 0 ? 212 : 150) : lerp(64, H - 56, f);
       // the scroll position at which the thread front reaches this node. The
       // whole thread finishes drawing at DRAW_END (< 1), leaving headroom for
@@ -283,11 +283,11 @@ function Chain({
             ? node.y - 112
             : node.y + 14
           : node.y - 28;
-        const left = horizontal ? node.x : node.x + 24;
+        const left = horizontal ? node.x : 128;
         return (
           <div
             key={`label-${node.label}`}
-            className={`absolute w-[150px] ${horizontal ? 'text-center -translate-x-1/2' : 'text-left'}`}
+            className={`absolute ${horizontal ? 'w-[150px] text-center -translate-x-1/2' : 'w-[200px] text-left'}`}
             style={{
               left: `${(left / W) * 100}%`,
               top: `${(top / H) * 100}%`,

@@ -273,7 +273,7 @@ export default function CommunityNeedsAssessmentPage() {
 
       <article className="flex-1">
         {/* ─── Hero ──────────────────────────────────────────────── */}
-        <Section pad="sm" className="!pt-[2vh] md:!pt-[4vh]">
+        <Section pad="sm" className="!pt-[2vh] md:!pt-[4vh] !pb-[5vh] md:!pb-[7vh]">
           <Container size="wide">
             <Reveal className="mb-8 text-[11px] uppercase tracking-[0.22em] text-foreground/55">
               <Link href="/library" className="link-underline hover:text-foreground transition-soft">
@@ -338,7 +338,7 @@ export default function CommunityNeedsAssessmentPage() {
         </Section>
 
         {/* ─── About this survey ──────────────────────────────────── */}
-        <Section pad="md">
+        <Section pad="md" className="!pt-[6vh] md:!pt-[9vh]">
           <Container size="wide">
             <Reveal>
               <Eyebrow tone="accent" size="sm">
@@ -420,7 +420,8 @@ export default function CommunityNeedsAssessmentPage() {
         </Section>
 
         {/* ─── 01 Problems vs support ────────────────────────────── */}
-        <Section pad="md">
+        {/* pulled up to tighten the gap after the About-this-survey section */}
+        <Section pad="md" className="-mt-[14vh] md:-mt-[26vh]">
           <Container size="wide">
             {/* Hero-scale headline with the wave rippling through the words —
                 bespoke to this section, so the shared Beat is left untouched. */}
@@ -453,6 +454,9 @@ export default function CommunityNeedsAssessmentPage() {
             {/* Pinned scene: the lede + rose hold on screen while scroll
                 reveals the petals one at a time, then release. */}
             <ProblemRoseScene
+              topClassName="mt-[5vh] md:mt-[6vh] lg:mt-[7vh] xl:-mt-[8vh]"
+              stickyTopClassName="top-30 md:top-[10rem] lg:top-30"
+              roseGapClassName="mt-6 lg:-mt-44"
               items={report.problemsNamed.filter((p) => !/water/i.test(p.label))}
               lede={
                 <ScrollWordReveal
@@ -467,6 +471,10 @@ export default function CommunityNeedsAssessmentPage() {
             <ProblemRoseScene
               mirror
               flip
+              topClassName="-mt-[35vh] md:-mt-[8vh] lg:-mt-[52vh] xl:-mt-[8vh]"
+              stickyTopClassName="top-30 md:top-[10rem] lg:top-30"
+              roseGapClassName="mt-6 lg:-mt-44"
+              captionGapClassName="-mt-20 md:-mt-20 lg:-mt-48"
               items={report.supportRequested}
               lede={
                 <ScrollWordReveal
@@ -486,7 +494,7 @@ export default function CommunityNeedsAssessmentPage() {
 
         {/* ─── The water chain ───────────────────────────────────── */}
         {/* pulled up to tighten the gap after the previous section */}
-        <Section pad="md" className="-mt-[14vh] md:-mt-[20vh]">
+        <Section pad="md" className="-mt-[52vh] md:-mt-[48vh] lg:-mt-[64vh] xl:-mt-[20vh]">
           <Container size="wide">
             <Reveal>
               <h2 className="font-black leading-[0.95] tracking-[-0.03em] text-3xl md:text-[3.25rem]">
@@ -736,10 +744,10 @@ export default function CommunityNeedsAssessmentPage() {
                   as="h3"
                   className="font-black leading-[0.95] tracking-[-0.03em] text-3xl md:text-[3.25rem] pb-[0.12em]"
                 >
-                  This also resolves the <span className="text-accent">gap</span>
-                  <br />
-                  between problems and
-                  <br />
+                  This also resolves the <span className="text-accent">gap</span>{' '}
+                  <br className="hidden md:inline" />
+                  between problems and{' '}
+                  <br className="hidden md:inline" />
                   support seen earlier.
                 </ScrollWipeReveal>
                 <ScrollWordReveal
@@ -754,8 +762,8 @@ export default function CommunityNeedsAssessmentPage() {
                   direction="left"
                   className="font-black leading-[0.95] tracking-[-0.03em] text-3xl md:text-[3.25rem] pb-[0.12em]"
                 >
-                  A second, quieter signal:
-                  <br />
+                  A second, quieter signal:{' '}
+                  <br className="hidden md:inline" />
                   <span className="text-accent">tools, not training</span>.
                 </ScrollWipeReveal>
                 <ScrollWordReveal
@@ -925,7 +933,8 @@ export default function CommunityNeedsAssessmentPage() {
         </Section>
 
         {/* ─── 06 Trust & barriers ───────────────────────────────── */}
-        <Section pad="md">
+        {/* pulled up to tighten the gap after the student-notes section */}
+        <Section pad="md" className="-mt-[8vh] md:-mt-[16vh]">
           <Container size="wide">
             {/* Barriers as a full-size bloom (Figure 6). Headline rides inside
                 the pinned lede so it sits tight above the rose, matching the
@@ -935,6 +944,9 @@ export default function CommunityNeedsAssessmentPage() {
               unit=""
               mirror
               flip
+              topClassName="mt-0"
+              roseGapClassName="mt-6 md:mt-10 xl:-mt-44"
+              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-48"
               stickyTopClassName="top-12"
               lede={
                 <div>
@@ -956,7 +968,7 @@ export default function CommunityNeedsAssessmentPage() {
 
             {/* The voices that carry the finding, sitting under the rose;
                 pulled up to tighten the gap left by the pinned scene. */}
-            <div className="mt-[8vh] md:mt-[12vh] grid sm:grid-cols-3 gap-8">
+            <div className="-mt-[30vh] md:-mt-[8vh] lg:-mt-[24vh] xl:mt-[12vh] grid sm:grid-cols-3 gap-8">
               {report.trust.quotes.map((q, i) => (
                 <Reveal
                   key={q.text}
@@ -988,12 +1000,14 @@ export default function CommunityNeedsAssessmentPage() {
         </Section>
 
         {/* ─── 07 Reach ──────────────────────────────────────────── */}
-        <Section pad="md">
+        <Section pad="md" className="md:-mt-[12vh] lg:mt-0">
           <Container size="wide">
             {/* Same pinned rose scene as Figure 1: the lede holds on screen
                 while scroll blooms the petals one at a time, then releases. */}
             <ProblemRoseScene
               items={report.reach}
+              roseGapClassName="mt-6 md:mt-0 lg:mt-10 xl:-mt-44"
+              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-48"
               stickyTopClassName="top-12"
               lede={
                 <div>
@@ -1019,7 +1033,7 @@ export default function CommunityNeedsAssessmentPage() {
 
         {/* ─── 08 What comes next ────────────────────────────────── */}
         {/* pulled up to tighten the gap left by the pinned scene above */}
-        <Section pad="md" className="-mt-[14vh] md:-mt-[20vh]">
+        <Section pad="md" className="-mt-[38vh] md:-mt-[45vh] lg:-mt-[64vh] xl:-mt-[20vh]">
           <Container size="wide">
             <Reveal once={false} {...CENTER_TRIGGER}>
               <Eyebrow tone="accent" size="sm">What comes next</Eyebrow>
@@ -1051,7 +1065,7 @@ export default function CommunityNeedsAssessmentPage() {
         </Section>
 
         {/* ─── Recommendations ───────────────────────────────────── */}
-        <Section pad="md">
+        <Section pad="md" className="md:-mt-[12vh] lg:mt-0">
           <Container size="wide">
             <Reveal once={false} {...CENTER_TRIGGER}>
               <Eyebrow tone="accent" size="sm">
