@@ -41,10 +41,13 @@ export function AcuteArc({
   const angle = (clamped / 100) * 360;
   const startRad = (-90 * Math.PI) / 180;
   const endRad = ((-90 + angle) * Math.PI) / 180;
-  const x1 = Math.cos(startRad) * r;
-  const y1 = Math.sin(startRad) * r;
-  const x2 = Math.cos(endRad) * r;
-  const y2 = Math.sin(endRad) * r;
+  // Coordinates are rounded because Math.cos/sin are not bit-identical across
+  // JS engines; full-precision floats in the path string cause SSR hydration
+  // mismatches when the server and browser run different V8 versions.
+  const x1 = (Math.cos(startRad) * r).toFixed(2);
+  const y1 = (Math.sin(startRad) * r).toFixed(2);
+  const x2 = (Math.cos(endRad) * r).toFixed(2);
+  const y2 = (Math.sin(endRad) * r).toFixed(2);
   const largeArc = angle > 180 ? 1 : 0;
   const d = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
   return (

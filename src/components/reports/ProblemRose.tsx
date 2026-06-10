@@ -75,11 +75,15 @@ function useIsMobile() {
 }
 
 function petalPath(cx: number, cy: number, a0: number, a1: number, r: number, sweep = 1) {
-  const x0 = cx + Math.cos(a0) * r;
-  const y0 = cy + Math.sin(a0) * r;
-  const x1 = cx + Math.cos(a1) * r;
-  const y1 = cy + Math.sin(a1) * r;
-  return `M${cx} ${cy} L${x0} ${y0} A${r} ${r} 0 0 ${sweep} ${x1} ${y1} Z`;
+  // Coordinates are rounded because Math.cos/sin are not bit-identical across
+  // JS engines; full-precision floats in the path string cause SSR hydration
+  // mismatches when the server and browser run different V8 versions.
+  const x0 = (cx + Math.cos(a0) * r).toFixed(2);
+  const y0 = (cy + Math.sin(a0) * r).toFixed(2);
+  const x1 = (cx + Math.cos(a1) * r).toFixed(2);
+  const y1 = (cy + Math.sin(a1) * r).toFixed(2);
+  const rr = r.toFixed(2);
+  return `M${cx} ${cy} L${x0} ${y0} A${rr} ${rr} 0 0 ${sweep} ${x1} ${y1} Z`;
 }
 
 /** Labels we always keep on a single line, regardless of length. */
@@ -172,8 +176,9 @@ export function ProblemRose({
         {petals.map((p, i) => {
           // sit the label just past each petal's own tip, not on a shared ring
           const lr = p.r + labelFont + 12;
-          const lx = cx + Math.cos(p.aMid) * lr;
-          const ly = cy + Math.sin(p.aMid) * lr;
+          // Rounded for the same engine-precision reason as petalPath.
+          const lx = +(cx + Math.cos(p.aMid) * lr).toFixed(2);
+          const ly = +(cy + Math.sin(p.aMid) * lr).toFixed(2);
           const anchor =
             Math.cos(p.aMid) > 0.25 ? "start" : Math.cos(p.aMid) < -0.25 ? "end" : "middle";
           const lines = twoLines(p.label);
