@@ -1,0 +1,511 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --background:#F8F0E7; --paper:#faf8f3; --shelf:#F1E7DB;
+  --foreground:#0e0e0d; --muted:#6e6a62; --accent:#c8442a;
+  --cat-infrastructure:#2f5e3e; --cat-social:#3b5b9a; --cat-safety:#8a6d3b;
+}
+@page{ size:A4; margin:18mm 16mm; }
+*{ box-sizing:border-box; }
+html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+body{
+  font-family:Inter,system-ui,sans-serif; color:var(--foreground);
+  background:var(--background); line-height:1.6; font-size:10.5pt;
+  font-feature-settings:"ss01","cv11"; margin:0;
+}
+/* grain */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:50;
+  opacity:.30; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size:200px 200px;
+}
+.wrap{ max-width:760px; margin:0 auto; padding:8mm 0 0; position:relative; z-index:1; }
+
+/* cover */
+.cover{ padding:34mm 0 22mm; border-bottom:1px solid rgba(14,14,13,.15); margin-bottom:14mm; }
+.cover .eyebrow{ color:var(--accent); }
+.cover h1{ font-size:34pt; line-height:.95; letter-spacing:-.03em; font-weight:900; margin:.3em 0 .1em; border:0; padding:0; }
+.cover .sub{ font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:15pt; color:rgba(14,14,13,.55); letter-spacing:.02em; }
+.cover .swatches{ display:flex; gap:8px; margin-top:10mm; }
+.cover .sw{ width:42px; height:42px; border:1px solid rgba(14,14,13,.15); }
+
+.eyebrow{ text-transform:uppercase; letter-spacing:.22em; font-size:8pt; font-weight:600; color:var(--muted); }
+
+h1,h2,h3,h4{ font-weight:600; letter-spacing:-.015em; line-height:1.15; }
+h1{ font-size:22pt; font-weight:900; letter-spacing:-.025em; margin:0 0 .4em;
+    border-bottom:2px solid var(--foreground); padding-bottom:.25em; page-break-before:always; }
+h1:first-of-type{ page-break-before:avoid; }
+h2{ font-size:15pt; margin:1.6em 0 .5em; color:var(--foreground); }
+h3{ font-size:11.5pt; margin:1.3em 0 .4em; letter-spacing:-.005em; }
+h2,h3,h4{ page-break-after:avoid; }
+p{ margin:.5em 0; }
+strong{ font-weight:600; }
+em{ font-family:Georgia,'Times New Roman',serif; }
+
+a{ color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(200,68,42,.4); }
+code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:9pt;
+  background:rgba(14,14,13,.05); padding:.08em .35em; border:1px solid rgba(14,14,13,.10); }
+hr{ border:0; border-top:1px solid rgba(14,14,13,.15); margin:9mm 0; }
+
+ul,ol{ margin:.5em 0 .8em; padding-left:1.1em; }
+li{ margin:.28em 0; }
+li::marker{ color:var(--accent); }
+
+blockquote{ font-family:Georgia,serif; font-style:italic; color:rgba(14,14,13,.7);
+  border-left:2px solid var(--accent); margin:.8em 0; padding:.2em 0 .2em .9em; }
+
+table{ border-collapse:collapse; width:100%; margin:.8em 0 1.1em; font-size:9pt;
+  page-break-inside:avoid; }
+th{ text-align:left; text-transform:uppercase; letter-spacing:.12em; font-size:7.5pt;
+  font-weight:600; color:var(--muted); border-bottom:1px solid var(--foreground);
+  padding:.5em .6em; }
+td{ border-bottom:1px solid rgba(14,14,13,.12); padding:.5em .6em; vertical-align:top; }
+tr{ page-break-inside:avoid; }
+
+/* color chips inline in tables: wrap hex codes visually via code */
+td code{ background:transparent; border:0; padding:0; }
+</style></head><body><div class="wrap">
+<div class="cover">
+  <div class="eyebrow">Christex Foundation &middot; Design Reference</div>
+  <h1>Problem Bank<br>Design System</h1>
+  <div class="sub">A reference and inspiration brief. Researched, decision-ready.</div>
+  <div class="swatches">
+    <div class="sw" style="background:#F8F0E7"></div>
+    <div class="sw" style="background:#faf8f3"></div>
+    <div class="sw" style="background:#0e0e0d"></div>
+    <div class="sw" style="background:#c8442a"></div>
+    <div class="sw" style="background:#2f5e3e"></div>
+    <div class="sw" style="background:#3b5b9a"></div>
+    <div class="sw" style="background:#8a6d3b"></div>
+  </div>
+</div>
+<h1>Problem Bank: Design Document</h1>
+<p>A complete reference and inspiration brief for the Problem Bank product, built by Christex Foundation. This covers the design philosophy, every foundational token, every primitive and component, every page, and every data visualization including the generative and scroll driven pieces.</p>
+<p>Use this two ways:</p>
+<ol>
+<li>As a faithful system spec if you want to reuse the actual building blocks.</li>
+<li>As a creative reference if you want the look, feel, voice, and motion language to inform something new.</li>
+</ol>
+<p>Nothing here is paraphrased loosely. Values are quoted from the source so you can lift them directly.</p>
+<hr>
+<h2>Part 1: The Idea Behind the Design</h2>
+<h3>What the product is</h3>
+<p>Problem Bank is a research backed library of community named problems in Sierra Leone. Two doors fill the shelves: a public community feed where people raise and vote on problems, and Christex originated field research. Both feed one unified Library of decision ready entries, each packaged with the documents a team needs to start building.</p>
+<h3>The design personality</h3>
+<p>The whole system reads like a printed research journal that happens to live on the web. Think editorial, archival, and quietly confident. It is institutional but never sterile, and it is warm rather than corporate.</p>
+<p>Five ideas drive every decision:</p>
+<ol>
+<li><strong>Paper, not screen.</strong> The base surface is a warm beige, not white. Cards float on a slightly lighter paper tone. A film grain overlay sits over everything to give an analog, printed texture.</li>
+<li><strong>One voice of color.</strong> A single terracotta accent does almost all the emphasis work. Sector colors exist but are reserved and semantic. Restraint is the point.</li>
+<li><strong>Type as structure.</strong> Sans serif for interface, serif for narrative and feature copy. All caps eyebrows with wide letter spacing act as the journal&#39;s running heads. Numbers are tabular and treated as a design element.</li>
+<li><strong>Motion that whispers.</strong> Animation is short in distance, slow in timing, and low in opacity change. It settles content into place rather than performing. Everything respects reduced motion preferences.</li>
+<li><strong>Data as craft.</strong> Charts are not off the shelf. They are bespoke SVG and canvas pieces with hand built geometry, scroll choreography, and the same editorial restraint as the rest of the system.</li>
+</ol>
+<h3>The voice</h3>
+<p>Copy is plain, declarative, and human. Headlines are short statements (&quot;Water runs through everything.&quot;, &quot;Put it on the feed.&quot;, &quot;The burden is not spread evenly.&quot;). It invites rather than instructs (&quot;Pull a chair up.&quot;, &quot;Be the first.&quot;). It hedges honestly with data (&quot;most&quot;, &quot;nearly all&quot;) and never overclaims.</p>
+<hr>
+<h2>Part 2: Foundations (Design Tokens)</h2>
+<p>Two sources of truth are kept in sync: <code>src/design/tokens.ts</code> (build time constants) and <code>src/app/globals.css</code> (runtime CSS variables). Tailwind v4 is configured CSS first inside an <code>@theme inline</code> block in globals.css, not a separate config file.</p>
+<h3>Color</h3>
+<p><strong>Surfaces and ink</strong></p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--background</code></td>
+<td><code>#F8F0E7</code></td>
+<td>Warm pale beige, the page base</td>
+</tr>
+<tr>
+<td><code>--paper</code></td>
+<td><code>#faf8f3</code></td>
+<td>Floating panels, cards, dropdowns, tabs</td>
+</tr>
+<tr>
+<td><code>--shelf</code></td>
+<td><code>#F1E7DB</code></td>
+<td>Library shelf cards</td>
+</tr>
+<tr>
+<td><code>--foreground</code></td>
+<td><code>#0e0e0d</code></td>
+<td>Default ink, near black</td>
+</tr>
+<tr>
+<td><code>--muted</code></td>
+<td><code>#6e6a62</code></td>
+<td>Secondary ink (used with alpha)</td>
+</tr>
+<tr>
+<td><code>--rule</code></td>
+<td><code>#1a1a1a</code></td>
+<td>Strong rule lines</td>
+</tr>
+<tr>
+<td><code>--accent</code></td>
+<td><code>#c8442a</code></td>
+<td>Terracotta, the single accent</td>
+</tr>
+<tr>
+<td><code>--on-dark</code></td>
+<td><code>#f8f0e7</code></td>
+<td>Warm off white text on dark surfaces</td>
+</tr>
+</tbody></table>
+<p><strong>Category / sector colors</strong> (semantic, used sparingly)</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+<th>Sector</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--cat-economy</code></td>
+<td><code>#c8442a</code></td>
+<td>Economy (shares the accent)</td>
+</tr>
+<tr>
+<td><code>--cat-infrastructure</code></td>
+<td><code>#2f5e3e</code></td>
+<td>Infrastructure (dark green)</td>
+</tr>
+<tr>
+<td><code>--cat-social</code></td>
+<td><code>#3b5b9a</code></td>
+<td>Social (blue)</td>
+</tr>
+<tr>
+<td><code>--cat-safety</code></td>
+<td><code>#8a6d3b</code></td>
+<td>Safety (olive / tan)</td>
+</tr>
+</tbody></table>
+<p><strong>Dark canvas surfaces</strong> (for the immersive Matrix style data views)</p>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--surface-dark</code></td>
+<td><code>#0a0a0a</code></td>
+</tr>
+<tr>
+<td><code>--surface-dark-raised</code></td>
+<td><code>#1a1a1a</code></td>
+</tr>
+<tr>
+<td><code>--surface-dark-sunken</code></td>
+<td><code>#111111</code></td>
+</tr>
+</tbody></table>
+<p><strong>Ink emphasis ramp.</strong> Rather than many grey tokens, the system layers alpha on <code>--foreground</code>:</p>
+<ul>
+<li>primary 100%, body 90%, secondary 75%, muted 55%, faint 45%, whisper 30%.</li>
+</ul>
+<p>This shows up everywhere as <code>text-foreground/90</code>, <code>text-foreground/55</code>, <code>border-foreground/15</code>, and so on.</p>
+<p><strong>Text selection:</strong> <code>::selection { background: rgba(200, 68, 42, 0.45); }</code> (accent at 45%).</p>
+<h3>Typography</h3>
+<p><strong>Families</strong></p>
+<ul>
+<li>Sans: <code>var(--font-inter), system-ui, sans-serif</code> (Inter, loaded via <code>next/font/google</code>, variable, <code>display: swap</code>, latin subset).</li>
+<li>Serif: <code>ui-serif, Georgia, &quot;Times New Roman&quot;, serif</code>.</li>
+<li>Mono: <code>var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace</code>.</li>
+</ul>
+<p>Body sets Inter stylistic features: <code>font-feature-settings: &quot;ss01&quot;, &quot;cv11&quot;;</code>.</p>
+<p><strong>Size scale (px), from tokens.ts</strong>
+<code>micro 10</code>, <code>eyebrow 11</code>, <code>caption 12</code>, <code>body 14</code>, <code>bodyLg 16</code>, <code>lede 20</code>, <code>ledeLg 24</code>, <code>h3 28</code>, <code>h2 40</code>, <code>h1 64</code>, <code>display 128</code>.</p>
+<p>Headings render fluid with <code>clamp()</code>:</p>
+<ul>
+<li>h1: <code>clamp(3rem, 8vw, 6.5rem)</code>, <code>leading-[0.95]</code>, <code>font-black</code>, <code>tracking-[-0.03em]</code></li>
+<li>h2: <code>clamp(2rem, 4.2vw, 3.5rem)</code>, <code>leading-[1.05]</code>, <code>font-semibold</code>, <code>tracking-[-0.015em]</code></li>
+<li>h3: <code>text-2xl md:text-3xl</code>, <code>font-semibold</code>, <code>tracking-[-0.005em]</code>, <code>leading-[1.2]</code></li>
+</ul>
+<p><strong>Letter spacing (tracking)</strong>
+<code>tight -0.025em</code>, <code>snug -0.005em</code>, <code>normal 0</code>, <code>wide 0.02em</code>, <code>label 0.18em</code>, <code>eyebrow 0.22em</code>, <code>eyebrowLoose 0.32em</code>. The signature move is the <code>0.22em</code> all caps eyebrow used on labels, buttons, badges, and meta.</p>
+<p><strong>Line heights</strong>
+<code>none 1</code>, <code>tight 1.05</code>, <code>snug 1.2</code>, <code>body 1.5</code>, <code>loose 1.6</code>.</p>
+<p><strong>Weights</strong>
+<code>regular 400</code>, <code>medium 500</code>, <code>semibold 600</code>, <code>bold 700</code>, <code>black 900</code>. Display headlines use black; section headlines use semibold.</p>
+<p><strong>Numerals.</strong> Numbers are tabular by convention. Utility classes: <code>.tabular</code>, <code>.num</code> (<code>tabular-nums</code> plus <code>ss01</code>), <code>.section-num</code>. Stats and counters lean on this heavily.</p>
+<h3>Spacing and layout</h3>
+<p><strong>Section vertical rhythm</strong> is expressed in viewport height so sections breathe relative to the screen:</p>
+<ul>
+<li><code>sm</code>: <code>pt-[6vh] md:pt-[10vh] lg:pt-[8vh]</code> / <code>pb-[10vh] md:pb-[14vh] lg:pb-[11vh]</code></li>
+<li><code>md</code>: <code>pt-[10vh] md:pt-[16vh] lg:pt-[12vh]</code> / <code>pb-[14vh] md:pb-[18vh] lg:pb-[14vh]</code></li>
+<li><code>lg</code>: <code>pt-[12vh] md:pt-[18vh] lg:pt-[13vh]</code> / <code>pb-[14vh] md:pb-[20vh] lg:pb-[15vh]</code></li>
+</ul>
+<p>Horizontal section padding: <code>px-6 md:px-10</code> (24px to 40px).</p>
+<p><strong>Container widths:</strong> <code>narrow 760px</code>, <code>base 1100px</code>, <code>wide 1200px</code> (default), <code>full 1440px</code>.</p>
+<p><strong>Stack gaps</strong> (fixed set, JIT safe): <code>2, 3, 4, 6, 8, 10, 12, 16, 20, 24</code>.</p>
+<h3>Borders, radius, shadow</h3>
+<ul>
+<li>Hairline border (the workhorse): <code>1px solid color-mix(in srgb, var(--foreground) 15%, transparent)</code>, used everywhere as <code>border-foreground/15</code>. Hover deepens to <code>/30</code> or <code>/40</code>.</li>
+<li>Strong rule: <code>1px solid var(--foreground)</code>.</li>
+<li>Radius scale: <code>none 0</code>, <code>sm 4px</code>, <code>md 6px</code>, <code>lg 8px</code>, <code>xl 12px</code>, <code>full 9999px</code>. The aesthetic is mostly square corners; <code>full</code> is reserved for avatars and pills. Most cards and buttons have no radius at all.</li>
+<li>Shadows: <code>sm</code> = <code>0 1px 2px 0 rgb(0 0 0 / 0.05)</code> for resting cards; <code>card</code> = <code>0 8px 24px rgba(0,0,0,0.08)</code> for floating menus and popovers.</li>
+</ul>
+<h3>Z-index layers</h3>
+<p><code>z-30</code> nav, <code>z-40</code> user menu, <code>z-[60]</code> grain overlay, <code>z-[70]</code> submit modal, <code>z-[80]</code> sign in modal.</p>
+<h3>Motion tokens</h3>
+<p><strong>Durations:</strong> <code>fast 180ms</code>, <code>base 260ms</code>, <code>slow 460ms</code>, <code>deliberate 900ms</code>.
+<strong>Easing:</strong> <code>standard cubic-bezier(.2,.85,.25,1)</code>, <code>overshoot cubic-bezier(.2,.85,.25,1.05)</code>, <code>inOut cubic-bezier(.65,0,.35,1)</code>.
+<strong>Distance:</strong> <code>whisper 6px</code>, <code>soft 12px</code>.
+<strong>Stagger:</strong> <code>tight 60ms</code>, <code>base 90ms</code>, <code>loose 140ms</code>.
+<strong>Reveal viewport:</strong> threshold <code>0.12</code>, rootMargin <code>0px 0px -8% 0px</code>.</p>
+<p>The shared <code>.transition-soft</code> utility animates background, color, border, opacity, transform, and letter spacing at <code>460ms</code> standard easing. The animated underline <code>.link-underline</code> grows a 1px line from <code>0%</code> to <code>100%</code> width over <code>260ms</code>.</p>
+<p><strong>Reduced motion.</strong> Under <code>prefers-reduced-motion: reduce</code>, all reveals, transitions, grain, and wave animations are disabled, and selection styling is simplified. This is a first class state, not an afterthought.</p>
+<h3>The grain overlay (signature texture)</h3>
+<p>A fixed, pointer transparent SVG fractal noise layer mounted once per page. Driven by <code>effect.grain</code>: <code>opacity 0.34</code>, <code>blendMode multiply</code>, <code>tileSize 220px</code>, <code>baseFrequency 0.85</code>, <code>numOctaves 2</code>. It flickers via <code>@keyframes grain-shift</code> over <code>1.8s</code> in <code>steps(8)</code>. This single element is most of why the product feels printed rather than rendered.</p>
+<hr>
+<h2>Part 3: Primitives and Components</h2>
+<p>All primitives live in <code>src/design/primitives.tsx</code> and <code>src/design/typography.tsx</code>. They provide surface and style only; interactivity is wired at the call site.</p>
+<h3>Layout primitives</h3>
+<ul>
+<li><strong>Section</strong> — full width wrapper. <code>tone</code>: background / foreground (dark) / paper. <code>pad</code>: sm / md / lg. Swapping <code>tone=&quot;foreground&quot;</code> flips the whole section to dark with inverted text, which is how closer sections and the landing finale are built.</li>
+<li><strong>Container</strong> — centered max width (narrow / base / wide / full).</li>
+<li><strong>Stack</strong> — vertical flex with a fixed gap and alignment.</li>
+</ul>
+<h3>Button</h3>
+<p>Base: <code>inline-flex items-center justify-center uppercase tracking-[0.22em] font-semibold transition-soft</code>. Note buttons are always uppercase with wide tracking, and text size stays at <code>11px</code> across all sizes.</p>
+<p><strong>Variants</strong></p>
+<table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>Resting</th>
+<th>Hover</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>primary</code></td>
+<td><code>bg-foreground text-background</code></td>
+<td><code>bg-accent text-background</code></td>
+</tr>
+<tr>
+<td><code>accent</code></td>
+<td><code>bg-accent text-background</code></td>
+<td><code>bg-foreground text-background</code></td>
+</tr>
+<tr>
+<td><code>outline</code></td>
+<td><code>border border-foreground text-foreground</code></td>
+<td><code>bg-foreground text-background</code></td>
+</tr>
+<tr>
+<td><code>ghost</code></td>
+<td><code>text-foreground</code></td>
+<td><code>text-accent</code></td>
+</tr>
+<tr>
+<td><code>inverse</code> (on dark)</td>
+<td><code>bg-background text-foreground</code></td>
+<td><code>bg-accent text-background</code></td>
+</tr>
+<tr>
+<td><code>outlineInverse</code> (on dark)</td>
+<td><code>border border-background text-background</code></td>
+<td><code>bg-background text-foreground</code></td>
+</tr>
+</tbody></table>
+<p><strong>Sizes:</strong> <code>sm px-3 py-2</code>, <code>md px-8 py-4</code> (default), <code>lg px-10 py-5</code>, all <code>text-[11px]</code>.</p>
+<p><code>ButtonLink</code> is the same styling on a Next link. <code>RaiseButton</code> wraps Button and opens the raise a problem modal. <code>RaiseLink</code> is a lighter inline text trigger styled with <code>link-underline</code> in accent.</p>
+<h3>Form controls</h3>
+<p>Shared base: <code>w-full bg-transparent border text-foreground placeholder:text-foreground/30 hover:border-foreground/30 focus:border-foreground focus:border-2 focus:outline-none transition-soft</code>. The focus treatment is a doubled 2px border on the foreground color, no glow ring. Resting border is <code>foreground/15</code>, error is <code>accent/60</code>.</p>
+<ul>
+<li><strong>Input</strong> (sizes sm / md), <strong>Textarea</strong> (adds <code>resize-y leading-[1.55]</code>), <strong>Select</strong> (native, styled to match).</li>
+</ul>
+<h3>Surfaces</h3>
+<ul>
+<li><strong>Paper</strong> — <code>bg-paper border border-foreground/15 shadow-sm</code>. Floating panels.</li>
+<li><strong>Card</strong> — <code>block bg-paper border border-foreground/15 p-6 md:p-7 transition-soft</code>, interactive by default with <code>hover:border-foreground/40</code>. The editorial tile behind library entries, feed cards, and notification rows.</li>
+</ul>
+<h3>Avatar</h3>
+<p>Initials circle. Sizes <code>sm w-8 h-8</code> / <code>md w-10 h-10</code>. Tones: <code>paper</code> (hairline) or <code>accent</code> (filled). <code>aria-hidden</code> by default because the name always sits adjacent.</p>
+<h3>Badge</h3>
+<p>Base: <code>inline-flex items-center text-[10px] uppercase tracking-[0.22em] font-semibold leading-tight</code>.</p>
+<ul>
+<li><strong>tag</strong> — a 2px left rule plus label, no border. The default for sector and status chips.</li>
+<li><strong>pill</strong> — hairline border, square corners, <code>px-2.5 py-1</code>.</li>
+<li><strong>solid</strong> — filled accent, reserved for critical urgency only.</li>
+</ul>
+<p>Tones: default, accent, muted, faint, plus the three sector tones (infrastructure, social, safety) which pull from the category CSS variables.</p>
+<h3>Rules</h3>
+<ul>
+<li><strong>RuleLine</strong> — <code>h-px w-full</code>, muted (<code>foreground/15</code>) or strong (<code>foreground</code>).</li>
+<li><strong>RuleColumn</strong> — vertical <code>w-px h-full</code> equivalent.</li>
+</ul>
+<h3>Typography components (typography.tsx)</h3>
+<ul>
+<li><strong>Eyebrow</strong> — all caps label. Sizes sm (<code>10px</code>) / md (<code>11px</code>), both <code>tracking-[0.22em]</code>. Tones accent (default) / foreground / muted / faint.</li>
+<li><strong>Heading</strong> — semantic h1 to h4 mapped to the fluid clamp scale above.</li>
+<li><strong>Lede</strong> — large serif feature copy, <code>font-serif text-2xl md:text-3xl leading-[1.5]</code>, with an italic variant for taglines.</li>
+<li><strong>Body</strong> — <code>leading-[1.6]</code>, sizes sm / md / lg, tones body / muted / faint.</li>
+<li><strong>Tagline</strong> — italic serif closing line, right aligned by default, with onLight / onDark tones. These are the &quot;Researched.&quot;, &quot;decision-ready.&quot;, &quot;Different doors. Same standard.&quot; flourishes.</li>
+<li><strong>Stat</strong> — tabular numeral callout: large value (<code>text-3xl md:text-4xl font-semibold tracking-[-0.025em]</code>) over a <code>10px</code> uppercase <code>tracking-[0.24em]</code> label.</li>
+</ul>
+<h3>Navigation and chrome</h3>
+<ul>
+<li><strong>SiteNav</strong> — slim 56px bar. Variants <code>sticky</code> (<code>bg-background/80 backdrop-blur-sm border-b border-foreground/10</code>) and <code>overlay</code> (transparent for hero pages). Brand is an <code>11px</code> uppercase eyebrow. Tabs (Library, Feed) go muted to foreground, active gets <code>font-semibold</code> and <code>aria-current</code>. Signed out shows a pill link to sign in; signed in shows UserMenu.</li>
+<li><strong>Nav</strong> — secondary nav for visualization pages, with light and dark variants and dot separators.</li>
+<li><strong>UserMenu</strong> — accent avatar button opening a <code>w-48</code> menu (<code>border border-foreground/15 bg-background shadow-card</code>). Opens on click or hover with a 150ms close delay so the gap stays crossable. Escape and outside click close it. Full menu roles.</li>
+<li><strong>Footer</strong> — dark band (<code>bg-foreground text-background</code>). Copyright in <code>11px</code> uppercase tabular, a row of social icons (Discord, WhatsApp, X, TikTok, YouTube, Instagram via react-icons) at <code>text-background/55</code> hovering to full, and a Terms link in accent. Order reflows between mobile and desktop.</li>
+</ul>
+<h3>Interactive components</h3>
+<ul>
+<li><strong>FilterDropdown</strong> — the library and feed filter control. Trigger is <code>11px</code> uppercase with a label in <code>foreground/45</code> and value in <code>foreground</code> (or accent when filtered), plus an <code>8px</code> chevron that rotates 180 degrees on open. Panel is <code>min-w-[220px] bg-paper border border-foreground/20</code>, flips to right aligned near the viewport edge, full <code>role=&quot;listbox&quot;</code> semantics, Escape and outside click to close.</li>
+<li><strong>FeedVoteButton</strong> — the vote tile (<code>88px</code> mobile, <code>104px</code> desktop). Signed out is a link to sign in. Signed in unvoted is paper with a hairline; voted flips to <code>bg-accent text-background</code>. Holds a chevron icon, a large tabular count (<code>text-3xl md:text-4xl</code>), and an uppercase label. Enforces a 5 minute unvote window and a 3 votes per week server limit, with toasts on the edges.</li>
+<li><strong>EntryMark</strong> — a unique SVG constellation mark per library entry, 3 to 5 dots placed deterministically from a hashed id, colored by sector, opacity varying 0.55 to 1.0. A small generative signature per entry.</li>
+</ul>
+<h3>Modals</h3>
+<ul>
+<li><strong>Modal</strong> — behavior primitive: focus trap, Escape to close, body scroll lock, focus restored to trigger, full dialog roles. All visual styling passed in by the caller.</li>
+<li><strong>SubmitModal</strong> (&quot;Raise a problem&quot;) — full screen on mobile, <code>max-w-[760px]</code> centered card on desktop, overlay <code>bg-foreground/45 backdrop-blur-sm</code>. Headline &quot;Drop your idea.&quot; at <code>clamp(2rem,6vw,3.5rem)</code> black.</li>
+<li><strong>SignInModal</strong> — <code>max-w-md</code> paper panel with rounded corners (one of the few rounded surfaces), listing four auth methods (Phone OTP, Email/Password, Google, GitHub) as rows with hover arrows that nudge right and turn accent.</li>
+</ul>
+<h3>Auth UI</h3>
+<ul>
+<li><strong>AuthHeading / AuthField / AuthHelp</strong> — the form scaffolding: accent eyebrow, h3 title, <code>10px</code> uppercase labels in <code>foreground/55</code>, hint text in <code>foreground/35</code>.</li>
+<li><strong>MethodTabs</strong> — segmented Email / Phone / OAuth switcher in a single hairline box; active tab is <code>bg-foreground text-background</code>.</li>
+<li><strong>OAuthButtons</strong> — full width hairline buttons inverting on hover.</li>
+<li>Sign up flow adds name, email, password (with min length), and a Cloudflare Turnstile widget.</li>
+</ul>
+<h3>Motion primitives (motion.tsx + globals.css)</h3>
+<p>A small kit of scroll and mount choreography, all data attribute driven so the initial state is server rendered:</p>
+<ul>
+<li><strong>Reveal</strong> — fade plus 6px (whisper) or 12px (soft) lift on entering the viewport. <code>transition: opacity 460ms, transform 460ms</code> standard easing.</li>
+<li><strong>RevealGroup</strong> — auto staggers child Reveals (default 90ms gap).</li>
+<li><strong>TextReveal</strong> — opacity plus a letter spacing settle (from <code>0.04em</code> to inherit) over 900ms, for headings.</li>
+<li><strong>ScrollWordReveal</strong> — word by word reveal tied to scroll progress, with <code>strong</code> and <code>accent</code> per word options. This is the report&#39;s signature copy treatment.</li>
+<li><strong>ScrollWipeReveal</strong> — a clip-path wipe left to right (or right to left) driven by scroll.</li>
+<li><strong>ScrollSlideReveal</strong> — horizontal translate plus fade driven by scroll.</li>
+<li><strong>MountSlideReveal</strong> — keyframe slide plus fade on mount for above the fold content.</li>
+<li><strong>PageTransition</strong> — keyed remount on route change applying <code>page-enter</code> (opacity plus 6px lift over 900ms).</li>
+</ul>
+<hr>
+<h2>Part 4: Pages</h2>
+<p>The app is Next.js App Router. Shared chrome (SiteNav, Footer, GrainOverlay, PageTransition, auth and modal providers) is mounted in the root layout. Root metadata: &quot;Problem Bank, Universe of Problems&quot;.</p>
+<p>A recurring page skeleton runs through the whole product: a two column hero (a narrow 2 column eyebrow rail on the left, a 10 column headline block on the right), an optional sticky filter bar at <code>top-56px</code>, the main content, and a dark closer section that flips to <code>tone=&quot;foreground&quot;</code> with a tagline.</p>
+<h3>Home <code>/</code></h3>
+<p>The brand statement and methodology explainer. Sections in order:</p>
+<ol>
+<li><strong>SynapserHero</strong> — a full screen interactive physics word field (floating problem keywords) behind a centered headline &quot;BUILD / WHAT MATTERS&quot;, subtitle, and dual CTAs (&quot;Browse the library&quot;, &quot;Raise a problem&quot;).</li>
+<li><strong>The work before the work</strong> — research methodology, dual reveal headlines, an explainer visual.</li>
+<li><strong>Each entry arrives decision ready</strong> — a 2 by 3 grid of the six kit documents (Concept Note, PRD, Technical Design, Wireframes, Roadmap, Pitch Deck).</li>
+<li><strong>Two paths, one library</strong> — the community feed and Christex research framed as parallel inputs, illustrated by the <strong>LegoBuild</strong> assembly visual.</li>
+<li><strong>Get informed. Build. Ship.</strong> — dark finale section with inverted scheme and closing CTA.</li>
+</ol>
+<p>Voice: research forward, structural, &quot;decision-ready&quot;.</p>
+<h3>Feed <code>/feed</code></h3>
+<p>The community leaderboard. Hero with eyebrows (&quot;Christex Foundation&quot;, &quot;Community feed&quot;, &quot;Vol. 01 . 2026&quot;), a stretched SVG title &quot;COMMUNITY FEED&quot;, a lede explaining the rules (&quot;Three votes per person, per week.&quot;), three Stat cards, and CTAs. A sticky filter row (Sort, Sector, Urgency, Status). A single column of <strong>RankCard</strong>s: serial number plus FeedVoteButton on the left rail, then urgency tag, sector badge, status badge, title, a 3 line serif preview, and meta (comments, author, location). The whole card is a link. Dark closer &quot;Put it on the feed.&quot; with tagline &quot;Different doors. Same standard.&quot; No numbered pagination; &quot;What gains traction climbs the shelf.&quot;</p>
+<h3>Feed detail <code>/feed/[id]</code></h3>
+<p>A single problem with its discussion. Hero with back link, sector and date, large title, author and location, the full statement as serif lede, badges, and a large vote action. A discussion section (&quot;{X} voices on this.&quot;) with a comment composer (sign in gated) and a recursive CommentList nested one level deep, each comment carrying an avatar, marked body, upvote, and reply. A right aligned status tagline section whose copy changes by lifecycle state (for example gaining_traction reads &quot;The shelf is listening. / Climbing toward the Library.&quot;). Closer &quot;Add your voice.&quot; with three related entries.</p>
+<h3>Library <code>/library</code></h3>
+<p>The catalog. Hero (&quot;LIBRARY&quot;, &quot;Index of problems&quot;, &quot;Vol. 01 . 2026&quot;) with a lede and three Stat cards. Sticky filter row (Sector, Urgency, Source, Per page). A single column shelf of <strong>ShelfCard</strong>s: serial number, title, 2 line serif summary, and meta (sector tag, urgency, builders, origin label). Cards that carry data can render a <strong>CommunityProblemMatrix</strong> bubble chart on the right. Server side pagination shown as &quot;01 . 12 of 24&quot; with Prev/Next. Dark closer &quot;Raise it on the feed.&quot;</p>
+<h3>Library entry <code>/library/[slug]</code></h3>
+<p>The full problem dossier. Hero with back link, sector, date, title, and an embedded visualization (an iframe slot, <code>h-320px</code> mobile to <code>h-560px</code> desktop). Then numbered sections with a large faint section number on the left and content on the right:</p>
+<ul>
+<li><strong>01 The problem</strong> — &quot;What we found in the field.&quot;, HTML rendered serif body.</li>
+<li><strong>Proof of concept</strong> (when present) — &quot;Skip the blank page.&quot;, with Live demo and Starter kit on GitHub buttons.</li>
+<li><strong>The registry</strong> — &quot;Pull a chair up.&quot;, &quot;{N} builders on this entry.&quot;, a builder registry where people pin a repo to follow along and earn a README badge.</li>
+<li><strong>Closer</strong> (dark) — &quot;Investors, partners, builders.&quot;, three related entries, tagline.</li>
+</ul>
+<p>This page is slated to become bespoke per report rather than one shared template, so treat its structure as a starting point rather than a fixed mold.</p>
+<h3>Community Needs Assessment <code>/library/community-needs-assessment</code></h3>
+<p>The flagship long form research report, and the fullest expression of the design language. 609 respondents across four communities and Fourah Bay College. A centered hero with an accent highlight box behind a key word, then a long sequence of numbered, scroll choreographed scenes. Highlights:</p>
+<ul>
+<li><strong>Method and sample</strong> — a <strong>SurveyDiagram</strong> blueprint schematic, method paragraphs in ScrollWordReveal with coral markers, and stat cards.</li>
+<li><strong>01 Problems vs support</strong> — &quot;Water runs through everything.&quot; with a wave rippling through the text, a CountUp stat, <strong>WaveLine</strong> drift, and a pinned <strong>ProblemRoseScene</strong> bloom plus a mirrored support rose.</li>
+<li><strong>The water chain</strong> — unprompted answers, a <strong>WaterChainThread</strong> domino visualization, and bordered quote boxes.</li>
+<li><strong>02 By community</strong> — &quot;The burden is not spread evenly.&quot; with a large interactive <strong>CommunityProblemMatrix</strong> and a 2 by 2 grid of community notes.</li>
+<li><strong>02B Leader conversations</strong> and <strong>04 Leader proposals</strong> — threaded lettered entries with giant ghost index numbers, mono community names, and marked quotes on a vertical rule with nodes.</li>
+<li><strong>03 Free text asks</strong> — type size encodes share, with ScrollWipeReveal, plus the report&#39;s &quot;two reads of the same data&quot; left then right rhythm.</li>
+<li><strong>05 Students</strong> — a comparison Matrix with floating quote overlays.</li>
+<li><strong>06 Trust and barriers</strong> and <strong>07 Reach</strong> — mirrored ProblemRoseScenes with coral callouts.</li>
+<li><strong>Recommendations</strong> — a numbered thread with one item inverted in accent.</li>
+<li><strong>Colophon</strong> — methodology label, base details, logo, and meta in mono and serif.</li>
+</ul>
+<p>Voice: data driven, careful, community centered, action without prescription (&quot;What the data says to do.&quot;).</p>
+<h3>Builder profile <code>/(public)/builders/[id]</code></h3>
+<p>A centered narrow profile: name, bio, contact links, a &quot;Currently building&quot; registry list with GitHub activity, and an owner only editor.</p>
+<h3>Auth pages <code>/(auth)/signin</code>, <code>/signup</code>, <code>/reset</code>, <code>/reset/confirm</code></h3>
+<p>A shared centered <code>max-w-[440px]</code> layout reusing the AuthUI scaffolding, OAuth buttons, method tabs, and Turnstile, with the same editorial chrome as the rest of the site.</p>
+<h3>Not found <code>/*</code></h3>
+<p>Centered &quot;404&quot; eyebrow, &quot;Page not found&quot;, and home plus feed CTAs.</p>
+<hr>
+<h2>Part 5: Data Visualization and Creative Spheres</h2>
+<p>This is the heart of the product&#39;s craft. Every chart is custom built. None are off the shelf libraries dropped in. They share an editorial palette, square root area scaling so size encodes magnitude honestly, scroll driven choreography, keyboard focus, and <code>sr-only</code> fallbacks for screen readers. The common easing vocabulary is <code>cubic-bezier(0.22, 1, 0.36, 1)</code> for editorial settle and <code>cubic-bezier(0.34, 1.56, 0.64, 1)</code> for a springy pop.</p>
+<h3>Problem Rose (the signature &quot;creative sphere&quot;)</h3>
+<p><code>src/components/reports/ProblemRose.tsx</code>. A Nightingale / polar area bloom. Each problem is a petal at equal angular spacing (<code>(i/n) * 2π</code>) with a <code>0.035</code> radian gap. Petal radius scales by square root so area encodes value: <code>r = sqrt(value / maxV) * maxR</code>. The SVG is 620 by 620, center at (310, 310), max radius 232. Fill is the coral accent with opacity mapped to value (<code>0.32 + 0.58 * value/maxV</code>, so 32% to 90%). Labels wrap to at most two balanced lines and flip anchor by horizontal position. Petals bloom petal by petal as the reader scrolls, each owning its own slice of the scroll window with an easeOut scale.</p>
+<p><strong>ProblemRoseScene</strong> (<code>ProblemRoseScene.tsx</code>) is the pinned container: a <code>120vh</code> track with a sticky stage, the rose on the left or right (mirror mode supported), a lede alongside, and an optional tucked caption. Bloom is derived from scroll progress (<code>min(1, progress / 0.8)</code>) so the flower completes before it drifts away. This is the piece most people mean by &quot;the spheres&quot;: a coral flower that unfurls as you read.</p>
+<h3>Community Problem Matrix (force directed bubbles)</h3>
+<p><code>src/components/reports/CommunityProblemMatrix.tsx</code>. An SVG bubble pack (viewBox 1200 by 640) laid out with d3-force: centering <code>forceX/forceY</code>, <code>forceManyBody</code> repulsion proportional to radius, and <code>forceCollide</code> with 18px padding over 700 ticks. Radius runs 44 to 118, scaled by count or percentage. Bubbles carry concentric dotted rings for depth, a prevalence arc on the rim, two line uppercase labels, and a large light weight number. It drills down: overview shows one bubble per problem, detail shows one bubble per affected community with a prevalence arc. Bubbles animate from a shared center into their packed positions over 900ms. Hover scales to 1.07, thickens the stroke, raises halo rings, and dims the rest to 0.3. Fully keyboard navigable (Enter or Space drills), with an <code>aria-label</code> naming the top three problems and an <code>sr-only</code> list. Supports a bare embed mode for Library cards.</p>
+<h3>Acute Arc</h3>
+<p><code>src/components/AcuteArc.tsx</code>. A small SVG arc drawn clockwise from 12 o&#39;clock, length <code>(pct/100) * 360</code>, snapping to a full circle at &gt;= 99.9%. Default color is a warm amber <code>#ffb454</code> (the &quot;acute&quot; signal), strokeWidth 2.2, round caps. Used as the prevalence rim on Matrix bubbles.</p>
+<h3>Water Chain Thread (domino topple)</h3>
+<p><code>src/components/reports/WaterChainThread.tsx</code>. A causal chain rendered as standing domino tiles along a serpentine cubic bezier thread. Desktop is horizontal (viewBox 1000 by 340), mobile is vertical with tiles alternating sides. A faint background thread sits under a glowing coral thread (<code>#c8442a</code>, strokeWidth 5.5, drop shadow) that draws via <code>strokeDashoffset</code>. As the reader scrolls, tiles topple in sequence following the thread direction (rotation lerped to a computed fallen angle), gaining a deepening shadow, and labels fade in (cost labels in accent, cause labels in <code>foreground/40</code>). An impact pulse rides the draw front using <code>getPointAtLength</code>. Tiles even carry domino pips for the analog detail.</p>
+<h3>Survey Diagram (blueprint schematic)</h3>
+<p><code>src/components/reports/SurveyDiagram.tsx</code>. A graph paper schematic of the survey method. A faint 28px grid (foreground at 6%) under a radial fade mask, an orthogonal connector tree (horizontal bus, vertical risers, branch lines that never go diagonal) drawn via dash animation, and metadata cards with spade style corner registration marks. The whole thing assembles on a single scroll timeline: grid fades, headline scales in, the bus draws outward, risers draw, then cards and community nodes pop in cascade. Honors reduced motion by pinning progress to complete, and falls back to a stacked grid on mobile.</p>
+<h3>LegoBuild (pipeline assembly)</h3>
+<p><code>src/components/LegoBuild.tsx</code>. The two doors to one library, shown as literal toy bricks. Two input columns (Community Feed and Christex Foundation) stack labeled bricks with rendered studs (14px circles with inset shadows for 3D), converging through dashed SVG bezier chutes with an arrowhead into a merged center stack (Research, then Vetted and Documented). Bricks rise into place (<code>translateY(-44px)</code> to 0) as scroll crosses thresholds, with the chutes appearing once the feed brick lands.</p>
+<h3>Library Constellation</h3>
+<p><code>src/components/LibraryConstellation.tsx</code>. Library entries as stars in an SVG sky (viewBox 1400 by 900), clustered by sector in a ring around center with hashed jitter for natural scatter, sized by builder count (plus a bump for a live proof of concept), colored by an independent sector palette (Health red, Education blue, Agriculture green, Finance brown, Logistics purple, Energy gold, Infrastructure grey, Other tan), and opacity raised for critical urgency. Hover scales 2.1 with two glow rings and a paper tooltip; the rest dim to 0.32. Fades in over 1.1s on mount.</p>
+<h3>Map Universe</h3>
+<p><code>src/components/MapUniverse.tsx</code>. Respondents and problem mentions as dots with faint connecting edges, in both a light theme and a dark Matrix theme (which swaps to brighter category colors and light ink). Supports focus sets, problem focus, text search, and a problem only mode. Hover scales 2.4 with glow rings and a metadata tooltip (&quot;Acute . top priority&quot; for acute mentions). This is the data engine behind the scrollytelling map.</p>
+<h3>Synapser Hero (interactive word field)</h3>
+<p><code>src/components/SynapserHero.tsx</code>. The landing centerpiece. A canvas 2D layer draws spoke lines from the central headline box out to floating serif italic keywords, plus proximity links between nearby words, with ray to box clipping so lines start and end at edges cleanly. The words run a small physics simulation: cursor repulsion (<code>700 / distance^2</code> within 110px), velocity damping (<code>*0.998</code>), speed clamps with a drift floor and random kick when stalled, AABB collision with the title box and viewport edges, and pointer dragging that imparts release momentum. Words stagger in over a 1500ms window with an easeInOutCubic alpha fade that also drives spoke length. The whole field is a 200vh sticky element that fades out as you scroll past. Because the words are real HTML, the hero stays searchable and accessible.</p>
+<h3>Problem Scrolly</h3>
+<p><code>src/components/ProblemScrolly.tsx</code>. A sticky full screen MapUniverse with respondent quote cards scrolling over it. The active card (nearest viewport center) drives which respondents and which problem light up on the map; inactive cards fade to 0.35. Scroll choreography with no explicit animation, just smooth state transitions on the map dots.</p>
+<h3>Supporting chart kit</h3>
+<p><code>src/components/reports/Charts.tsx</code> holds the smaller building blocks used through the report:</p>
+<ul>
+<li><strong>BarList</strong> — horizontal bars, label at 42% width, animated fill (<code>width 900ms</code> staggered 65ms), accent or foreground fill.</li>
+<li><strong>GroupedBars</strong> — vertical grouped bars with a series opacity ramp (<code>foreground/80, /45, /25, /15</code>) and an optional legend, growing from the baseline with cascading delays.</li>
+<li><strong>StackedBar</strong> — one bar of proportional segments cycling <code>foreground, accent, foreground/35</code>, segments widening in 120ms steps.</li>
+<li><strong>WaterChainFlow</strong> — a simpler cause to effect grid with accent arrows.</li>
+<li><strong>CountUp</strong> — requestAnimationFrame number tween over 1100ms with an easeOut cubic.</li>
+<li><strong>PopIn</strong> — springy scale and fade reveal using the overshoot easing.</li>
+</ul>
+<h3>What ties the visualizations together</h3>
+<ol>
+<li><strong>Honest encoding.</strong> Square root scaling for area, proportional widths, opacity tied to value.</li>
+<li><strong>Scroll as narration.</strong> Most pieces reveal on a scroll timeline rather than a one shot animation, so reading and seeing happen together.</li>
+<li><strong>One palette.</strong> Coral accent plus foreground ink plus the reserved sector colors, with the dark Matrix theme as the only alternate.</li>
+<li><strong>Hand built geometry.</strong> Polar petals, bezier threads, force layouts, ray clipped spokes. No generic chart library.</li>
+<li><strong>Accessible by default.</strong> Focusable nodes, keyboard triggers, aria labels, and <code>sr-only</code> data lists on every visualization.</li>
+</ol>
+<hr>
+<h2>Part 6: Quick Start Cheat Sheet</h2>
+<p>If you want to capture this feel in a new design, start here:</p>
+<ul>
+<li><strong>Background</strong> warm beige <code>#F8F0E7</code>, <strong>ink</strong> near black <code>#0e0e0d</code>, <strong>one accent</strong> terracotta <code>#c8442a</code>. Resist adding more color.</li>
+<li><strong>Type:</strong> Inter for UI, a serif for narrative and quotes. Lean on <code>0.22em</code> uppercase eyebrows and tabular numerals.</li>
+<li><strong>Surfaces:</strong> square corners, 1px hairline borders at 15% ink, paper colored cards, almost no shadow.</li>
+<li><strong>Buttons:</strong> uppercase, wide tracking, solid ink default flipping to accent on hover, an inverse set for dark sections.</li>
+<li><strong>Motion:</strong> short distances (6 to 12px), slow timing (260 to 900ms), <code>cubic-bezier(.2,.85,.25,1)</code>, and always honor reduced motion.</li>
+<li><strong>Texture:</strong> a multiply blended film grain overlay at ~34% opacity over everything.</li>
+<li><strong>Layout:</strong> two column hero (narrow eyebrow rail plus wide headline), section padding in <code>vh</code>, a dark closer section with an italic serif tagline.</li>
+<li><strong>Data:</strong> build charts by hand, scale by area, narrate with scroll, color with the single accent, and make every node focusable.</li>
+</ul>
+<h3>Source map</h3>
+<ul>
+<li>Tokens: <code>src/design/tokens.ts</code>, <code>src/app/globals.css</code></li>
+<li>Primitives: <code>src/design/primitives.tsx</code>, <code>src/design/typography.tsx</code>, <code>src/design/motion.tsx</code></li>
+<li>Components: <code>src/components/</code> (and <code>src/components/reports/</code> for the report and chart kit)</li>
+<li>Pages: <code>src/app/</code></li>
+</ul>
+
+</div></body></html>
