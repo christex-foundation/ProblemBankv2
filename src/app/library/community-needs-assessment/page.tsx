@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
-import { Section, Container, GrainOverlay } from '@/design/primitives';
+import { Section, Container } from '@/design/primitives';
 import { Eyebrow, Lede } from '@/design/typography';
 import { Reveal, ScrollWordReveal, ScrollWipeReveal, type ScrollWordSegment } from '@/design/motion';
 import { CountUp, PopIn } from '@/components/reports/Charts';
@@ -268,7 +268,6 @@ function WaveLine({ className = '' }: { className?: string }) {
 export default function CommunityNeedsAssessmentPage() {
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="library" />
 
       <article className="flex-1">

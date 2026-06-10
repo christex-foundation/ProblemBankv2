@@ -6,7 +6,6 @@ import {
   Container,
   Stack,
   RuleLine,
-  GrainOverlay,
 } from '@/design/primitives';
 import { Eyebrow, Lede } from '@/design/typography';
 import {
@@ -90,7 +89,6 @@ export default async function LibraryIndexPage({
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="library" />
 
       <div className="flex-1 flex flex-col">

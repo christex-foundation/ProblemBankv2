@@ -8,7 +8,6 @@ import {
   Section,
   Container,
   RuleLine,
-  GrainOverlay,
   Card,
 } from '@/design/primitives';
 import { Eyebrow, Heading, Body } from '@/design/typography';
@@ -56,7 +55,6 @@ export default async function BuilderProfile({
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active={null} />
 
       <div className="flex-1 flex flex-col">

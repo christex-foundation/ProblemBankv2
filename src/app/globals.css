@@ -182,9 +182,12 @@ body {
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-/* Page transition: keyed remount on route change. */
+/* Page transition: keyed remount on route change. Fill mode must release
+ * once the animation ends: a retained transform (fill-mode: both/forwards)
+ * makes the wrapper the containing block for every fixed descendant
+ * (grain overlay, modals), un-fixing them and stretching the page. */
 .motion-page-enter {
-  animation: page-enter var(--motion-duration-deliberate) var(--motion-ease-standard) both;
+  animation: page-enter var(--motion-duration-deliberate) var(--motion-ease-standard) backwards;
 }
 @keyframes page-enter {
   from { opacity: 0; transform: translate3d(0, var(--motion-distance-whisper), 0); }
