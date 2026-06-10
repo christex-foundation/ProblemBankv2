@@ -34,14 +34,14 @@ export function Footer() {
 
         <nav
           aria-label="Social"
-          className="flex items-center gap-5 order-3 sm:order-2"
+          className="flex items-center gap-1 -mx-2.5 order-3 sm:order-2"
         >
           {SOCIAL_LINKS.map(({ name, href, Icon }) => (
             <a
               key={name}
               href={href}
               aria-label={name}
-              className="text-background/55 hover:text-background transition-soft"
+              className="inline-flex items-center justify-center p-2.5 text-background/55 hover:text-background transition-soft"
             >
               <Icon size={18} aria-hidden />
             </a>

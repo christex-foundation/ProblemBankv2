@@ -92,12 +92,10 @@ export default async function LandingPage() {
         {/* CTA pair. pointer-events-auto re-enables clicks inside the
             SynapserHero overlay (which is pointer-events-none so the word
             physics underneath stays interactive). */}
+        {/* "Raise a problem" CTA hidden for this milestone (feed flow). */}
         <div className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-4 pointer-events-auto">
           <ButtonLink href="/library" variant="accent">
             Browse the library
-          </ButtonLink>
-          <ButtonLink href="/raise" variant="outline">
-            Raise a problem
           </ButtonLink>
         </div>
       </SynapserHero>
@@ -132,12 +130,10 @@ function GetInformedBuildShip() {
           shipping.
         </Reveal>
 
+        {/* "Raise a problem" CTA hidden for this milestone (feed flow). */}
         <Reveal delay={180} className="mt-10 md:mt-14 flex flex-col sm:flex-row gap-4">
           <ButtonLink href="/library" variant="inverse">
             Browse the library
-          </ButtonLink>
-          <ButtonLink href="/raise" variant="outlineInverse">
-            Raise a problem
           </ButtonLink>
         </Reveal>
       </div>

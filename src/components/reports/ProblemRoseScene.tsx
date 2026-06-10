@@ -20,6 +20,7 @@ export function ProblemRoseScene({
   unit = '%',
   topClassName = 'mt-16 md:mt-24',
   roseGapClassName = 'mt-6 md:-mt-44',
+  captionGapClassName = '-mt-48',
   stickyTopClassName = 'top-30',
 }: {
   items: RoseItem[];
@@ -40,6 +41,10 @@ export function ProblemRoseScene({
    * and the rose. More-negative pulls the rose up closer to the headline
    * (default 'mt-6 md:-mt-44'). */
   roseGapClassName?: string;
+  /** Margin utility on the caption wrapper; controls how far the caption
+   * tucks up under the rose. Less-negative drops it down, away from the
+   * petals/labels (default '-mt-48'). */
+  captionGapClassName?: string;
   /** Sticky offset for the pinned stage (default 'top-30'); lower values let
    * the scene sit higher in the viewport. */
   stickyTopClassName?: string;
@@ -75,8 +80,12 @@ export function ProblemRoseScene({
   const bloom = Math.min(1, progress / 0.8);
 
   return (
-    <div ref={trackRef} className={`relative ${topClassName} h-[200vh]`}>
-      <div className={`sticky ${stickyTopClassName} h-screen flex items-center overflow-hidden`}>
+    <div ref={trackRef} className={`relative ${topClassName} h-[120vh]`}>
+      {/* z-20 keeps the pinned rose + its caption above the next section,
+          which is pulled up with a negative margin to tighten the gap; without
+          it that section paints over the figure caption while the scene is
+          still pinned. */}
+      <div className={`z-20 sticky ${stickyTopClassName} h-screen flex items-start overflow-hidden`}>
         <div className="w-full">
           <div
             className={`relative z-10 max-w-[37.5rem] ${mirror ? "ml-auto text-right" : ""}`}
@@ -84,9 +93,12 @@ export function ProblemRoseScene({
             {lede}
           </div>
           {/* rose rises up beside the narrow lede so it can be large without
-              the petals touching the copy */}
+              the petals touching the copy. The vh cap keeps the whole
+              composition (lede + rose + caption) inside the pinned viewport so
+              shorter laptop screens don't clip the rose or hide the caption;
+              it scales the rose up automatically on taller monitors. */}
           <div
-            className={`${roseGapClassName} w-full max-w-[min(1300px,98vh)] ${
+            className={`${roseGapClassName} w-full max-w-[min(1300px,62vh)] ${
               mirror ? "mr-auto" : "ml-auto"
             }`}
           >
@@ -94,7 +106,7 @@ export function ProblemRoseScene({
           </div>
           {/* caption sits centered in the viewport, independent of the rose's
               side, when one is provided */}
-          {caption && <div className="-mt-48 text-center">{caption}</div>}
+          {caption && <div className={`${captionGapClassName} text-center`}>{caption}</div>}
         </div>
       </div>
     </div>

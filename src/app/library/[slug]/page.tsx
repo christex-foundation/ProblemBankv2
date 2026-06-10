@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { URGENCY_LABELS } from '@/lib/enums';
-import { LibraryBuilders } from '@/components/library/LibraryBuilders';
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { Reveal } from '@/design/motion';
@@ -122,7 +121,7 @@ export default async function LibraryEntryPage({
                       <iframe
                         src={entry.infographicUrl}
                         sandbox="allow-scripts allow-same-origin"
-                        className="w-full h-[480px] md:h-[560px] block"
+                        className="w-full h-[320px] sm:h-[480px] md:h-[560px] block"
                         title={`Visualization: ${entry.title}`}
                         loading="lazy"
                       />
@@ -262,22 +261,11 @@ export default async function LibraryEntryPage({
                       : `${entry.builders.length} ${entry.builders.length === 1 ? 'builder' : 'builders'} on this entry.`}
                   </p>
                 </Reveal>
-                <Reveal delay={270}>
-                  <p className="mt-6 text-base md:text-lg text-foreground/55 leading-[1.6] max-w-[55ch]">
-                    Pin your repo to follow alongside.
-                    <br />
-                    The README badge is yours after registering.
-                  </p>
-                </Reveal>
-
-                <Reveal delay={360} className="mt-10">
-                  <LibraryBuilders
-                    entrySlug={entry.slug}
-                    builders={entry.builders}
-                    hideHeader
-                    hideList
-                  />
-                </Reveal>
+                {/* The "I'm building this" registration CTA + repo/badge copy
+                    are hidden for this milestone (they require sign-in, which
+                    is off the UI). The builder count above stays as social
+                    proof; the registry still works for signed-in users who
+                    reach /library/[slug] with an active session. */}
               </div>
               <div className="hidden md:block md:col-span-2" />
             </div>

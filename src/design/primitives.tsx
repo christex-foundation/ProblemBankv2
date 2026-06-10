@@ -29,9 +29,9 @@ export function Section({
   as?: ElementType;
 }) {
   const padClass = {
-    sm: "pt-[6vh] md:pt-[10vh] pb-[10vh] md:pb-[14vh]",
-    md: "pt-[10vh] md:pt-[16vh] pb-[14vh] md:pb-[18vh]",
-    lg: "pt-[12vh] md:pt-[18vh] pb-[14vh] md:pb-[20vh]",
+    sm: "pt-[6vh] md:pt-[10vh] lg:pt-[8vh] pb-[10vh] md:pb-[14vh] lg:pb-[11vh]",
+    md: "pt-[10vh] md:pt-[16vh] lg:pt-[12vh] pb-[14vh] md:pb-[18vh] lg:pb-[14vh]",
+    lg: "pt-[12vh] md:pt-[18vh] lg:pt-[13vh] pb-[14vh] md:pb-[20vh] lg:pb-[15vh]",
   }[pad];
   const toneClass = {
     background: "bg-background text-foreground",

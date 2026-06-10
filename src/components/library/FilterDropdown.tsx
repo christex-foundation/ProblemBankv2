@@ -24,7 +24,19 @@ interface Props {
  */
 export function FilterDropdown({ label, active, options }: Props) {
   const [open, setOpen] = useState(false);
+  // When the trigger sits near the right edge (e.g. a right-hand filter column
+  // on a phone), a left-anchored panel would overflow the viewport and force
+  // horizontal scroll. Flip it to right-anchored in that case.
+  const [alignRight, setAlignRight] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || !ref.current) return;
+    const PANEL_WIDTH = 220;
+    const MARGIN = 12;
+    const left = ref.current.getBoundingClientRect().left;
+    setAlignRight(left + PANEL_WIDTH > window.innerWidth - MARGIN);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -55,7 +67,7 @@ export function FilterDropdown({ label, active, options }: Props) {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex items-baseline gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold py-2 transition-soft hover:text-accent focus-visible:outline-none focus-visible:text-accent focus-visible:underline underline-offset-4"
+        className="flex items-baseline gap-2 text-[11px] uppercase tracking-[0.22em] font-semibold py-3 transition-soft hover:text-accent focus-visible:outline-none focus-visible:text-accent focus-visible:underline underline-offset-4"
       >
         <span className="text-foreground/45">{label}</span>
         <span className={isFiltered ? 'text-accent' : 'text-foreground'}>
@@ -75,7 +87,7 @@ export function FilterDropdown({ label, active, options }: Props) {
         <ul
           role="listbox"
           aria-label={label}
-          className="absolute left-0 top-full mt-2 min-w-[220px] max-h-[60vh] overflow-y-auto bg-paper border border-foreground/20 shadow-sm z-20"
+          className={`absolute ${alignRight ? 'right-0' : 'left-0'} top-full mt-2 min-w-[220px] max-w-[calc(100vw-1.5rem)] max-h-[60vh] overflow-y-auto bg-paper border border-foreground/20 shadow-sm z-20`}
         >
           {options.map((opt) => {
             const isActive = opt.value === active;

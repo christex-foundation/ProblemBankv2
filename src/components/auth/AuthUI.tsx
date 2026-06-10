@@ -122,7 +122,7 @@ export function MethodTabs({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(t.key)}
-            className={`flex-1 px-3 py-2.5 text-[10px] uppercase tracking-[0.22em] font-semibold transition-soft ${
+            className={`flex-1 px-3 py-3.5 text-[10px] uppercase tracking-[0.22em] font-semibold transition-soft ${
               i > 0 ? 'border-l border-foreground/20' : ''
             } ${
               active
