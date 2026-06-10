@@ -12,7 +12,6 @@ import {
   Container,
   Stack,
   RuleLine,
-  GrainOverlay,
 } from '@/design/primitives';
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
 import { SiteNav } from '@/components/SiteNav';
@@ -85,7 +84,6 @@ export default async function FeedIndexPage({
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="feed" />
 
       <div className="flex-1 flex flex-col">

@@ -499,7 +499,10 @@ export function RuleColumn({
 }
 
 /**
- * Subtle film-grain overlay. Mount once per page that wants ambient texture.
+ * Subtle film-grain overlay. Mounted once in the root layout, outside
+ * <PageTransition>: it is position-fixed, so it must never sit under an
+ * ancestor with a transform (the transform would become its containing
+ * block, un-fix it, and stretch the page past the footer).
  *
  * The static look (opacity, blend-mode, tile size, noise frequency) is
  * driven by `effect.grain` in tokens.ts so a single edit propagates

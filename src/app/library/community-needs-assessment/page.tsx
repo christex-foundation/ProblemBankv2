@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
-import { Section, Container, GrainOverlay } from '@/design/primitives';
+import { Section, Container } from '@/design/primitives';
 import { Eyebrow, Lede } from '@/design/typography';
 import { Reveal, ScrollWordReveal, ScrollWipeReveal, type ScrollWordSegment } from '@/design/motion';
 import { CountUp, PopIn } from '@/components/reports/Charts';
@@ -268,7 +268,6 @@ function WaveLine({ className = '' }: { className?: string }) {
 export default function CommunityNeedsAssessmentPage() {
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="library" />
 
       <article className="flex-1">
@@ -454,9 +453,10 @@ export default function CommunityNeedsAssessmentPage() {
             {/* Pinned scene: the lede + rose hold on screen while scroll
                 reveals the petals one at a time, then release. */}
             <ProblemRoseScene
-              topClassName="mt-[5vh] md:mt-[6vh] lg:mt-[7vh] xl:-mt-[8vh]"
+              topClassName="mt-[5vh] md:mt-[6vh] lg:mt-[7vh] xl:mt-[11vh]"
               stickyTopClassName="top-30 md:top-[10rem] lg:top-30"
-              roseGapClassName="mt-6 lg:-mt-44"
+              roseGapClassName="mt-6 lg:-mt-44 xl:-mt-12"
+              roseMaxClassName="max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,92vh)]"
               items={report.problemsNamed.filter((p) => !/water/i.test(p.label))}
               lede={
                 <ScrollWordReveal
@@ -473,8 +473,9 @@ export default function CommunityNeedsAssessmentPage() {
               flip
               topClassName="-mt-[35vh] md:-mt-[8vh] lg:-mt-[52vh] xl:-mt-[8vh]"
               stickyTopClassName="top-30 md:top-[10rem] lg:top-30"
-              roseGapClassName="mt-6 lg:-mt-44"
-              captionGapClassName="-mt-20 md:-mt-20 lg:-mt-48"
+              roseGapClassName="mt-6 lg:-mt-44 xl:-mt-12"
+              roseMaxClassName="max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,92vh)]"
+              captionGapClassName="-mt-20 md:-mt-20 lg:-mt-48 xl:-mt-28"
               items={report.supportRequested}
               lede={
                 <ScrollWordReveal
@@ -945,8 +946,9 @@ export default function CommunityNeedsAssessmentPage() {
               mirror
               flip
               topClassName="mt-0"
-              roseGapClassName="mt-6 md:mt-10 xl:-mt-44"
-              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-48"
+              roseGapClassName="mt-6 md:mt-10 xl:-mt-12"
+              roseMaxClassName="max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,92vh)]"
+              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-[23vh]"
               stickyTopClassName="top-12"
               lede={
                 <div>
@@ -1006,8 +1008,9 @@ export default function CommunityNeedsAssessmentPage() {
                 while scroll blooms the petals one at a time, then releases. */}
             <ProblemRoseScene
               items={report.reach}
-              roseGapClassName="mt-6 md:mt-0 lg:mt-10 xl:-mt-44"
-              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-48"
+              roseGapClassName="mt-6 md:mt-0 lg:mt-10 xl:-mt-12"
+              roseMaxClassName="max-w-[min(1300px,62vh)] xl:max-w-[min(1300px,92vh)]"
+              captionGapClassName="-mt-20 md:-mt-20 xl:-mt-[23vh]"
               stickyTopClassName="top-12"
               lede={
                 <div>

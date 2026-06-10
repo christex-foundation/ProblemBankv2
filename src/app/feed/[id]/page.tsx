@@ -10,7 +10,6 @@ import {
   Section,
   Container,
   Badge,
-  GrainOverlay,
 } from '@/design/primitives';
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
 import { Reveal } from '@/design/motion';
@@ -84,7 +83,6 @@ export default async function FeedEntryPage({
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="feed" />
 
       <article className="flex-1 font-serif">

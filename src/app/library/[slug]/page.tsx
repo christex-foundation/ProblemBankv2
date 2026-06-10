@@ -9,7 +9,6 @@ import {
   Section,
   Container,
   Badge,
-  GrainOverlay,
 } from '@/design/primitives';
 import { Eyebrow, Lede, Tagline } from '@/design/typography';
 import {
@@ -70,7 +69,6 @@ export default async function LibraryEntryPage({
 
   return (
     <main className="relative bg-background text-foreground min-h-screen flex flex-col">
-      <GrainOverlay />
       <SiteNav active="library" />
 
       <article className="flex-1">

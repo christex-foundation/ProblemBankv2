@@ -11,7 +11,6 @@ import { WorkBeforeWorkVisual } from "@/components/WorkBeforeWorkVisual";
 import { SiteNav } from "@/components/SiteNav";
 import {
   ButtonLink,
-  GrainOverlay,
   MountSlideReveal,
   Reveal,
   ScrollSlideReveal,
@@ -69,8 +68,6 @@ function buildProblemScenes(): ProblemScene[] {
 export default async function LandingPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <GrainOverlay />
-
       <SiteNav variant="overlay" />
 
       {/* Synapser-style physics hero, keeping the BUILD / WHAT MATTERS layout
