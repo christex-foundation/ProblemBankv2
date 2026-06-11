@@ -214,19 +214,35 @@ export async function getFeedEntryById(
   viewerId?: string,
 ): Promise<FeedEntry | null> {
   const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from('Submission')
-    .select('*, user:User(id, name)')
-    .eq('id', id)
-    .maybeSingle();
+
+  // These three queries only depend on id/viewerId, so run them in parallel.
+  // Only comment upvotes (below) depend on the fetched comment rows.
+  const [
+    { data, error },
+    { data: commentRows, error: commentError },
+    { data: voteRow },
+  ] = await Promise.all([
+    supabase
+      .from('Submission')
+      .select('*, user:User(id, name)')
+      .eq('id', id)
+      .maybeSingle(),
+    supabase
+      .from('Comment')
+      .select('*, user:User!Comment_userId_fkey(id, name)')
+      .eq('submissionId', id)
+      .order('createdAt', { ascending: true }),
+    viewerId
+      ? supabase
+          .from('Vote')
+          .select('votedAt')
+          .eq('userId', viewerId)
+          .eq('submissionId', id)
+          .maybeSingle()
+      : Promise.resolve({ data: null as { votedAt: string } | null }),
+  ]);
   if (error) throw error;
   if (!data) return null;
-
-  const { data: commentRows, error: commentError } = await supabase
-    .from('Comment')
-    .select('*, user:User!Comment_userId_fkey(id, name)')
-    .eq('submissionId', id)
-    .order('createdAt', { ascending: true });
   if (commentError) throw commentError;
 
   const rows = (commentRows ?? []) as CommentWithAuthor[];
@@ -237,16 +253,7 @@ export async function getFeedEntryById(
   );
   const comments = shapeComments(rows, upvotes);
 
-  let viewerVote: { votedAt: string } | null = null;
-  if (viewerId) {
-    const { data: voteRow } = (await supabase
-      .from('Vote')
-      .select('votedAt')
-      .eq('userId', viewerId)
-      .eq('submissionId', id)
-      .maybeSingle()) as { data: { votedAt: string } | null };
-    viewerVote = voteRow;
-  }
+  const viewerVote = voteRow as { votedAt: string } | null;
 
   const entry = mapRowToEntry(data as SubmissionWithAuthor, undefined, comments);
   if (viewerVote) {

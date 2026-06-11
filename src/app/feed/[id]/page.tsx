@@ -65,10 +65,12 @@ export default async function FeedEntryPage({
   const { id } = await params;
   const session = await auth();
   const signedIn = !!session?.user;
-  const entry = await getFeedEntryById(id, session?.user?.id);
+  // entry.id === id, so related entries can be fetched in parallel.
+  const [entry, related] = await Promise.all([
+    getFeedEntryById(id, session?.user?.id),
+    getRelatedFeedEntries(id, 3),
+  ]);
   if (!entry) notFound();
-
-  const related = await getRelatedFeedEntries(entry.id, 3);
   const repliesOpen =
     entry.status === 'submitted' || entry.status === 'gaining_traction';
 
