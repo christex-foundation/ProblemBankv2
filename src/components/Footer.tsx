@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
+import { FaLinkedin } from "react-icons/fa6";
 import {
   SiDiscord,
   SiInstagram,
@@ -16,12 +17,25 @@ type SocialItem = {
 };
 
 const SOCIAL_LINKS: SocialItem[] = [
-  { name: "Discord", href: "#", Icon: SiDiscord },
-  { name: "WhatsApp", href: "#", Icon: SiWhatsapp },
-  { name: "X", href: "#", Icon: SiX },
-  { name: "TikTok", href: "#", Icon: SiTiktok },
-  { name: "YouTube", href: "#", Icon: SiYoutube },
-  { name: "Instagram", href: "#", Icon: SiInstagram },
+  { name: "Discord", href: "https://discord.gg/9h6NQX6q8", Icon: SiDiscord },
+  {
+    name: "WhatsApp",
+    href: "https://chat.whatsapp.com/D2rH0mP8hHV085CWH4rsFC",
+    Icon: SiWhatsapp,
+  },
+  { name: "X", href: "https://x.com/ChristexFndn", Icon: SiX },
+  { name: "TikTok", href: "https://www.tiktok.com/@christexfndn", Icon: SiTiktok },
+  { name: "YouTube", href: "https://youtube.com/@christexfndn", Icon: SiYoutube },
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/christexfndn",
+    Icon: SiInstagram,
+  },
+  {
+    name: "LinkedIn",
+    href: "https://www.linkedin.com/company/christex-foundation/",
+    Icon: FaLinkedin,
+  },
 ];
 
 export function Footer() {
@@ -40,6 +54,8 @@ export function Footer() {
             <a
               key={name}
               href={href}
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label={name}
               className="inline-flex items-center justify-center p-2.5 text-background/55 hover:text-background transition-soft"
             >
