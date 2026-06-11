@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { Section, Container } from '@/design/primitives';
@@ -1169,8 +1170,16 @@ export default function CommunityNeedsAssessmentPage() {
                     className="mt-auto inline-flex h-9 items-center pt-8 text-foreground/40"
                     aria-label="Christex Foundation"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logo.svg" alt="" className="h-9 w-auto" />
+                    {/* SVG: not processed by the image optimizer, so unoptimized.
+                        width/height set the intrinsic ratio; h-9 w-auto sizes it. */}
+                    <Image
+                      src="/logo.svg"
+                      alt=""
+                      width={120}
+                      height={36}
+                      className="h-9 w-auto"
+                      unoptimized
+                    />
                   </span>
                 </div>
 
