@@ -3,7 +3,6 @@ import { loadResponses, loadMapUniverse } from "@/lib/load";
 import { MAP_LABELS } from "@/lib/communities";
 import { ProblemScrolly, type ProblemScene } from "@/components/ProblemScrolly";
 import type { Problem } from "@/lib/types";
-import { SAMPLE_ENTRIES } from "@/data/sampleEntries";
 import { Footer } from "@/components/Footer";
 import LegoBuild from "@/components/LegoBuild";
 import SynapserHero from "@/components/SynapserHero";
@@ -82,8 +81,8 @@ export default async function LandingPage() {
 
         <p className="mt-6 w-full max-w-[560px] font-serif text-lg md:text-xl text-foreground/90 leading-[1.5] text-center">
           A research-backed library of Sierra Leone&rsquo;s most important
-          unsolved problems, sourced from communities and Christex Foundation.
-          Open to build on.
+          unsolved problems, sourced by Christex Foundation. Studied,
+          documented, and currently building on.
         </p>
 
         {/* CTA pair. pointer-events-auto re-enables clicks inside the
@@ -122,9 +121,17 @@ function GetInformedBuildShip() {
         </Reveal>
 
         <Reveal delay={90} as="p" className="mt-12 md:mt-16 max-w-[560px] text-base md:text-lg text-background/55 leading-[1.6]">
-          Christex Foundation&rsquo;s library is open. Pick a problem from the
-          eight sectors. Pull down its kit. Embed the badge. Start
-          shipping.
+          The library is open. Start from the research that&rsquo;s live today,
+          not a blank page. More problems, and the kits that come with them,
+          are landing entry by entry.
+        </Reveal>
+
+        <Reveal delay={135} as="p" className="mt-8 max-w-[560px] text-lg md:text-xl text-background leading-[1.5]">
+          Christex Foundation researches each problem and builds the first
+          proof.{" "}
+          <span className="text-accent font-semibold">
+            You take it further.
+          </span>
         </Reveal>
 
         {/* "Raise a problem" CTA hidden for this milestone (feed flow). */}
@@ -139,9 +146,11 @@ function GetInformedBuildShip() {
 }
 
 const ENTRIES_ARRIVE_SEGMENTS: ScrollWordSegment[] = [
-  "Entries arrive through ",
-  { text: "two parallel inputs", strong: true },
-  ": problems raised on the community feed, and problems originated by Christex Foundation directly. Both run through the same research and publication pipeline, and emerge as the same kind of kit.",
+  "The Library is built to fill from ",
+  { text: "two doors", strong: true },
+  ": problems raised by the community, and problems Christex Foundation researches directly. Today, every entry comes from ",
+  { text: "Christex research", strong: true },
+  ". As the community feed opens, problems raised there will run through the same pipeline and land on the same shelf.",
 ];
 
 function TwoPathsOneLibrary() {
@@ -299,9 +308,9 @@ function EachEntryArrives() {
 
         <Reveal delay={90} className="mt-16 md:mt-20 max-w-[760px]">
           <p className="font-serif text-2xl md:text-3xl text-foreground/90 leading-[1.5]">
-            Every entry carries the data to decide and build. Each kit is
-            sized to the problem. The floor is the same: enough evidence to
-            act.
+            Every entry carries the data to decide and build. The kit is
+            sized to the research: some entries ship all six documents, others
+            two or three. The floor is the same: enough evidence to act.
           </p>
         </Reveal>
 
@@ -601,125 +610,3 @@ function PaperIcon({
     </div>
   );
 }
-
-function PortfolioAtAGlance() {
-  const total = SAMPLE_ENTRIES.length;
-  const totalBuilders = SAMPLE_ENTRIES.reduce((s, e) => s + e.builders, 0);
-  const withPoc = SAMPLE_ENTRIES.filter((e) => e.hasPoc).length;
-  const critical = SAMPLE_ENTRIES.filter((e) => e.urgency === "critical").length;
-
-  return (
-    <section className="relative px-6 md:px-10 pt-[6vh] md:pt-[10vh] pb-[14vh] md:pb-[18vh]">
-      <div className="max-w-[1200px] mx-auto border-l-2 border-accent pl-8 md:pl-12">
-        <div className="text-[11px] uppercase tracking-[0.22em] text-foreground/45 mb-6 font-semibold">
-          The portfolio, at a glance
-        </div>
-        <h2 className="text-[clamp(2rem,4.2vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.015em]">
-          {total} problems researched.
-          <br />
-          <span className="text-foreground/45">
-            {totalBuilders} builders already shipping.
-          </span>
-        </h2>
-        <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <Stat label="Library entries" value={total} />
-          <Stat label="Builders registered" value={totalBuilders} />
-          <Stat label="With live POC" value={withPoc} />
-          <Stat label="Critical urgency" value={critical} accent />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  accent = false,
-}: {
-  label: string;
-  value: number;
-  accent?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <span
-        className={`num text-3xl md:text-4xl font-semibold tracking-[-0.025em] ${accent ? "text-accent" : ""}`}
-      >
-        {value}
-      </span>
-      <span className="text-[10px] uppercase tracking-[0.22em] text-foreground/55">
-        {label}
-      </span>
-    </div>
-  );
-}
-
-
-interface HeadlineLine {
-  text: string;
-  size: number;
-  /** Optional override for the stretched width of this line. Defaults to the
-   * component's full width. Use a smaller value to make a line narrower than
-   * the others (it will right-align under the longest line). */
-  width?: number;
-  /** Optional fill color for this line. Defaults to var(--foreground). */
-  fill?: string;
-}
-
-function EqualWidthHeadline({
-  lines,
-  className,
-  align = "right",
-}: {
-  lines: HeadlineLine[];
-  className?: string;
-  align?: "left" | "right";
-}) {
-  // Each line stretches via SVG textLength so all lines share the same
-  // visual width regardless of character count or font size.
-  const width = 1200;
-  const lineHeightFactor = 0.78;
-  const isLeft = align === "left";
-
-  let cursorY = 0;
-  const baselines: number[] = [];
-  for (const line of lines) {
-    cursorY += line.size * lineHeightFactor;
-    baselines.push(cursorY);
-  }
-  const totalHeight = cursorY + lines[lines.length - 1].size * 0.1;
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${totalHeight}`}
-      className={className ?? "w-full max-w-[min(760px,68vh)] block"}
-      role="img"
-      aria-label={lines.map((l) => l.text).join(" ")}
-      preserveAspectRatio="xMidYMid meet"
-    >
-      {lines.map((line, i) => {
-        const lineWidth = line.width ?? width;
-        return (
-          <text
-            key={`${i}-${line.text}`}
-            x={isLeft ? 0 : width}
-            y={baselines[i]}
-            textAnchor={isLeft ? "start" : "end"}
-            textLength={lineWidth}
-            lengthAdjust="spacingAndGlyphs"
-            style={{
-              fontFamily: "inherit",
-              fontSize: line.size,
-              fontWeight: 900,
-              fill: line.fill ?? "var(--foreground)",
-            }}
-          >
-            {line.text}
-          </text>
-        );
-      })}
-    </svg>
-  );
-}
-

@@ -255,7 +255,7 @@ export default async function LibraryEntryPage({
                 <Reveal delay={180}>
                   <p className="mt-2 font-black text-accent text-3xl md:text-4xl tracking-[-0.02em] leading-[1.1] max-w-[20ch]">
                     {entry.builders.length === 0
-                      ? 'No one is building this yet. Be the first.'
+                      ? 'Christex builds the first proof. You take it further.'
                       : `${entry.builders.length} ${entry.builders.length === 1 ? 'builder' : 'builders'} on this entry.`}
                   </p>
                 </Reveal>

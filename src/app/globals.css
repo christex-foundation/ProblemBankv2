@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Custom breakpoint. Kept in a plain @theme (not @theme inline) so Tailwind
+   registers the `wide:` variant, and in rem (90rem = 1440px) to match the
+   default breakpoints so it sorts after sm:/md:/etc in the cascade. Used by
+   the library filter row to collapse to a single line at 1440px+. */
+@theme {
+  --breakpoint-wide: 90rem;
+}
+
 /* Design tokens.
  * Mirror of src/design/tokens.ts. When a value is settled in design review,
  * update BOTH places so Tailwind utilities and JS code stay in sync. */

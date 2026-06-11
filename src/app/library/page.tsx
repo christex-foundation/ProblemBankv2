@@ -17,6 +17,7 @@ import {
 import { SiteNav } from '@/components/SiteNav';
 import { Footer } from '@/components/Footer';
 import { FilterDropdown } from '@/components/library/FilterDropdown';
+import { CollapsibleFilters } from '@/components/library/CollapsibleFilters';
 import { Reveal } from '@/design/motion';
 import { CommunityProblemMatrix } from '@/components/reports/CommunityProblemMatrix';
 import { report as communityNeedsReport } from '@/data/reports/community-needs-assessment';
@@ -145,70 +146,66 @@ export default async function LibraryIndexPage({
           </div>
 
           {/* Filter — sticky on scroll so it stays reachable while browsing
-             the shelf below; pinned just under the slim top nav. */}
+             the shelf below; pinned just under the slim top nav. At 1024px
+             and below the dropdowns collapse behind a "Filters" toggle. */}
           <div className="sticky top-[56px] z-20 mt-12 md:mt-16 bg-background/95 backdrop-blur-sm">
-          <div className="grid grid-cols-12 gap-6 md:gap-10 pt-5 md:pt-6">
-            <div className="col-span-12 md:col-span-2">
-              <Eyebrow tone="muted" size="sm">
-                Filter the shelf
-              </Eyebrow>
-            </div>
-            <div className="col-span-12 md:col-span-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-baseline justify-items-center gap-x-6 lg:gap-x-10 gap-y-3">
-                <FilterDropdown
-                  label="Sector"
-                  active={sp.sector ?? ''}
-                  options={[
-                    { value: '', label: 'All', href: href({ ...baseSp, sector: undefined }) },
-                    ...SECTORS.map((s) => ({
-                      value: s,
-                      label: s,
-                      href: href({ ...baseSp, sector: s }),
-                    })),
-                  ]}
-                />
-                <FilterDropdown
-                  label="Urgency"
-                  active={sp.urgency ?? ''}
-                  options={[
-                    { value: '', label: 'Any', href: href({ ...baseSp, urgency: undefined }) },
-                    ...(Object.keys(URGENCY_LABELS) as UrgencyKey[]).map((u) => ({
-                      value: u,
-                      label: URGENCY_LABELS[u],
-                      href: href({ ...baseSp, urgency: u }),
-                    })),
-                  ]}
-                />
-                <FilterDropdown
-                  label="Source"
-                  active={sp.origin ?? ''}
-                  options={[
-                    { value: '', label: 'Any', href: href({ ...baseSp, origin: undefined }) },
-                    {
-                      value: 'research',
-                      label: 'Christex research',
-                      href: href({ ...baseSp, origin: 'research' }),
-                    },
-                    {
-                      value: 'community',
-                      label: 'Community',
-                      href: href({ ...baseSp, origin: 'community' }),
-                    },
-                  ]}
-                />
-                <FilterDropdown
-                  label="Per page"
-                  active={sp.perPage ?? ''}
-                  options={[
-                    { value: '6', label: '6', href: href({ ...baseSp, perPage: '6' }) },
-                    { value: '', label: '12', href: href({ ...baseSp, perPage: undefined }) },
-                    { value: '24', label: '24', href: href({ ...baseSp, perPage: '24' }) },
-                    { value: 'all', label: 'All', href: href({ ...baseSp, perPage: 'all' }) },
-                  ]}
-                />
-              </div>
-            </div>
-          </div>
+          <CollapsibleFilters
+            activeCount={
+              [sp.sector, sp.urgency, sp.origin].filter(Boolean).length
+            }
+          >
+            <FilterDropdown
+              label="Sector"
+              active={sp.sector ?? ''}
+              options={[
+                { value: '', label: 'All', href: href({ ...baseSp, sector: undefined }) },
+                ...SECTORS.map((s) => ({
+                  value: s,
+                  label: s,
+                  href: href({ ...baseSp, sector: s }),
+                })),
+              ]}
+            />
+            <FilterDropdown
+              label="Urgency"
+              active={sp.urgency ?? ''}
+              options={[
+                { value: '', label: 'Any', href: href({ ...baseSp, urgency: undefined }) },
+                ...(Object.keys(URGENCY_LABELS) as UrgencyKey[]).map((u) => ({
+                  value: u,
+                  label: URGENCY_LABELS[u],
+                  href: href({ ...baseSp, urgency: u }),
+                })),
+              ]}
+            />
+            <FilterDropdown
+              label="Source"
+              active={sp.origin ?? ''}
+              options={[
+                { value: '', label: 'Any', href: href({ ...baseSp, origin: undefined }) },
+                {
+                  value: 'research',
+                  label: 'Christex research',
+                  href: href({ ...baseSp, origin: 'research' }),
+                },
+                {
+                  value: 'community',
+                  label: 'Community',
+                  href: href({ ...baseSp, origin: 'community' }),
+                },
+              ]}
+            />
+            <FilterDropdown
+              label="Per page"
+              active={sp.perPage ?? ''}
+              options={[
+                { value: '6', label: '6', href: href({ ...baseSp, perPage: '6' }) },
+                { value: '', label: '12', href: href({ ...baseSp, perPage: undefined }) },
+                { value: '24', label: '24', href: href({ ...baseSp, perPage: '24' }) },
+                { value: 'all', label: 'All', href: href({ ...baseSp, perPage: 'all' }) },
+              ]}
+            />
+          </CollapsibleFilters>
           <RuleLine tone="strong" className="mt-6 md:mt-8" />
           </div>
 
