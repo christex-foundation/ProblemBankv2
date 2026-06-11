@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 import { GrainOverlay, PageTransition } from "@/design";
-import { NavDiagnostic } from "@/components/NavDiagnostic";
 import SessionProviderWrapper from "@/components/SessionProviderWrapper";
 import { RaiseModalProvider } from "@/components/feed/RaiseModalProvider";
 import { auth } from "@/lib/auth";
@@ -35,7 +34,6 @@ export default async function RootLayout({
             never sits inside the transition wrapper's transform (a transformed
             ancestor would capture this fixed overlay and stretch the page). */}
         <GrainOverlay />
-        <NavDiagnostic />
         <SessionProviderWrapper>
           <RaiseModalProvider signedIn={signedIn}>
             <PageTransition>{children}</PageTransition>
