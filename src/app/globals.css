@@ -352,6 +352,69 @@ body {
 .liquid-wave { animation: liquid-wave 2.8s linear infinite; }
 .liquid-wave-slow { animation: liquid-wave 4.4s linear infinite; }
 
+/* ─── 404 billboard ───────────────────────────────────────────────────────
+ * The sign hangs from two corner bolts. It holds pinned (rotate 0) during the
+ * animation-delay, then the left bolt shears off and the board swings from the
+ * top-right pivot, oscillating to a crooked rest. Both animations share the
+ * same delay so the shear and the swing start together; fill-mode forwards
+ * holds the final resting state. The pivot point is set inline on the board to
+ * line up with the right bolt's centre.
+ */
+.board-swing {
+  /* Natural damped pendulum: short hold, then a full swing through vertical
+     that decays to a readable crooked rest. Two things make it read as real
+     physics: the half-swings take roughly EQUAL time (a pendulum's period is
+     near-constant regardless of amplitude), and the amplitude HALVES each
+     swing, oscillating around the resting angle (-11deg). ease-in-out per
+     segment is the matching velocity profile: slowest at each turning point,
+     fastest through the bottom. */
+  animation: board-swing 2800ms ease-in-out 800ms forwards;
+}
+@keyframes board-swing {
+  0%   { transform: rotate(0deg); }      /* released from pinned-flat */
+  16%  { transform: rotate(-92deg); }    /* falls through vertical */
+  32%  { transform: rotate(30deg); }     /* swings back up the other way */
+  48%  { transform: rotate(-31deg); }
+  64%  { transform: rotate(-1deg); }
+  80%  { transform: rotate(-16deg); }
+  91%  { transform: rotate(-8.5deg); }
+  100% { transform: rotate(-11deg); }    /* readable crooked rest */
+}
+
+/* Left bolt: first it unscrews in place and lifts proud of the surface (this
+   fills the board's 800ms hold), then at the 800ms mark it lets go and tumbles
+   off-screen under gravity, exactly as the board begins to swing. Phase 1 runs
+   0 → 44% (≈800ms); phase 2, 44% → 100%. Per-keyframe timing functions give
+   the unscrew a steady ease and the fall a gravity-style acceleration. The
+   falling bolt lives on the stationary wrapper, not the rotating board, so it
+   drops straight down in screen space. */
+.board-bolt-shear {
+  animation: bolt-unscrew-drop 1800ms forwards;
+}
+@keyframes bolt-unscrew-drop {
+  /* Phase 1 — unscrew loose + lift toward the viewer. */
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(.3, 0, .5, 1);
+  }
+  38% {
+    transform: translate3d(0, -3px, 0) rotate(-200deg) scale(1.18);
+    opacity: 1;
+  }
+  44% {
+    /* Fully loose, sitting proud. Gravity takes over from here. */
+    transform: translate3d(0, -2px, 0) rotate(-228deg) scale(1.16);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(.4, 0, 1, 1);
+  }
+  /* Phase 2 — fall off the bottom of the view, tumbling. */
+  100% {
+    transform: translate3d(-30px, 1400px, 0) rotate(-1180deg) scale(1);
+    opacity: 1;
+  }
+}
+
 .wave-drift { animation: wave-drift 16s linear infinite; }
 .wave-drift-slow { animation: wave-drift 26s linear infinite; }
 .wave-drift-rev { animation: wave-drift-rev 20s linear infinite; }
@@ -379,6 +442,9 @@ body {
   .wave-drift, .wave-drift-slow,
   .wave-drift-rev, .wave-drift-rev-slow,
   .liquid-wave, .liquid-wave-slow { animation: none; }
+  /* Billboard hangs flat with both bolts intact when motion is reduced. */
+  .board-swing { animation: none; transform: none; }
+  .board-bolt-shear { animation: none; transform: none; opacity: 1; }
   .water-text {
     animation: none;
     color: var(--foreground);
