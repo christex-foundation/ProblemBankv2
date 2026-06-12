@@ -68,7 +68,7 @@ export function Footer() {
           href="/terms"
           className="text-[11px] uppercase tracking-[0.22em] font-semibold text-accent hover:text-background transition-soft order-2 sm:order-3 link-underline"
         >
-          Terms &amp; Conditions
+          Terms &amp; Privacy
         </Link>
       </div>
     </footer>
